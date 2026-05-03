@@ -638,7 +638,11 @@
             addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!`, "damage");
             
             if (game.hp <= 0) {
-                addLog("💀 Ты погиб! Возрождение с 50% HP...", "damage");
+                let penaltyGold = Math.floor(game.gold * 0.2);
+                game.gold = Math.max(0, game.gold - penaltyGold);
+                let penaltyExp = Math.floor(game.exp * 0.1);
+                game.exp = Math.max(0, game.exp - penaltyExp);
+                addLog(`💀 ТЫ ПОГИБ! ШТРАФ: -${penaltyGold}🍺, -${penaltyExp} XP! 💀`, "damage");
                 game.hp = Math.floor(game.maxHp / 2);
                 game.ap = Math.floor(game.maxAp / 2);
                 startBattle();
@@ -674,7 +678,7 @@
                 addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
                 
                 let needExp = game.level * 100;
-                while (game.exp >= needExp) {
+                                while (game.exp >= needExp) {
                     game.level++;
                     game.exp -= needExp;
                     game.strength += 5;
@@ -683,6 +687,14 @@
                     game.hp = game.maxHp;
                     game.ap = game.maxAp;
                     needExp = game.level * 100;
+                    
+                    // УЛУЧШЕНИЕ СПОСОБНОСТИ ПЕРСОНАЖА
+                    if (game.character && game.level % 3 === 0) {
+                        game.character.skillCost = Math.max(20, game.character.skillCost - 5);
+                        addLog(`✨ УЛУЧШЕНИЕ! Стоимость умения ${game.character.name} снижена до ${game.character.skillCost} AP! ✨`, "skill");
+                        save();
+                    }
+                    
                     addLog(`🎉 УРОВЕНЬ ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win");
                 }
                 
@@ -839,12 +851,13 @@
             setTimeout(() => { enemyTurn(); }, 800);
         }
 
-        function selectCharacter(char) {
+            function selectCharacter(char) {
             game.character = char;
             game.strength = char.strength;
             game.maxHp = char.hp;
             game.hp = char.hp;
             save();
+            updateUpgradePrices();  // <--- ДОБАВЬ ЭТУ СТРОКУ
             addLog(`🎭 Выбран ${char.name}! ⚔️ Сила: ${char.strength}, ❤️ HP: ${char.hp}`, "win");
             document.getElementById('charInfo').innerHTML = `✅ Выбран ${char.name}! ⚔️${char.strength} ❤️${char.hp}`;
             updateUI();
@@ -852,45 +865,91 @@
 
         function upgrade(type) {
             let cost = 0;
+            let currentLevel = 0;
+            let nextBonus = "";
+            
             if (type === 'str') {
-                let lvl = Math.floor(game.strength / 5);
-                cost = Math.floor(50 * Math.pow(1.5, lvl));
+                currentLevel = Math.floor(game.strength / 5);
+                cost = Math.floor(50 * Math.pow(1.5, currentLevel));
+                nextBonus = `+5 к силе (было ${game.strength} → станет ${game.strength + 5})`;
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.strength += 5;
-                    addLog(`✅ Сила увеличена до ${game.strength}!`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
+                    addLog(`✅ СИЛА +5! Теперь ${game.strength}! (тратишь ${cost}🍺)`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
             } else if (type === 'hp') {
-                let lvl = Math.floor(game.maxHp / 20);
-                cost = Math.floor(60 * Math.pow(1.5, lvl));
+                currentLevel = Math.floor(game.maxHp / 20);
+                cost = Math.floor(60 * Math.pow(1.5, currentLevel));
+                nextBonus = `+20 HP (было ${game.maxHp} → станет ${game.maxHp + 20})`;
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.maxHp += 20;
                     game.hp += 20;
-                    addLog(`✅ HP увеличено до ${game.maxHp}!`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
+                    addLog(`✅ ЗДОРОВЬЕ +20! Теперь ${game.maxHp} HP! (тратишь ${cost}🍺)`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
             } else if (type === 'ap') {
-                let lvl = Math.floor(game.maxAp / 10);
-                cost = Math.floor(70 * Math.pow(1.5, lvl));
+                currentLevel = Math.floor(game.maxAp / 10);
+                cost = Math.floor(70 * Math.pow(1.5, currentLevel));
+                nextBonus = `+10 AP (было ${game.maxAp} → станет ${game.maxAp + 10})`;
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.maxAp += 10;
                     game.ap += 10;
-                    addLog(`✅ AP увеличено до ${game.maxAp}!`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
+                    addLog(`✅ AP +10! Теперь ${game.maxAp} AP! (тратишь ${cost}🍺)`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
             } else if (type === 'worker') {
-                let lvl = game.workers;
-                cost = Math.floor(100 * Math.pow(1.8, lvl));
+                currentLevel = game.workers;
+                cost = Math.floor(100 * Math.pow(1.8, currentLevel));
+                nextBonus = `+1 работник (сейчас ${game.workers} → станет ${game.workers + 1})`;
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.workers += 1;
-                    addLog(`✅ Нанят работник! +1🍺/сек!`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
+                    addLog(`✅ НАНЯТ РАБОТНИК! +1🍺/сек! (тратишь ${cost}🍺)`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
             }
+            
+            // Обновляем отображение цен в панели прокачки
+            updateUpgradePrices();
             updateUI();
             save();
         }
-
+        
+        // Новая функция для отображения цен в панели прокачки
+        function updateUpgradePrices() {
+            let strLevel = Math.floor(game.strength / 5);
+            let strCost = Math.floor(50 * Math.pow(1.5, strLevel));
+            let hpLevel = Math.floor(game.maxHp / 20);
+            let hpCost = Math.floor(60 * Math.pow(1.5, hpLevel));
+            let apLevel = Math.floor(game.maxAp / 10);
+            let apCost = Math.floor(70 * Math.pow(1.5, apLevel));
+            let workerLevel = game.workers;
+            let workerCost = Math.floor(100 * Math.pow(1.8, workerLevel));
+            
+            let upgradePanel = document.getElementById('upgrade-panel');
+            if (upgradePanel) {
+                upgradePanel.innerHTML = `
+                    <div class="upgrade-item">
+                        <div><b>💪 СИЛА</b><br>Уровень: ${strLevel}<br>💰 ${strCost} 🍺<br><span style="font-size:9px;">+5 к силе</span></div>
+                        <button class="upgrade-btn" data-upgrade="str">+</button>
+                    </div>
+                    <div class="upgrade-item">
+                        <div><b>❤️ ЗДОРОВЬЕ</b><br>Уровень: ${hpLevel}<br>💰 ${hpCost} 🍺<br><span style="font-size:9px;">+20 HP</span></div>
+                        <button class="upgrade-btn" data-upgrade="hp">+</button>
+                    </div>
+                    <div class="upgrade-item">
+                        <div><b>⚡ AP</b><br>Уровень: ${apLevel}<br>💰 ${apCost} 🍺<br><span style="font-size:9px;">+10 AP</span></div>
+                        <button class="upgrade-btn" data-upgrade="ap">+</button>
+                    </div>
+                    <div class="upgrade-item">
+                        <div><b>👥 КОМАНДА</b><br>Уровень: ${workerLevel}<br>💰 ${workerCost} 🍺<br><span style="font-size:9px;">+1🍺/сек</span></div>
+                        <button class="upgrade-btn" data-upgrade="worker">+</button>
+                    </div>
+                `;
+                document.querySelectorAll('[data-upgrade]').forEach(btn => {
+                    btn.addEventListener('click', () => upgrade(btn.dataset.upgrade));
+                });
+            }
+        }
         function updateRating() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
             let power = calcPower();
@@ -1257,6 +1316,7 @@
             startBattle();
             updateUI();
             updateRating();
+            updateUpgradePrices();
             
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
