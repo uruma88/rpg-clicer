@@ -918,7 +918,12 @@
             }
         }
 
-        // PVP
+                // ===== PVP С РЕАЛЬНЫМИ ПОШАГОВЫМИ БОЯМИ =====
+
+        let pendingFights = JSON.parse(localStorage.getItem('pvp_pending') || '{}');
+        let activePvpBattle = null;
+
+        // Поиск соперника для отображения
         function findPvPOpponent() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
             let opponents = ratings.filter(r => r.id !== userId);
@@ -931,32 +936,305 @@
             return opp;
         }
 
-        function pvpFight() {
-            let opponent = findPvPOpponent();
-            if (!opponent) return;
+        // Отправка запроса на PVP
+        function sendPvpRequest() {
+            let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
+            let opponents = ratings.filter(r => r.id !== userId);
             
-            let myPower = calcPower();
-            if (myPower > opponent.power) {
+            if (opponents.length === 0) {
+                document.getElementById('pvpResult').innerHTML = '❌ Нет других игроков! Пригласи друзей!';
+                setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 3000);
+                return;
+            }
+            
+            let target = opponents[Math.floor(Math.random() * opponents.length)];
+            
+            let requestId = Date.now() + '_' + userId;
+            let pending = JSON.parse(localStorage.getItem('pvp_pending') || '{}');
+            pending[requestId] = {
+                from: userId,
+                fromName: game.character?.name || userName,
+                fromPower: calcPower(),
+                fromHp: game.maxHp,
+                fromStrength: game.strength,
+                targetId: target.id,
+                targetName: target.name,
+                status: 'waiting',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('pvp_pending', JSON.stringify(pending));
+            
+            document.getElementById('pvpResult').innerHTML = `⚔️ Запрос отправлен ${target.name}! Жди ответа...`;
+            addLog(`⚔️ Ты вызвал на PVP бой ${target.name}!`, "skill");
+            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 3000);
+            setTimeout(() => checkPendingRequests(true), 3000);
+        }
+
+        // Проверка входящих запросов
+        function checkPendingRequests(isRequesting = false) {
+            let pending = JSON.parse(localStorage.getItem('pvp_pending') || '{}');
+            let updated = false;
+            
+            for (let id in pending) {
+                let request = pending[id];
+                if (request.targetId === userId && request.from !== userId && request.status === 'waiting') {
+                    request.status = 'accepted';
+                    pending[id] = request;
+                    updated = true;
+                    addLog(`⚔️ ${request.fromName} принял вызов! Начинается PVP бой!`, "win");
+                    startRealPvpBattle(request.from, request.fromName, request.fromPower, request.fromHp, request.fromStrength);
+                    break;
+                }
+            }
+            
+            if (updated) {
+                localStorage.setItem('pvp_pending', JSON.stringify(pending));
+            }
+        }
+
+        // Реальный пошаговый PVP бой
+        function startRealPvpBattle(opponentId, opponentName, opponentPower, opponentHp, opponentStrength) {
+            if (activePvpBattle) {
+                addLog("⚠️ Уже идёт другой бой!", "normal");
+                return;
+            }
+            
+            let myMaxHp = game.maxHp;
+            let myCurrentHp = game.hp;
+            let oppCurrentHp = opponentHp || 120;
+            let myCurrentAp = game.ap;
+            let oppCurrentAp = 100;
+            
+            activePvpBattle = {
+                opponentId: opponentId,
+                opponentName: opponentName,
+                myHp: myCurrentHp,
+                myMaxHp: myMaxHp,
+                oppHp: oppCurrentHp,
+                oppMaxHp: oppCurrentHp,
+                myAp: myCurrentAp,
+                oppAp: oppCurrentAp,
+                myStrength: game.strength,
+                oppStrength: opponentStrength || 15,
+                turn: 'player'
+            };
+            
+            addLog(`⚔️⚔️⚔️ PVP БОЙ: ${game.character?.name || userName} VS ${opponentName} ⚔️⚔️⚔️`, "win");
+            addLog(`🍺 Твой ход! У тебя ${activePvpBattle.myAp} AP`, "skill");
+            
+            updatePvpUI();
+            
+            document.getElementById('attackBtn').disabled = true;
+            document.getElementById('skillBtn').disabled = true;
+            document.getElementById('defendBtn').disabled = true;
+            document.getElementById('healBtn').disabled = true;
+            
+            showPvpBattleButtons();
+        }
+
+        function showPvpBattleButtons() {
+            let actionsDiv = document.querySelector('.actions');
+            if (!actionsDiv) return;
+            
+            if (!window.originalButtons) {
+                window.originalButtons = actionsDiv.innerHTML;
+            }
+            
+            actionsDiv.innerHTML = `
+                <button class="action-btn" id="pvpAttackBtn">🔫 АТАКА (20 AP)</button>
+                <button class="action-btn special" id="pvpSkillBtn">✨ УМЕНИЕ (40 AP)</button>
+                <button class="action-btn" id="pvpDefendBtn">🛡️ ЗАЩИТА (15 AP)</button>
+                <button class="action-btn" id="pvpHealBtn">💚 ЛЕЧЕНИЕ (30 AP)</button>
+            `;
+            
+            document.getElementById('pvpAttackBtn')?.addEventListener('click', pvpAttack);
+            document.getElementById('pvpSkillBtn')?.addEventListener('click', pvpSkill);
+            document.getElementById('pvpDefendBtn')?.addEventListener('click', pvpDefend);
+            document.getElementById('pvpHealBtn')?.addEventListener('click', pvpHeal);
+            
+            updatePvpButtonsState();
+        }
+
+        function updatePvpButtonsState() {
+            if (!activePvpBattle) return;
+            
+            let attackBtn = document.getElementById('pvpAttackBtn');
+            let skillBtn = document.getElementById('pvpSkillBtn');
+            let defendBtn = document.getElementById('pvpDefendBtn');
+            let healBtn = document.getElementById('pvpHealBtn');
+            
+            if (attackBtn) attackBtn.disabled = activePvpBattle.turn !== 'player' || activePvpBattle.myAp < 20;
+            if (defendBtn) defendBtn.disabled = activePvpBattle.turn !== 'player' || activePvpBattle.myAp < 15;
+            if (healBtn) healBtn.disabled = activePvpBattle.turn !== 'player' || activePvpBattle.myAp < 30;
+            if (skillBtn && game.character) {
+                skillBtn.disabled = activePvpBattle.turn !== 'player' || activePvpBattle.myAp < 40;
+            }
+        }
+
+        function updatePvpUI() {
+            if (!activePvpBattle) return;
+            
+            let enemyBox = document.querySelector('.enemy-box');
+            if (enemyBox) {
+                let oppHpPercent = (activePvpBattle.oppHp / activePvpBattle.oppMaxHp) * 100;
+                document.getElementById('enemyEmoji').innerHTML = "⚔️";
+                document.getElementById('enemyName').innerHTML = `👤 ${activePvpBattle.opponentName}`;
+                document.getElementById('enemyHpFill').style.width = `${Math.max(0, oppHpPercent)}%`;
+                document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.max(0, Math.floor(activePvpBattle.oppHp))}/${activePvpBattle.oppMaxHp}`;
+            }
+            
+            let myHpPercent = (activePvpBattle.myHp / activePvpBattle.myMaxHp) * 100;
+            document.getElementById('playerHp').innerHTML = `❤️ ${Math.floor(activePvpBattle.myHp)}/${activePvpBattle.myMaxHp}`;
+            document.getElementById('playerAp').innerHTML = `💥 AP: ${Math.floor(activePvpBattle.myAp)}/100`;
+            
+            document.getElementById('attackBtn').disabled = true;
+            document.getElementById('skillBtn').disabled = true;
+            document.getElementById('defendBtn').disabled = true;
+            document.getElementById('healBtn').disabled = true;
+            
+            updatePvpButtonsState();
+        }
+
+        function endPvpBattle(winner) {
+            if (winner === 'player') {
                 game.pvpWins++;
-                game.gold += 50;
-                document.getElementById('pvpResult').innerHTML = `🎉 ПОБЕДА! Вы перепили ${opponent.name}! +50🍺!`;
-                addLog(`🏆 PVP ПОБЕДА над ${opponent.name}! +50🍺!`, "win");
+                game.gold += 100;
+                addLog(`🎉🎉🎉 PVP ПОБЕДА над ${activePvpBattle.opponentName}! +100🍺! 🎉🎉🎉`, "win");
+                game.hp = activePvpBattle.myHp;
+                game.ap = activePvpBattle.myAp;
             } else {
                 game.pvpLosses++;
-                document.getElementById('pvpResult').innerHTML = `💀 ПОРАЖЕНИЕ от ${opponent.name}`;
-                addLog(`💀 PVP ПОРАЖЕНИЕ от ${opponent.name}`, "damage");
+                game.gold = Math.max(0, game.gold - 50);
+                addLog(`💀💀💀 PVP ПОРАЖЕНИЕ от ${activePvpBattle.opponentName}! -50🍺! 💀💀💀`, "damage");
+                game.hp = Math.floor(game.maxHp / 2);
+                game.ap = Math.floor(game.maxAp / 2);
             }
+            
+            if (window.originalButtons) {
+                document.querySelector('.actions').innerHTML = window.originalButtons;
+                document.getElementById('attackBtn')?.addEventListener('click', attack);
+                document.getElementById('skillBtn')?.addEventListener('click', useSkill);
+                document.getElementById('defendBtn')?.addEventListener('click', defend);
+                document.getElementById('healBtn')?.addEventListener('click', healAction);
+            }
+            
+            document.getElementById('attackBtn').disabled = false;
+            document.getElementById('skillBtn').disabled = false;
+            document.getElementById('defendBtn').disabled = false;
+            document.getElementById('healBtn').disabled = false;
             
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
             document.getElementById('pvpRating').innerText = 1000 + game.pvpWins * 10 - game.pvpLosses * 5;
             
+            startBattle();
+            
             save();
             updateUI();
             updateRating();
-            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 3000);
-            findPvPOpponent();
+            
+            activePvpBattle = null;
+            
+            addLog(`🏆 PVP РЕЙТИНГ: ${1000 + game.pvpWins * 10 - game.pvpLosses * 5}`, "win");
         }
+
+        function pvpAttack() {
+            if (activePvpBattle.turn !== 'player') return;
+            if (activePvpBattle.myAp < 20) { addLog(`❌ Нет AP!`, "damage"); return; }
+            
+            activePvpBattle.myAp -= 20;
+            let damage = activePvpBattle.myStrength + Math.floor(Math.random() * 10);
+            activePvpBattle.oppHp -= damage;
+            addLog(`🔫 Атака! ${damage} урона по ${activePvpBattle.opponentName}!`, "damage");
+            
+            if (activePvpBattle.oppHp <= 0) {
+                endPvpBattle('player');
+                return;
+            }
+            
+            activePvpBattle.turn = 'opponent';
+            updatePvpUI();
+            setTimeout(pvpOpponentTurn, 1000);
+        }
+
+        function pvpSkill() {
+            if (activePvpBattle.turn !== 'player') return;
+            if (!game.character) { addLog(`❌ Нет умения!`, "normal"); return; }
+            if (activePvpBattle.myAp < 40) { addLog(`❌ Нет AP!`, "damage"); return; }
+            
+            activePvpBattle.myAp -= 40;
+            let damage = activePvpBattle.myStrength + 25 + Math.floor(Math.random() * 15);
+            activePvpBattle.oppHp -= damage;
+            addLog(`✨ УМЕНИЕ! ${damage} урона по ${activePvpBattle.opponentName}! ✨`, "skill");
+            
+            if (activePvpBattle.oppHp <= 0) {
+                endPvpBattle('player');
+                return;
+            }
+            
+            activePvpBattle.turn = 'opponent';
+            updatePvpUI();
+            setTimeout(pvpOpponentTurn, 1000);
+        }
+
+        function pvpDefend() {
+            if (activePvpBattle.turn !== 'player') return;
+            if (activePvpBattle.myAp < 15) { addLog(`❌ Нет AP!`, "damage"); return; }
+            
+            activePvpBattle.myAp -= 15;
+            activePvpBattle.defending = true;
+            addLog(`🛡️ Защита! Следующий урон будет снижен на 50%!`, "skill");
+            
+            activePvpBattle.turn = 'opponent';
+            updatePvpUI();
+            setTimeout(pvpOpponentTurn, 1000);
+        }
+
+        function pvpHeal() {
+            if (activePvpBattle.turn !== 'player') return;
+            if (activePvpBattle.myAp < 30) { addLog(`❌ Нет AP!`, "damage"); return; }
+            
+            activePvpBattle.myAp -= 30;
+            let heal = 40;
+            activePvpBattle.myHp = Math.min(activePvpBattle.myMaxHp, activePvpBattle.myHp + heal);
+            addLog(`💚 Лечение! +${heal} HP! (${Math.floor(activePvpBattle.myHp)}/${activePvpBattle.myMaxHp})`, "heal");
+            
+            activePvpBattle.turn = 'opponent';
+            updatePvpUI();
+            setTimeout(pvpOpponentTurn, 1000);
+        }
+
+        function pvpOpponentTurn() {
+            if (activePvpBattle.turn !== 'opponent') return;
+            
+            let damage = activePvpBattle.oppStrength + Math.floor(Math.random() * 10);
+            if (activePvpBattle.defending) {
+                damage = Math.floor(damage / 2);
+                activePvpBattle.defending = false;
+                addLog(`🛡️ Защита снизила урон до ${damage}!`, "skill");
+            }
+            
+            activePvpBattle.myHp -= damage;
+            addLog(`💥 ${activePvpBattle.opponentName} наносит ${damage} урона!`, "damage");
+            
+            if (activePvpBattle.myHp <= 0) {
+                endPvpBattle('opponent');
+                return;
+            }
+            
+            activePvpBattle.turn = 'player';
+            activePvpBattle.myAp = Math.min(100, activePvpBattle.myAp + 20);
+            updatePvpUI();
+            addLog(`🍺 Твой ход! У тебя ${Math.floor(activePvpBattle.myAp)} AP`, "skill");
+        }
+
+        // Новая функция PVP боя (вызывается при нажатии кнопки)
+        function pvpFight() {
+            sendPvpRequest();
+        }
+
+        // Периодическая проверка входящих запросов
+        setInterval(() => checkPendingRequests(false), 5000);
 
         function save() {
             let toSave = { ...game };
@@ -1003,8 +1281,8 @@
                     card.addEventListener('click', () => selectCharacter(friend));
                 });
             }
+            findPvPOpponent();
         }
-
         // ПАССИВНЫЙ ДОХОД
         setInterval(() => {
             if (game.workers > 0) {
