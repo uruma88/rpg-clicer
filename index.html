@@ -57,6 +57,7 @@
         .leaderboard-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 9px; }
         .pvp-opponent { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 12px; margin: 10px 0; text-align: center; }
         .pvp-btn { background: linear-gradient(135deg, #e74c3c, #c0392b); border: none; border-radius: 25px; padding: 10px; font-size: 14px; font-weight: bold; color: white; width: 100%; cursor: pointer; margin-top: 10px; }
+        .loading { text-align: center; padding: 20px; color: #ffd700; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -123,35 +124,34 @@
         <button class="pvp-btn" id="pvpFindBtn">⚔️ НАЙТИ ПРОТИВНИКА ⚔️</button>
         <div id="pvpResult" style="margin-top:10px;text-align:center;"></div>
     </div>
-    <div id="rating-panel" class="panel"><div id="ratingList"></div></div>
+    <div id="rating-panel" class="panel"><div id="ratingList" class="loading">Загрузка рейтинга...</div></div>
 
     <script>
         const tg = window.Telegram.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
         
-        // ПОЛУЧАЕМ ДАННЫЕ О ПОЛЬЗОВАТЕЛЕ ИЗ TELEGRAM
         const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
         const userId = tgUser ? tgUser.id : Math.floor(Math.random() * 1000000);
         const userName = tgUser ? (tgUser.first_name + (tgUser.last_name ? " " + tgUser.last_name : "")) : "Гость";
 
-        // ПЕРСОНАЖИ С УНИКАЛЬНЫМИ СПОСОБНОСТЯМИ
+        // ПЕРСОНАЖИ
         const FRIENDS = [
-            { name: "Алина", photo: "avatars/алина.jpg", strength: 1, hp: 95, skillName: "Ледяной взгляд", skillEffect: "заморозка врага", skillDamage: 35 },
-            { name: "Бень", photo: "avatars/бень.jpg", strength: 16, hp: 130, skillName: "Медвежья сила", skillEffect: "+20 к урону", skillDamage: 20 },
-            { name: "Богдан", photo: "avatars/богдан.jpg", strength: 8, hp: 90, skillName: "Магический щит", skillEffect: "-50% урона", skillDamage: 0 },
-            { name: "Ваня", photo: "avatars/ваня.jpg", strength: 14, hp: 105, skillName: "Двойной удар", skillEffect: "двойная атака", skillDamage: 40 },
-            { name: "Егор", photo: "avatars/егор.jpg", strength: 17, hp: 115, skillName: "Ярость", skillEffect: "+50% урона", skillDamage: 45 },
-            { name: "Илюха", photo: "avatars/илюха.jpg", strength: 15, hp: 100, skillName: "Исцеление", skillEffect: "+40 HP", skillDamage: 0 },
-            { name: "Капрал", photo: "avatars/капрал.jpg", strength: 20, hp: 130, skillName: "Приказ", skillEffect: "+15 урона команде", skillDamage: 35 },
-            { name: "Кирилл", photo: "avatars/кирилл.jpg", strength: 13, hp: 100, skillName: "Теневой удар", skillEffect: "игнорирует защиту", skillDamage: 50 },
-            { name: "Лера", photo: "avatars/лера.jpg", strength: 10, hp: 90, skillName: "Ослепление", skillEffect: "враг пропускает ход", skillDamage: 25 },
-            { name: "Никитос", photo: "avatars/никитос.jpg", strength: 16, hp: 110, skillName: "Ускорение", skillEffect: "+25 AP", skillDamage: 0 },
-            { name: "Полина", photo: "avatars/полина.jpg", strength: 11, hp: 95, skillName: "Вампиризм", skillEffect: "лечит от урона", skillDamage: 35 },
-            { name: "Рома", photo: "avatars/рома.jpg", strength: 19, hp: 125, skillName: "Сокрушитель", skillEffect: "+30% урона", skillDamage: 55 },
-            { name: "Саша", photo: "avatars/саша.jpg", strength: 18, hp: 130, skillName: "Боевой клич", skillEffect: "+10 силы", skillDamage: 30 },
-            { name: "Серега", photo: "avatars/серега.jpg", strength: 17, hp: 115, skillName: "Адреналин", skillEffect: "+30 AP", skillDamage: 0 },
-            { name: "Таня", photo: "avatars/таня.jpg", strength: 12, hp: 100, skillName: "Точный выстрел", skillEffect: "100% попадание", skillDamage: 45 },
-            { name: "Юра", photo: "avatars/юра.jpg", strength: 16, hp: 110, skillName: "Контратака", skillEffect: "ответный удар", skillDamage: 35 }
+            { name: "Алина", photo: "avatars/алина.jpg", strength: 1, hp: 95, skillName: "Ледяной взгляд" },
+            { name: "Бень", photo: "avatars/бень.jpg", strength: 16, hp: 130, skillName: "Медвежья сила" },
+            { name: "Богдан", photo: "avatars/богдан.jpg", strength: 8, hp: 90, skillName: "Магический щит" },
+            { name: "Ваня", photo: "avatars/ваня.jpg", strength: 14, hp: 105, skillName: "Двойной удар" },
+            { name: "Егор", photo: "avatars/егор.jpg", strength: 17, hp: 115, skillName: "Ярость" },
+            { name: "Илюха", photo: "avatars/илюха.jpg", strength: 15, hp: 100, skillName: "Исцеление" },
+            { name: "Капрал", photo: "avatars/капрал.jpg", strength: 20, hp: 130, skillName: "Приказ" },
+            { name: "Кирилл", photo: "avatars/кирилл.jpg", strength: 13, hp: 100, skillName: "Теневой удар" },
+            { name: "Лера", photo: "avatars/лера.jpg", strength: 10, hp: 90, skillName: "Ослепление" },
+            { name: "Никитос", photo: "avatars/никитос.jpg", strength: 16, hp: 110, skillName: "Ускорение" },
+            { name: "Полина", photo: "avatars/полина.jpg", strength: 11, hp: 95, skillName: "Вампиризм" },
+            { name: "Рома", photo: "avatars/рома.jpg", strength: 19, hp: 125, skillName: "Сокрушитель" },
+            { name: "Саша", photo: "avatars/саша.jpg", strength: 18, hp: 130, skillName: "Боевой клич" },
+            { name: "Серега", photo: "avatars/серега.jpg", strength: 17, hp: 115, skillName: "Адреналин" },
+            { name: "Таня", photo: "avatars/таня.jpg", strength: 12, hp: 100, skillName: "Точный выстрел" },
+            { name: "Юра", photo: "avatars/юра.jpg", strength: 16, hp: 110, skillName: "Контратака" }
         ];
 
         const ITEMS = [
@@ -165,7 +165,7 @@
 
         let game = {
             gold: 300, level: 1, exp: 0, strength: 15, maxHp: 100, hp: 100, maxAp: 100, ap: 100,
-            workers: 0, floor: 1, character: null, weapon: null, armor: null, slaves: [], master: null, 
+            workers: 0, floor: 1, character: null, weapon: null, armor: null, slaves: [], master: null,
             pvpWins: 0, pvpLosses: 0, skillCooldown: 0
         };
         let currentEnemy = null, logs = [], waitingForTurn = true, enemyFrozen = false;
@@ -216,7 +216,7 @@
             document.getElementById('revoltBtn')?.addEventListener('click', revolt);
         }
 
-        // СПОСОБНОСТЬ ПЕРСОНАЖА
+        // СПОСОБНОСТИ ПЕРСОНАЖЕЙ
         function useSkill() {
             if (!waitingForTurn) { addLog("⏳ Не твой ход!"); return; }
             if (!game.character) { addLog("❌ Сначала выбери персонажа!"); return; }
@@ -225,91 +225,37 @@
             game.ap -= 40;
             let char = game.character;
             let effect = "";
+            let dmg = game.strength + Math.floor(Math.random() * 15) + (game.weapon?.bonus?.strength || 0);
             
             switch (char.name) {
-                case "Алина":
-                    enemyFrozen = true;
-                    effect = `❄️ ${char.skillName}! Враг заморожен на 1 ход!`;
-                    break;
-                case "Бень":
-                    game.buff = { dmgBonus: 20, turns: 2 };
-                    effect = `🐻 ${char.skillName}! +20 к урону на 2 хода!`;
-                    break;
-                case "Богдан":
-                    game.buff = { defBonus: 50, turns: 1 };
-                    effect = `🛡️ ${char.skillName}! -50% урона на 1 ход!`;
-                    break;
-                case "Ваня":
-                    let dmg = (game.strength + Math.floor(Math.random() * 10)) * 2 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= dmg;
-                    effect = `⚡ ${char.skillName}! ${dmg} урона!`;
-                    break;
-                case "Егор":
-                    let rageDmg = (game.strength + Math.random() * 10) * 1.5 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= Math.floor(rageDmg);
-                    effect = `😤 ${char.skillName}! ${Math.floor(rageDmg)} урона!`;
-                    break;
-                case "Илюха":
-                    let heal = 50;
-                    game.hp = Math.min(game.maxHp, game.hp + heal);
-                    effect = `💚 ${char.skillName}! +${heal} HP!`;
-                    break;
-                case "Кирилл":
-                    let shadowDmg = game.strength + 25 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= shadowDmg;
-                    effect = `🌑 ${char.skillName}! ${shadowDmg} урона (игнорирует защиту)!`;
-                    break;
-                case "Лера":
-                    enemyFrozen = true;
-                    effect = `✨ ${char.skillName}! Враг ослеплён на 1 ход!`;
-                    break;
-                case "Никитос":
-                    game.ap = Math.min(game.maxAp, game.ap + 25);
-                    effect = `⚡ ${char.skillName}! +25 AP!`;
-                    break;
-                case "Полина":
-                    let vampDmg = game.strength + 15 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= vampDmg;
-                    let vampHeal = Math.floor(vampDmg / 2);
-                    game.hp = Math.min(game.maxHp, game.hp + vampHeal);
-                    effect = `🧛 ${char.skillName}! ${vampDmg} урона, +${vampHeal} HP!`;
-                    break;
-                case "Рома":
-                    let crushDmg = (game.strength + Math.random() * 10) * 1.3 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= Math.floor(crushDmg);
-                    effect = `💪 ${char.skillName}! ${Math.floor(crushDmg)} урона!`;
-                    break;
-                case "Саша":
-                    game.strength += 10;
-                    effect = `📢 ${char.skillName}! +10 силы навсегда!`;
-                    break;
-                case "Серега":
-                    game.ap = Math.min(game.maxAp, game.ap + 30);
-                    effect = `💊 ${char.skillName}! +30 AP!`;
-                    break;
-                case "Таня":
-                    let preciseDmg = game.strength + 20 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= preciseDmg;
-                    effect = `🎯 ${char.skillName}! ${preciseDmg} урона (100% попадание)!`;
-                    break;
-                default:
-                    let defDmg = game.strength + 20 + (game.weapon?.bonus?.strength || 0);
-                    currentEnemy.hp -= defDmg;
-                    effect = `✨ ${char.skillName}! ${defDmg} урона!`;
+                case "Алина": enemyFrozen = true; effect = `❄️ Ледяной взгляд! Враг заморожен!`; break;
+                case "Бень": game.buff = { dmgBonus: 20, turns: 2 }; effect = `🐻 Медвежья сила! +20 к урону на 2 хода!`; break;
+                case "Богдан": game.buff = { defBonus: 50, turns: 1 }; effect = `🛡️ Магический щит! -50% урона на 1 ход!`; break;
+                case "Ваня": currentEnemy.hp -= dmg * 2; effect = `⚡ Двойной удар! ${dmg * 2} урона!`; break;
+                case "Егор": currentEnemy.hp -= Math.floor(dmg * 1.5); effect = `😤 Ярость! ${Math.floor(dmg * 1.5)} урона!`; break;
+                case "Илюха": let heal = 50; game.hp = Math.min(game.maxHp, game.hp + heal); effect = `💚 Исцеление! +${heal} HP!`; break;
+                case "Кирилл": currentEnemy.hp -= dmg + 15; effect = `🌑 Теневой удар! ${dmg + 15} урона!`; break;
+                case "Лера": enemyFrozen = true; effect = `✨ Ослепление! Враг пропускает ход!`; break;
+                case "Никитос": game.ap = Math.min(game.maxAp, game.ap + 25); effect = `⚡ Ускорение! +25 AP!`; break;
+                case "Полина": currentEnemy.hp -= dmg; let vampHeal = Math.floor(dmg / 2); game.hp = Math.min(game.maxHp, game.hp + vampHeal); effect = `🧛 Вампиризм! ${dmg} урона, +${vampHeal} HP!`; break;
+                case "Рома": currentEnemy.hp -= Math.floor(dmg * 1.3); effect = `💪 Сокрушитель! ${Math.floor(dmg * 1.3)} урона!`; break;
+                case "Саша": game.strength += 10; effect = `📢 Боевой клич! +10 силы навсегда!`; break;
+                case "Серега": game.ap = Math.min(game.maxAp, game.ap + 30); effect = `💊 Адреналин! +30 AP!`; break;
+                case "Таня": currentEnemy.hp -= dmg + 20; effect = `🎯 Точный выстрел! ${dmg + 20} урона!`; break;
+                default: currentEnemy.hp -= dmg; effect = `✨ ${char.skillName}! ${dmg} урона!`;
             }
-            
             addLog(`✨ ${effect}`, "skill");
-            
-            if (currentEnemy.hp <= 0) {
-                game.gold += currentEnemy.gold; game.exp += currentEnemy.exp;
-                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
-                let needExp = game.level * 100;
-                while (game.exp >= needExp) { game.level++; game.exp -= needExp; game.strength += 5; game.maxHp += 20; game.maxAp += 10; game.hp = game.maxHp; game.ap = game.maxAp; needExp = game.level * 100; addLog(`🎉 УРОВЕНЬ ${game.level}!`, "win"); }
-                game.floor++; startBattle(); save(); updateRating(); return;
-            }
-            
+            if (currentEnemy.hp <= 0) { victory(); return; }
             if (!enemyFrozen) { waitingForTurn = false; updateUI(); save(); setTimeout(() => { enemyTurn(); }, 800); }
             else { enemyFrozen = false; addLog("❄️ Враг пропускает ход!", "skill"); waitingForTurn = true; game.ap = Math.min(game.maxAp, game.ap + 15); updateUI(); save(); }
+        }
+
+        function victory() {
+            game.gold += currentEnemy.gold; game.exp += currentEnemy.exp;
+            addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
+            let needExp = game.level * 100;
+            while (game.exp >= needExp) { game.level++; game.exp -= needExp; game.strength += 5; game.maxHp += 20; game.maxAp += 10; game.hp = game.maxHp; game.ap = game.maxAp; needExp = game.level * 100; addLog(`🎉 УРОВЕНЬ ${game.level}!`, "win"); }
+            game.floor++; updateZoneUI(); save(); startBattle(); updateRating();
         }
 
         function attack() {
@@ -320,13 +266,7 @@
             if (game.buff?.dmgBonus) { dmg += game.buff.dmgBonus; game.buff.turns--; if (game.buff.turns <= 0) game.buff = null; }
             currentEnemy.hp -= dmg;
             addLog(`🔫 Атака! ${dmg} урона!`, "damage");
-            if (currentEnemy.hp <= 0) {
-                game.gold += currentEnemy.gold; game.exp += currentEnemy.exp;
-                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
-                let needExp = game.level * 100;
-                while (game.exp >= needExp) { game.level++; game.exp -= needExp; game.strength += 5; game.maxHp += 20; game.maxAp += 10; game.hp = game.maxHp; game.ap = game.maxAp; needExp = game.level * 100; addLog(`🎉 УРОВЕНЬ ${game.level}!`, "win"); }
-                game.floor++; startBattle(); save(); updateRating(); return;
-            }
+            if (currentEnemy.hp <= 0) { victory(); return; }
             waitingForTurn = false; updateUI(); save(); setTimeout(() => { enemyTurn(); }, 800);
         }
 
@@ -395,7 +335,9 @@
             updateUI(); save();
         }
 
-        // РЕЙТИНГ (сохраняем всех игроков из Telegram)
+        function updateZoneUI() { let zoneNum = Math.min(Math.ceil(game.floor / 5), 3); let zones = ["🌳 ЛЕС", "🕯️ ПОДЗЕМЕЛЬЕ", "⛏️ ШАХТЫ"]; document.getElementById('zoneIndicator').innerHTML = `${zones[zoneNum-1]} (ЭТАЖ ${game.floor})`; }
+
+        // РЕЙТИНГ
         function updateRating() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
             let power = calcPower();
@@ -405,48 +347,26 @@
             ratings.sort((a, b) => b.power - a.power);
             ratings = ratings.slice(0, 50);
             localStorage.setItem('pisok_rating', JSON.stringify(ratings));
-            
             let container = document.getElementById('ratingList');
             if (container) {
                 container.innerHTML = '';
-                ratings.slice(0, 10).forEach((r, i) => {
-                    let medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
-                    container.innerHTML += `<div class="leaderboard-item"><span>${medal} ${r.name}</span><span>⚡${r.power} | 🏆${r.level}ур | 👥${r.slaves || 0}раб</span></div>`;
-                });
+                if (ratings.length === 0) { container.innerHTML = '<div class="loading">Нет игроков</div>'; }
+                else { ratings.slice(0, 10).forEach((r, i) => { let medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•'; container.innerHTML += `<div class="leaderboard-item"><span>${medal} ${r.name}</span><span>⚡${r.power} | 🏆${r.level}ур | 👥${r.slaves || 0}раб</span></div>`; }); }
             }
         }
 
-               // PVP - ИЩЕТ РЕАЛЬНЫХ ИГРОКОВ + ДЕМО-ИГРОКИ
+        // PVP с демо-игроками
         function findPvPOpponent() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
-            
-            // ДЕМО-ИГРОКИ (пока нет реальных)
-            let demoPlayers = [
+            let DEMO_PLAYERS = [
                 { id: 9991, name: "🍺 Пивной Мастер", power: 500, level: 5, slaves: 2 },
                 { id: 9992, name: "🍻 Бармен", power: 350, level: 3, slaves: 1 },
-                { id: 9993, name: "👑 Король Кег", power: 800, level: 8, slaves: 5 },
-                { id: 9994, name: "😵 Похмелье", power: 200, level: 2, slaves: 0 },
-                { id: 9995, name: "🧟 Пивной Зомби", power: 450, level: 4, slaves: 1 }
+                { id: 9993, name: "👑 Король Кег", power: 800, level: 8, slaves: 5 }
             ];
-            
-            // Реальные игроки (кроме себя)
-            let realOpponents = ratings.filter(r => r.id !== userId && r.name !== userName);
-            
-            // Объединяем реальных и демо-игроков
+            let realOpponents = ratings.filter(r => r.id !== userId);
             let allOpponents = [...realOpponents];
-            
-            // Добавляем демо-игроков, если их нет в рейтинге
-            for (let demo of demoPlayers) {
-                if (!ratings.find(r => r.id === demo.id)) {
-                    allOpponents.push(demo);
-                }
-            }
-            
-            if (allOpponents.length === 0) { 
-                document.getElementById('pvpStatus').innerHTML = '❌ Нет соперников! Пригласи друзей или сразись с боссом!'; 
-                return null; 
-            }
-            
+            for (let demo of DEMO_PLAYERS) { if (!ratings.find(r => r.id === demo.id)) { allOpponents.push(demo); } }
+            if (allOpponents.length === 0) { document.getElementById('pvpStatus').innerHTML = '❌ Нет соперников!'; return null; }
             let opp = allOpponents[Math.floor(Math.random() * allOpponents.length)];
             document.getElementById('pvpStatus').innerHTML = `🎮 ${opp.name}<br>⚡ Сила: ${opp.power} | 👥 Рабов: ${opp.slaves || 0}<br>💰 Награда: ${100 + (opp.slaves || 0) * 20}🍺`;
             return opp;
@@ -458,38 +378,28 @@
             let myPower = calcPower();
             let reward = 100 + (opponent.slaves || 0) * 20;
             if (myPower > opponent.power) {
-                game.pvpWins++;
-                game.gold += reward;
+                game.pvpWins++; game.gold += reward;
                 game.slaves.push({ id: opponent.id, name: opponent.name, power: opponent.power });
-                addLog(`🏆 PVP ПОБЕДА! +${reward}🍺! ${opponent.name} стал твоим рабом!`, "win");
-                document.getElementById('pvpResult').innerHTML = `🎉 ПОБЕДА! +${reward}🍺! Новый раб! 🎉`;
+                addLog(`🏆 PVP ПОБЕДА! +${reward}🍺! ${opponent.name} стал рабом!`, "win");
+                document.getElementById('pvpResult').innerHTML = `🎉 ПОБЕДА! +${reward}🍺!`;
             } else {
-                game.pvpLosses++;
-                game.gold = Math.max(0, game.gold - 50);
-                game.master = { id: opponent.id, name: opponent.name, power: opponent.power };
-                addLog(`💀 ПОРАЖЕНИЕ! ${opponent.name} поработил тебя! -50🍺`, "damage");
-                document.getElementById('pvpResult').innerHTML = `💀 ПОРАЖЕНИЕ! Ты стал рабом ${opponent.name}! 💀`;
+                game.pvpLosses++; game.gold = Math.max(0, game.gold - 50);
+                addLog(`💀 ПОРАЖЕНИЕ! -50🍺`, "damage");
+                document.getElementById('pvpResult').innerHTML = `💀 ПОРАЖЕНИЕ! -50🍺`;
             }
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
             save(); updateUI(); updateRating();
-            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 4000);
-            findPvPOpponent();
+            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 3000);
         }
 
         function revolt() {
             if (!game.master) { addLog("👑 Ты свободен!"); return; }
             let myPower = calcPower();
-            let masterPower = game.master.power || 500;
-            if (myPower > masterPower) {
+            if (myPower > (game.master.power || 500)) {
                 addLog(`🎉 ОСВОБОЖДЕНИЕ! Ты победил ${game.master.name}!`, "win");
-                game.master = null;
-                game.gold += 200;
-            } else {
-                addLog(`💀 НЕУДАЧА! ${game.master.name} наказывает тебя!`, "damage");
-                game.hp = Math.floor(game.hp * 0.7);
-                game.gold = Math.floor(game.gold * 0.8);
-            }
+                game.master = null; game.gold += 200;
+            } else { addLog(`💀 НЕУДАЧА! ${game.master.name} наказывает тебя!`, "damage"); game.hp = Math.floor(game.hp * 0.7); game.gold = Math.floor(game.gold * 0.8); }
             save(); updateUI();
         }
 
@@ -506,12 +416,9 @@
             if (saved) { let data = JSON.parse(saved); game = { ...game, ...data }; }
             let savedChar = localStorage.getItem(`pisok_char_${userId}`);
             if (savedChar) game.character = JSON.parse(savedChar);
-            startBattle();
-            updateUI();
-            updateRating();
+            startBattle(); updateUI(); updateRating();
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
-            
             let grid = document.getElementById('charsGrid');
             if (grid) {
                 grid.innerHTML = '';
@@ -525,7 +432,6 @@
                     card.addEventListener('click', () => selectCharacter(friend));
                 });
             }
-            
             let shopDiv = document.getElementById('shopList');
             if (shopDiv) {
                 shopDiv.innerHTML = '';
@@ -560,7 +466,6 @@
         
         load();
         addLog(`🍻 Добро пожаловать, ${userName}!`, "win");
-        addLog(`✨ У каждого персонажа уникальная способность!`, "skill");
     </script>
 </body>
 </html>
