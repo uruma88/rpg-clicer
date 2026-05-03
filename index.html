@@ -416,15 +416,38 @@
             }
         }
 
-        // PVP - ИЩЕТ РЕАЛЬНЫХ ИГРОКОВ ИЗ РЕЙТИНГА
+               // PVP - ИЩЕТ РЕАЛЬНЫХ ИГРОКОВ + ДЕМО-ИГРОКИ
         function findPvPOpponent() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
-            let opponents = ratings.filter(r => r.id !== userId && r.name !== userName);
-            if (opponents.length === 0) { 
-                document.getElementById('pvpStatus').innerHTML = '❌ Нет других игроков! Пригласи друзей через ссылку!'; 
+            
+            // ДЕМО-ИГРОКИ (пока нет реальных)
+            let demoPlayers = [
+                { id: 9991, name: "🍺 Пивной Мастер", power: 500, level: 5, slaves: 2 },
+                { id: 9992, name: "🍻 Бармен", power: 350, level: 3, slaves: 1 },
+                { id: 9993, name: "👑 Король Кег", power: 800, level: 8, slaves: 5 },
+                { id: 9994, name: "😵 Похмелье", power: 200, level: 2, slaves: 0 },
+                { id: 9995, name: "🧟 Пивной Зомби", power: 450, level: 4, slaves: 1 }
+            ];
+            
+            // Реальные игроки (кроме себя)
+            let realOpponents = ratings.filter(r => r.id !== userId && r.name !== userName);
+            
+            // Объединяем реальных и демо-игроков
+            let allOpponents = [...realOpponents];
+            
+            // Добавляем демо-игроков, если их нет в рейтинге
+            for (let demo of demoPlayers) {
+                if (!ratings.find(r => r.id === demo.id)) {
+                    allOpponents.push(demo);
+                }
+            }
+            
+            if (allOpponents.length === 0) { 
+                document.getElementById('pvpStatus').innerHTML = '❌ Нет соперников! Пригласи друзей или сразись с боссом!'; 
                 return null; 
             }
-            let opp = opponents[Math.floor(Math.random() * opponents.length)];
+            
+            let opp = allOpponents[Math.floor(Math.random() * allOpponents.length)];
             document.getElementById('pvpStatus').innerHTML = `🎮 ${opp.name}<br>⚡ Сила: ${opp.power} | 👥 Рабов: ${opp.slaves || 0}<br>💰 Награда: ${100 + (opp.slaves || 0) * 20}🍺`;
             return opp;
         }
