@@ -6,317 +6,67 @@
     <title>🍺 ПИСОК ЗДЕСЬ 🍺</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body {
-            background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
-            min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: white;
-            padding: 12px;
-            transition: background 0.5s ease;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: white; padding: 12px; transition: background 0.5s ease; }
         body.zone1 { background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%); }
         body.zone2 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
         body.zone3 { background: linear-gradient(135deg, #2b1b0e 0%, #4a2c1a 100%); }
         body.zone4 { background: linear-gradient(135deg, #4a1a1a 0%, #2a0a0a 100%); }
         body.zone5 { background: linear-gradient(135deg, #1a0a2e 0%, #0a0a1a 100%); }
-
-        .header {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            background: rgba(0,0,0,0.6);
-            border-radius: 20px;
-            padding: 8px;
-            text-shadow: 0 0 10px #ffd700;
-        }
-
-        .subheader {
-            text-align: center;
-            font-size: 10px;
-            margin-bottom: 10px;
-            opacity: 0.8;
-        }
-
-        .zone-indicator {
-            text-align: center;
-            font-size: 12px;
-            margin-bottom: 8px;
-            padding: 4px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
-        }
-
-        .stats {
-            background: rgba(0,0,0,0.6);
-            border-radius: 15px;
-            padding: 10px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .stat {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffd700;
-        }
-
-        .stat-label {
-            font-size: 8px;
-            opacity: 0.7;
-        }
-
-        .combat-area {
-            background: rgba(0,0,0,0.6);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 12px;
-        }
-
-        .enemy-box {
-            text-align: center;
-            padding: 10px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 15px;
-            margin-bottom: 15px;
-        }
-
-        .enemy-emoji {
-            font-size: 60px;
-        }
-
-        .enemy-name {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .hp-bar {
-            background: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            height: 8px;
-            width: 150px;
-            margin: 8px auto;
-            overflow: hidden;
-        }
-
-        .hp-fill {
-            background: linear-gradient(90deg, #e74c3c, #ff6b6b);
-            width: 100%;
-            height: 100%;
-            transition: width 0.2s;
-        }
-
-        .player-box {
-            display: flex;
-            gap: 12px;
-            padding: 10px;
-            background: rgba(0,0,0,0.4);
-            border-radius: 15px;
-            margin-bottom: 15px;
-        }
-
-        .player-avatar {
-            width: 55px;
-            height: 55px;
-            border-radius: 28px;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            overflow: hidden;
-        }
-
-        .player-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .player-info {
-            flex: 1;
-        }
-
-        .player-name {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .action-btn {
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,215,0,0.5);
-            border-radius: 12px;
-            padding: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #ffd700;
-            cursor: pointer;
-        }
-
+        .header { text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 5px; background: rgba(0,0,0,0.6); border-radius: 20px; padding: 8px; text-shadow: 0 0 10px #ffd700; }
+        .zone-indicator { text-align: center; font-size: 12px; margin-bottom: 8px; padding: 4px; background: rgba(0,0,0,0.5); border-radius: 15px; }
+        .stats { background: rgba(0,0,0,0.6); border-radius: 15px; padding: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+        .stat { text-align: center; flex: 1; min-width: 55px; }
+        .stat-value { font-size: 14px; font-weight: bold; color: #ffd700; }
+        .stat-label { font-size: 7px; opacity: 0.7; }
+        .combat-area { background: rgba(0,0,0,0.6); border-radius: 20px; padding: 15px; margin-bottom: 12px; }
+        .enemy-box { text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 15px; margin-bottom: 15px; }
+        .enemy-emoji { font-size: 60px; }
+        .enemy-name { font-size: 16px; font-weight: bold; }
+        .hp-bar { background: rgba(0,0,0,0.5); border-radius: 10px; height: 8px; width: 150px; margin: 8px auto; overflow: hidden; }
+        .hp-fill { background: linear-gradient(90deg, #e74c3c, #ff6b6b); width: 100%; height: 100%; transition: width 0.2s; }
+        .player-box { display: flex; gap: 12px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 15px; margin-bottom: 15px; }
+        .player-avatar { width: 55px; height: 55px; border-radius: 28px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 30px; overflow: hidden; }
+        .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .player-info { flex: 1; }
+        .player-name { font-size: 14px; font-weight: bold; }
+        .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .action-btn { background: rgba(0,0,0,0.7); border: 1px solid rgba(255,215,0,0.5); border-radius: 12px; padding: 10px; font-size: 10px; font-weight: bold; color: #ffd700; cursor: pointer; }
         .action-btn:active { transform: scale(0.96); }
         .action-btn:disabled { opacity: 0.5; }
         .special { border-color: #9b59b6; color: #c39bd3; }
-
-        .log-area {
-            background: rgba(0,0,0,0.5);
-            border-radius: 12px;
-            padding: 8px;
-            height: 100px;
-            overflow-y: auto;
-            font-size: 10px;
-            font-family: monospace;
-        }
-
-        .log-line { padding: 3px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .log-area { background: rgba(0,0,0,0.5); border-radius: 12px; padding: 8px; height: 90px; overflow-y: auto; font-size: 9px; font-family: monospace; }
+        .log-line { padding: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .log-damage { color: #ff6b6b; }
         .log-heal { color: #6bff6b; }
         .log-skill { color: #c39bd3; }
         .log-win { color: #ffd700; }
-        .log-zone { color: #ff9f6b; }
-
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 12px;
-        }
-
-        .tab {
-            flex: 1;
-            background: rgba(0,0,0,0.5);
-            border: none;
-            padding: 8px;
-            border-radius: 20px;
-            color: white;
-            font-size: 10px;
-            cursor: pointer;
-        }
-
+        .tabs { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
+        .tab { flex: 1; background: rgba(0,0,0,0.5); border: none; padding: 6px; border-radius: 20px; color: white; font-size: 9px; cursor: pointer; }
         .tab.active { background: #e67e22; }
-
-        .panel {
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
-            padding: 12px;
-            display: none;
-        }
-
+        .panel { background: rgba(0,0,0,0.5); border-radius: 15px; padding: 12px; display: none; }
         .panel.active { display: block; }
-
-        .chars-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 8px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .char-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-        }
-
+        .chars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 6px; max-height: 350px; overflow-y: auto; }
+        .char-card { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 6px; text-align: center; cursor: pointer; }
         .char-card.selected { background: #e67e22; }
-
-        .char-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            margin: 0 auto;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 25px;
-            overflow: hidden;
-        }
-
-        .char-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .char-name { font-size: 9px; margin-top: 5px; }
-        .char-stats { font-size: 8px; opacity: 0.7; }
-
-        .upgrade-item {
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .upgrade-btn {
-            background: #ffd700;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 10px;
-        }
-
-        .pvp-section { text-align: center; }
-        .pvp-opponent {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        .pvp-btn {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border: none;
-            border-radius: 30px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            color: white;
-            width: 100%;
-            cursor: pointer;
-        }
-        .pvp-btn:active { transform: scale(0.97); }
+        .char-avatar { width: 45px; height: 45px; border-radius: 22px; margin: 0 auto; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; }
+        .char-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .char-name { font-size: 8px; margin-top: 4px; }
+        .char-stats { font-size: 7px; opacity: 0.7; }
+        .upgrade-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+        .upgrade-btn { background: #ffd700; border: none; padding: 4px 10px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .shop-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .leaderboard-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 9px; }
+        .pvp-opponent { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 12px; margin: 10px 0; text-align: center; }
+        .pvp-btn { background: linear-gradient(135deg, #e74c3c, #c0392b); border: none; border-radius: 25px; padding: 10px; font-size: 14px; font-weight: bold; color: white; width: 100%; cursor: pointer; margin-top: 10px; }
+        .slave-list { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 8px; margin-top: 10px; max-height: 150px; overflow-y: auto; }
+        .slave-item { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 10px; }
+        .revolt-btn { background: #e74c3c; border: none; border-radius: 15px; padding: 5px 10px; color: white; font-size: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">🍺 ПИСОК ЗДЕСЬ 🍺</div>
     <div class="zone-indicator" id="zoneIndicator">🌳 ЗОНА: ЛЕСНАЯ ОПУШКА (ЭТАЖ 1)</div>
-    <div class="subheader">▼ СПУСКАЙСЯ ГЛУБЖЕ ▼</div>
 
     <div class="stats">
         <div class="stat"><div class="stat-value" id="gold">300</div><div class="stat-label">🍺 ЗОЛОТО</div></div>
@@ -324,13 +74,16 @@
         <div class="stat"><div class="stat-value" id="power">0</div><div class="stat-label">⚡ СИЛА</div></div>
         <div class="stat"><div class="stat-value" id="ap">100</div><div class="stat-label">💥 AP</div></div>
         <div class="stat"><div class="stat-value" id="floor">1</div><div class="stat-label">🏔️ ЭТАЖ</div></div>
+        <div class="stat"><div class="stat-value" id="slaveCount">0</div><div class="stat-label">👥 РАБЫ</div></div>
     </div>
 
     <div class="tabs">
         <button class="tab active" data-tab="fight">⚔️ БОЙ</button>
         <button class="tab" data-tab="chars">🎭 ПЕРСОНАЖИ</button>
-        <button class="tab" data-tab="pvp">⚔️ PVP</button>
+        <button class="tab" data-tab="shop">🛒 МАГАЗИН</button>
         <button class="tab" data-tab="upgrade">📊 ПРОКАЧКА</button>
+        <button class="tab" data-tab="slaves">👥 РАБЫ</button>
+        <button class="tab" data-tab="pvp">⚔️ PVP</button>
         <button class="tab" data-tab="rating">🏆 РЕЙТИНГ</button>
     </div>
 
@@ -350,7 +103,7 @@
                     <div class="player-name" id="playerName">Игрок</div>
                     <div id="playerHp">❤️ 100/100</div>
                     <div id="playerAp">💥 AP: 100/100</div>
-                    <div id="playerStats" style="font-size: 10px; opacity: 0.8;">⚔️Сила:15</div>
+                    <div id="playerStats" style="font-size: 9px; opacity: 0.8;"></div>
                 </div>
             </div>
 
@@ -359,13 +112,14 @@
                 <button class="action-btn special" id="skillBtn">✨ УМЕНИЕ (40 AP)</button>
                 <button class="action-btn" id="defendBtn">🛡️ ЗАЩИТА (15 AP)</button>
                 <button class="action-btn" id="healBtn">💚 ЛЕЧЕНИЕ (30 AP)</button>
+                <button class="action-btn" id="waitBtn">⏳ ЖДАТЬ (+15 AP)</button>
+                <button class="action-btn" id="enslaveBtn">⛓️ ЗАРАБОТАТЬ (50 AP)</button>
             </div>
 
             <div class="log-area" id="logArea">
                 <div class="log-line">🍺 Добро пожаловать в ПИСОК ЗДЕСЬ!</div>
-                <div class="log-line">🎭 Выбери персонажа → ПЕРСОНАЖИ</div>
-                <div class="log-line">🏔️ Каждые 5 этажей - новый биом!</div>
-                <div class="log-line">🐉 На 5, 10, 15 этажах - БОССЫ!</div>
+                <div class="log-line">👥 Если победишь врага - можешь поработить его!</div>
+                <div class="log-line">👑 Рабы приносят +1🍺 в секунду каждый!</div>
             </div>
         </div>
     </div>
@@ -378,20 +132,9 @@
         </div>
     </div>
 
-    <!-- PVP -->
-    <div id="pvp-panel" class="panel">
-        <div class="pvp-section">
-            <div style="display: flex; justify-content: space-around; margin-bottom: 15px;">
-                <div>🏆 ПОБЕД: <span id="pvpWins">0</span></div>
-                <div>💀 ПОРАЖЕНИЙ: <span id="pvpLosses">0</span></div>
-                <div>⚡ РЕЙТИНГ: <span id="pvpRating">1000</span></div>
-            </div>
-            <div class="pvp-opponent" id="pvpOpponent">
-                <span id="pvpStatus">🔍 Поиск соперника...</span>
-            </div>
-            <button class="pvp-btn" id="pvpFindBtn">⚔️ НАЙТИ ПРОТИВНИКА ⚔️</button>
-            <div id="pvpResult" style="margin-top: 15px;"></div>
-        </div>
+    <!-- МАГАЗИН -->
+    <div id="shop-panel" class="panel">
+        <div id="shopList"></div>
     </div>
 
     <!-- ПРОКАЧКА -->
@@ -400,6 +143,29 @@
         <div class="upgrade-item"><div><b>❤️ ЗДОРОВЬЕ</b><br>+20 HP</div><button class="upgrade-btn" data-upgrade="hp">+</button></div>
         <div class="upgrade-item"><div><b>⚡ AP</b><br>+10 AP</div><button class="upgrade-btn" data-upgrade="ap">+</button></div>
         <div class="upgrade-item"><div><b>👥 КОМАНДА</b><br>+1💰/сек</div><button class="upgrade-btn" data-upgrade="worker">+</button></div>
+    </div>
+
+    <!-- РАБЫ -->
+    <div id="slaves-panel" class="panel">
+        <div id="masterInfo" style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
+            👑 Информация о предводителе
+        </div>
+        <div id="slavesList" class="slave-list"></div>
+        <div id="revoltInfo" style="margin-top: 10px; text-align: center; font-size: 11px;"></div>
+    </div>
+
+    <!-- PVP -->
+    <div id="pvp-panel" class="panel">
+        <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
+            <div>🏆 ПОБЕД: <span id="pvpWins">0</span></div>
+            <div>💀 ПОРАЖЕНИЙ: <span id="pvpLosses">0</span></div>
+            <div>⚡ РЕЙТИНГ: <span id="pvpRating">1000</span></div>
+        </div>
+        <div class="pvp-opponent" id="pvpOpponent">
+            <span id="pvpStatus">🔍 Поиск соперника...</span>
+        </div>
+        <button class="pvp-btn" id="pvpFindBtn">⚔️ НАЙТИ ПРОТИВНИКА ⚔️</button>
+        <div id="pvpResult" style="margin-top: 10px; text-align: center; font-size: 11px;"></div>
     </div>
 
     <!-- РЕЙТИНГ -->
@@ -416,31 +182,28 @@
 
         // ПЕРСОНАЖИ
         const FRIENDS = [
-            { name: "Алина", photo: "avatars/алина.jpg", strength: 1, hp: 95, skill: "Ледяной взгляд", skillBaseDamage: 25 },
-            { name: "Бень", photo: "avatars/бень.jpg", strength: 16, hp: 130, skill: "Медвежья сила", skillBaseDamage: 30 },
-            { name: "Богдан", photo: "avatars/богдан.jpg", strength: 8, hp: 90, skill: "Магический щит", skillBaseDamage: 20 },
-            { name: "Ваня", photo: "avatars/ваня.jpg", strength: 14, hp: 105, skill: "Двойной удар", skillBaseDamage: 35 },
-            { name: "Егор", photo: "avatars/егор.jpg", strength: 17, hp: 115, skill: "Ярость", skillBaseDamage: 40 },
+            { name: "Алина", photo: "avatars/алина.jpg", strength: 1, hp: 95, skill: "Ледяной взгляд", skillBaseDamage: 35 },
+            { name: "Бень", photo: "avatars/бень.jpg", strength: 16, hp: 130, skill: "Медвежья сила", skillBaseDamage: 40 },
+            { name: "Богдан", photo: "avatars/богдан.jpg", strength: 8, hp: 90, skill: "Магический щит", skillBaseDamage: 30 },
+            { name: "Ваня", photo: "avatars/ваня.jpg", strength: 14, hp: 105, skill: "Двойной удар", skillBaseDamage: 45 },
+            { name: "Егор", photo: "avatars/егор.jpg", strength: 17, hp: 115, skill: "Ярость", skillBaseDamage: 50 },
             { name: "Илюха", photo: "avatars/илюха.jpg", strength: 15, hp: 100, skill: "Исцеление", skillBaseDamage: 0 },
-            { name: "Капрал", photo: "avatars/капрал.jpg", strength: 20, hp: 130, skill: "Приказ", skillBaseDamage: 35 },
-            { name: "Кирилл", photo: "avatars/кирилл.jpg", strength: 13, hp: 100, skill: "Теневой удар", skillBaseDamage: 45 },
-            { name: "Лера", photo: "avatars/лера.jpg", strength: 10, hp: 90, skill: "Ослепление", skillBaseDamage: 20 },
-            { name: "Никитос", photo: "avatars/никитос.jpg", strength: 16, hp: 110, skill: "Ускорение", skillBaseDamage: 25 },
-            { name: "Полина", photo: "avatars/полина.jpg", strength: 11, hp: 95, skill: "Вампиризм", skillBaseDamage: 30 },
-            { name: "Рома", photo: "avatars/рома.jpg", strength: 19, hp: 125, skill: "Сокрушитель", skillBaseDamage: 50 },
-            { name: "Саша", photo: "avatars/саша.jpg", strength: 18, hp: 130, skill: "Боевой клич", skillBaseDamage: 35 },
-            { name: "Серега", photo: "avatars/серега.jpg", strength: 17, hp: 115, skill: "Адреналин", skillBaseDamage: 30 },
-            { name: "Таня", photo: "avatars/таня.jpg", strength: 12, hp: 100, skill: "Точный выстрел", skillBaseDamage: 40 },
-            { name: "Юра", photo: "avatars/юра.jpg", strength: 16, hp: 110, skill: "Контратака", skillBaseDamage: 35 }
+            { name: "Капрал", photo: "avatars/капрал.jpg", strength: 20, hp: 130, skill: "Приказ", skillBaseDamage: 45 },
+            { name: "Кирилл", photo: "avatars/кирилл.jpg", strength: 13, hp: 100, skill: "Теневой удар", skillBaseDamage: 55 },
+            { name: "Лера", photo: "avatars/лера.jpg", strength: 10, hp: 90, skill: "Ослепление", skillBaseDamage: 30 },
+            { name: "Никитос", photo: "avatars/никитос.jpg", strength: 16, hp: 110, skill: "Ускорение", skillBaseDamage: 35 },
+            { name: "Полина", photo: "avatars/полина.jpg", strength: 11, hp: 95, skill: "Вампиризм", skillBaseDamage: 40 },
+            { name: "Рома", photo: "avatars/рома.jpg", strength: 19, hp: 125, skill: "Сокрушитель", skillBaseDamage: 60 },
+            { name: "Саша", photo: "avatars/саша.jpg", strength: 18, hp: 130, skill: "Боевой клич", skillBaseDamage: 45 },
+            { name: "Серега", photo: "avatars/серега.jpg", strength: 17, hp: 115, skill: "Адреналин", skillBaseDamage: 40 },
+            { name: "Таня", photo: "avatars/таня.jpg", strength: 12, hp: 100, skill: "Точный выстрел", skillBaseDamage: 50 },
+            { name: "Юра", photo: "avatars/юра.jpg", strength: 16, hp: 110, skill: "Контратака", skillBaseDamage: 45 }
         ];
 
-        // ЗОНЫ
         const ZONES = {
-            1: { name: "🌳 ЛЕСНАЯ ОПУШКА", bg: "zone1", enemies: ["🍺 Залежавшееся Пиво", "🍻 Пустая Кружка", "😵 Похмелье"], boss: "🐗 БОСС: ПИВНОЙ ВЕПРЬ" },
-            2: { name: "🕯️ ТЁМНОЕ ПОДЗЕМЕЛЬЕ", bg: "zone2", enemies: ["🧟 Пивной Зомби", "👮 Пивной Контролёр", "💰 Бармен-Жмот"], boss: "👑 БОСС: КОРОЛЬ ПИВА" },
-            3: { name: "⛏️ ЗАБРОШЕННЫЕ ШАХТЫ", bg: "zone3", enemies: ["🗿 Каменный Голем", "🔥 Огненный Элементаль", "❄️ Ледяной Великан"], boss: "🐉 БОСС: ДРАКОН" },
-            4: { name: "🌋 ОГНЕННЫЕ ГЛУБИНЫ", bg: "zone4", enemies: ["😈 Демон", "💀 Скелет-Воин", "🦇 Гигантская Мышь"], boss: "🔥 БОСС: ПОВЕЛИТЕЛЬ ОГНЯ" },
-            5: { name: "🌌 БЕЗДНА", bg: "zone5", enemies: ["👁️ Наблюдатель", "🌀 Теневой Дух", "🌑 Существо"], boss: "💀 БОСС: ВЛАДЫКА БЕЗДНЫ" }
+            1: { name: "🌳 ЛЕСНАЯ ОПУШКА", bg: "zone1", enemies: ["🍺 Залежавшееся Пиво", "🍻 Пустая Кружка"], boss: "🐗 БОСС: ПИВНОЙ ВЕПРЬ" },
+            2: { name: "🕯️ ТЁМНОЕ ПОДЗЕМЕЛЬЕ", bg: "zone2", enemies: ["🧟 Пивной Зомби", "👮 Пивной Контролёр"], boss: "👑 БОСС: КОРОЛЬ ПИВА" },
+            3: { name: "⛏️ ЗАБРОШЕННЫЕ ШАХТЫ", bg: "zone3", enemies: ["🗿 Каменный Голем", "🔥 Огненный Элементаль"], boss: "🐉 БОСС: ДРАКОН" }
         };
 
         let game = {
@@ -455,6 +218,8 @@
             workers: 0,
             floor: 1,
             character: null,
+            master: null,        // кто меня поработил (id и имя)
+            slaves: [],          // список моих рабов [{id, name, power}]
             buff: { dmgBonus: 0, defBonus: 0, turns: 0 },
             pvpWins: 0,
             pvpLosses: 0
@@ -472,100 +237,34 @@
             if (type === "heal") colorClass = "log-heal";
             if (type === "skill") colorClass = "log-skill";
             if (type === "win") colorClass = "log-win";
-            if (type === "zone") colorClass = "log-zone";
             logs.unshift(`<div class="log-line ${colorClass}">${msg}</div>`);
             if (logs.length > 25) logs.pop();
             let logArea = document.getElementById('logArea');
             if (logArea) logArea.innerHTML = logs.join('');
         }
 
-        function getZoneByFloor(floor) {
-            let zoneNum = Math.min(Math.ceil(floor / 5), 5);
-            return { zone: zoneNum, ...ZONES[zoneNum] };
-        }
-
+        function getZoneByFloor(floor) { let zoneNum = Math.min(Math.ceil(floor / 5), 3); return { zone: zoneNum, ...ZONES[zoneNum] }; }
+        
         function getEnemyForFloor(floor) {
             let zone = getZoneByFloor(floor);
             let isBoss = floor % 5 === 0;
             if (isBoss) {
-                return {
-                    name: zone.boss,
-                    emoji: "👑",
-                    hp: 150 + (floor * 10),
-                    maxHp: 150 + (floor * 10),
-                    damage: 15 + Math.floor(floor / 2),
-                    gold: 100 * zone.zone,
-                    exp: 80 * zone.zone,
-                    isBoss: true
-                };
+                return { name: zone.boss, emoji: "👑", hp: 150 + (floor * 10), maxHp: 150 + (floor * 10), damage: 15 + Math.floor(floor/2), gold: 100 * zone.zone, exp: 80 * zone.zone, isBoss: true };
             } else {
                 let enemyName = zone.enemies[Math.floor(Math.random() * zone.enemies.length)];
-                let baseHp = 60 + (floor * 5);
-                let baseDamage = 8 + Math.floor(floor / 2);
-                return {
-                    name: enemyName,
-                    emoji: enemyName.split(' ')[0],
-                    hp: baseHp,
-                    maxHp: baseHp,
-                    damage: baseDamage,
-                    gold: 20 + (floor * 3),
-                    exp: 15 + (floor * 2),
-                    isBoss: false
-                };
+                return { name: enemyName, emoji: enemyName.split(' ')[0], hp: 50 + (floor * 5), maxHp: 50 + (floor * 5), damage: 8 + Math.floor(floor/2), gold: 20 + (floor * 3), exp: 15 + (floor * 2), isBoss: false };
             }
         }
 
-        function updateZoneUI() {
-            let zone = getZoneByFloor(game.floor);
-            document.getElementById('zoneIndicator').innerHTML = `${zone.name} (ЭТАЖ ${game.floor})`;
-            document.body.className = zone.bg;
-            if (game.floor % 5 === 0) addLog(`🔥 ТЫ ДОСТИГ ${game.floor} ЭТАЖА! ВСТРЕЧАЙ БОССА! 🔥`, "win");
-            else if (game.floor > 1) addLog(`📉 ТЫ СПУСТИЛСЯ НА ${game.floor} ЭТАЖ - ${zone.name}`, "zone");
-        }
-
-        function startBattle() {
-            currentEnemy = getEnemyForFloor(game.floor);
-            game.hp = Math.min(game.maxHp, game.hp);
-            game.ap = Math.min(game.maxAp, game.ap);
-            enemyFrozen = false;
-            game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
-            waitingForTurn = true;
-            updateUI();
-            addLog(`⚔️ Попался ${currentEnemy.name}!`, "win");
-        }
-
-        function restoreAp() {
-            let restore = 25;
-            game.ap = Math.min(game.maxAp, game.ap + restore);
-            addLog(`⚡ Восстановлено ${restore} AP! (${Math.floor(game.ap)}/${game.maxAp})`);
-        }
-
-        function calcPower() {
-            return Math.floor(game.level * 10 + game.strength * 2 + game.maxHp / 10 + game.workers * 20 + game.floor * 5 + game.pvpWins * 10);
-        }
-
-        function updateUpgradePrices() {
-            let strLevel = Math.floor(game.strength / 5);
-            let strCost = Math.floor(50 * Math.pow(1.5, strLevel));
-            let hpLevel = Math.floor(game.maxHp / 20);
-            let hpCost = Math.floor(60 * Math.pow(1.5, hpLevel));
-            let apLevel = Math.floor(game.maxAp / 10);
-            let apCost = Math.floor(70 * Math.pow(1.5, apLevel));
-            let workerLevel = game.workers;
-            let workerCost = Math.floor(100 * Math.pow(1.8, workerLevel));
-            
-            let upgradePanel = document.getElementById('upgrade-panel');
-            if (upgradePanel) {
-                upgradePanel.innerHTML = `
-                    <div class="upgrade-item"><div><b>💪 СИЛА</b><br>Уровень: ${strLevel}<br>💰 ${strCost} 🍺<br><span style="font-size:9px;">+5 к силе</span></div><button class="upgrade-btn" data-upgrade="str">+</button></div>
-                    <div class="upgrade-item"><div><b>❤️ ЗДОРОВЬЕ</b><br>Уровень: ${hpLevel}<br>💰 ${hpCost} 🍺<br><span style="font-size:9px;">+20 HP</span></div><button class="upgrade-btn" data-upgrade="hp">+</button></div>
-                    <div class="upgrade-item"><div><b>⚡ AP</b><br>Уровень: ${apLevel}<br>💰 ${apCost} 🍺<br><span style="font-size:9px;">+10 AP</span></div><button class="upgrade-btn" data-upgrade="ap">+</button></div>
-                    <div class="upgrade-item"><div><b>👥 КОМАНДА</b><br>Уровень: ${workerLevel}<br>💰 ${workerCost} 🍺<br><span style="font-size:9px;">+1🍺/сек</span></div><button class="upgrade-btn" data-upgrade="worker">+</button></div>
-                `;
-                document.querySelectorAll('[data-upgrade]').forEach(btn => {
-                    btn.addEventListener('click', () => upgrade(btn.dataset.upgrade));
-                });
-            }
+        function updateZoneUI() { let zone = getZoneByFloor(game.floor); document.getElementById('zoneIndicator').innerHTML = `${zone.name} (ЭТАЖ ${game.floor})`; document.body.className = zone.bg; }
+        
+        function startBattle() { currentEnemy = getEnemyForFloor(game.floor); game.hp = Math.min(game.maxHp, game.hp); game.ap = Math.min(game.maxAp, game.ap); enemyFrozen = false; game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 }; waitingForTurn = true; updateUI(); addLog(`⚔️ Попался ${currentEnemy.name}!`, "win"); }
+        
+        function restoreAp(amount) { game.ap = Math.min(game.maxAp, game.ap + amount); addLog(`⚡ Восстановлено ${amount} AP! (${Math.floor(game.ap)}/${game.maxAp})`); updateUI(); save(); }
+        
+        function calcPower() { 
+            let slavePower = game.slaves.reduce((sum, s) => sum + (s.power || 100), 0);
+            return Math.floor(game.level * 10 + game.strength * 2 + game.maxHp / 10 + game.workers * 20 + game.floor * 5 + game.pvpWins * 10 + slavePower / 10); 
         }
 
         function updateUI() {
@@ -574,176 +273,166 @@
             document.getElementById('power').innerText = calcPower();
             document.getElementById('ap').innerText = Math.floor(game.ap);
             document.getElementById('floor').innerText = game.floor;
+            document.getElementById('slaveCount').innerText = game.slaves.length;
             
-            if (currentEnemy) {
-                let percent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
-                document.getElementById('enemyHpFill').style.width = `${Math.max(0, percent)}%`;
-                document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.max(0, Math.floor(currentEnemy.hp))}/${currentEnemy.maxHp}`;
-                document.getElementById('enemyName').innerText = currentEnemy.name;
-                document.getElementById('enemyEmoji').innerText = currentEnemy.emoji;
+            if (currentEnemy) { 
+                let percent = (currentEnemy.hp / currentEnemy.maxHp) * 100; 
+                document.getElementById('enemyHpFill').style.width = `${Math.max(0, percent)}%`; 
+                document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.max(0, Math.floor(currentEnemy.hp))}/${currentEnemy.maxHp}`; 
+                document.getElementById('enemyName').innerText = currentEnemy.name; 
+                document.getElementById('enemyEmoji').innerText = currentEnemy.emoji; 
             }
             
             document.getElementById('playerName').innerText = game.character ? game.character.name : "Игрок";
             document.getElementById('playerHp').innerHTML = `❤️ ${Math.floor(game.hp)}/${game.maxHp}`;
             document.getElementById('playerAp').innerHTML = `💥 AP: ${Math.floor(game.ap)}/${game.maxAp}`;
-            document.getElementById('playerStats').innerHTML = `⚔️Сила:${game.strength} | 🎭Уровень:${game.level}`;
+            
+            let extra = "";
+            if (game.master) extra = ` | 🧎‍♂️ Раб ${game.master.name}`;
+            document.getElementById('playerStats').innerHTML = `⚔️Сила:${game.strength} | 👥Рабов:${game.slaves.length}${extra}`;
             
             let avatar = document.getElementById('playerAvatar');
-            if (avatar && game.character) {
-                if (game.character.photo) avatar.innerHTML = `<img src="${game.character.photo}" onerror="this.style.display='none'; this.parentElement.innerHTML='🍺'">`;
-                else avatar.innerHTML = "🍺";
+            if (avatar && game.character) { 
+                if (game.character.photo) avatar.innerHTML = `<img src="${game.character.photo}" onerror="this.style.display='none'; this.parentElement.innerHTML='🍺'">`; 
+                else avatar.innerHTML = "🍺"; 
             }
             
-            let attackBtn = document.getElementById('attackBtn');
             let skillBtn = document.getElementById('skillBtn');
-            let defendBtn = document.getElementById('defendBtn');
-            let healBtn = document.getElementById('healBtn');
+            if (skillBtn && game.character) skillBtn.innerHTML = `✨ ${game.character.skill} (40 AP) ✨`;
             
-            if (attackBtn) attackBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 20;
-            if (defendBtn) defendBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 15;
-            if (healBtn) healBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 30;
-            if (skillBtn && game.character) {
-                let cost = 40;
-                skillBtn.innerHTML = `✨ ${game.character.skill} (${cost} AP) ✨`;
-                skillBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < cost;
+            // Обновляем список рабов
+            updateSlavesUI();
+        }
+
+        // ===== СИСТЕМА РАБОВ =====
+        function updateSlavesUI() {
+            let slavesDiv = document.getElementById('slavesList');
+            let masterDiv = document.getElementById('masterInfo');
+            
+            if (masterDiv) {
+                if (game.master) {
+                    masterDiv.innerHTML = `⚠️ ТЫ РАБ! Тебя поработил ${game.master.name}! Чтобы освободиться - победи его в PVP! ⚔️`;
+                } else {
+                    masterDiv.innerHTML = `👑 ТЫ ПРЕДВОДИТЕЛЬ! У тебя ${game.slaves.length} рабов. Каждый приносит +1🍺/сек!`;
+                }
+            }
+            
+            if (slavesDiv) {
+                if (game.slaves.length === 0) {
+                    slavesDiv.innerHTML = '<div class="slave-item">😴 Нет рабов. Поработи врагов в бою!</div>';
+                } else {
+                    slavesDiv.innerHTML = '<div style="font-weight: bold; margin-bottom: 5px;">ТВОИ РАБЫ:</div>';
+                    game.slaves.forEach(slave => {
+                        slavesDiv.innerHTML += `
+                            <div class="slave-item">
+                                <span>👤 ${slave.name}</span>
+                                <span>⚡ ${slave.power || 100} силы</span>
+                            </div>
+                        `;
+                    });
+                }
             }
         }
 
-        // ===== ОСНОВНЫЕ ДЕЙСТВИЯ =====
-        function attack() {
-            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!", "normal"); return; }
-            if (currentEnemy.hp <= 0) { startBattle(); return; }
-            if (game.ap < 20) { addLog(`❌ Нужно 20 AP!`, "damage"); return; }
+        function enslaveEnemy() {
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
+            if (currentEnemy.hp <= 0) { addLog("❌ Враг уже мёртв!"); return; }
+            if (game.ap < 50) { addLog(`❌ Нужно 50 AP! У тебя ${Math.floor(game.ap)}`, "damage"); return; }
+            if (currentEnemy.isBoss) { addLog("❌ Босса нельзя поработить! Только убить!", "damage"); return; }
             
-            game.ap -= 20;
-            let dmg = game.strength + Math.floor(Math.random() * 10);
-            if (game.buff.dmgBonus > 0) {
-                dmg += game.buff.dmgBonus;
-                addLog(`🔥 Бафф: +${game.buff.dmgBonus} к урону!`, "skill");
-                game.buff.turns--;
-                if (game.buff.turns <= 0) game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
-            }
-            currentEnemy.hp -= dmg;
-            addLog(`🔫 Атака! ${dmg} урона!`, "damage");
-            
-            if (currentEnemy.hp <= 0) {
-                game.gold += currentEnemy.gold;
-                game.exp += currentEnemy.exp;
-                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
-                
-                let needExp = game.level * 100;
-                while (game.exp >= needExp) {
-                    game.level++;
-                    game.exp -= needExp;
-                    game.strength += 5;
-                    game.maxHp += 20;
-                    game.maxAp += 10;
-                    game.hp = game.maxHp;
-                    game.ap = game.maxAp;
-                    needExp = game.level * 100;
-                    
-                    // Улучшение способности (урон +5 каждые 3 уровня)
-                    if (game.level % 3 === 0) {
-                        skillBaseDamage += 5;
-                        addLog(`✨ УЛУЧШЕНИЕ! Урон умения увеличен до ${skillBaseDamage}! ✨`, "skill");
-                    }
-                    addLog(`🎉 УРОВЕНЬ ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win");
-                }
+            game.ap -= 50;
+            let chance = 0.5 + (game.strength / 100);
+            if (Math.random() < chance) {
+                let slavePower = 50 + Math.floor(Math.random() * 50);
+                game.slaves.push({ id: Date.now(), name: currentEnemy.name, power: slavePower });
+                addLog(`⛓️ УСПЕХ! Ты поработил ${currentEnemy.name}! Теперь он приносит +1🍺/сек!`, "win");
                 game.floor++;
                 updateZoneUI();
-                save();
                 startBattle();
-                updateRating();
-                return;
+            } else {
+                addLog(`😤 НЕУДАЧА! ${currentEnemy.name} сопротивляется и наносит ответный удар!`, "damage");
+                let dmg = currentEnemy.damage;
+                game.hp -= dmg;
+                addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!`, "damage");
+                if (game.hp <= 0) {
+                    game.hp = Math.floor(game.maxHp / 2);
+                    addLog(`💀 Ты погиб! Возрождение...`, "damage");
+                    startBattle();
+                }
             }
-            
             waitingForTurn = false;
             updateUI();
             save();
             setTimeout(() => { enemyTurn(); }, 800);
         }
 
-        function useSkill() {
-            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!", "normal"); return; }
-            if (!game.character) { addLog("❌ Сначала выбери персонажа!", "normal"); return; }
-            if (enemyFrozen) { addLog("❌ Враг заморожен! Атакуй!", "normal"); return; }
-            if (game.ap < 40) { addLog(`❌ Нужно 40 AP!`, "damage"); return; }
+        function revoltAgainstMaster() {
+            if (!game.master) { addLog("👑 Ты свободен! Не против кого бунтовать!"); return; }
             
-            game.ap -= 40;
-            let damage = skillBaseDamage + game.strength + Math.floor(Math.random() * 15);
-            let effect = "";
+            let myPower = calcPower();
+            let masterPower = game.master.power || 500;
             
-            if (game.character.name === "Илюха") {
-                let heal = 50;
-                game.hp = Math.min(game.maxHp, game.hp + heal);
-                effect = `💚 Исцеление! +${heal} HP!`;
-            } else if (game.character.name === "Алина") {
-                enemyFrozen = true;
-                currentEnemy.hp -= damage;
-                effect = `❄️ ${game.character.skill}! ${damage} урона и заморозка!`;
-            } else if (game.character.name === "Богдан") {
-                game.buff = { dmgBonus: 0, defBonus: 50, turns: 1 };
-                effect = `🛡️ Магический щит! -50% урона на 1 ход!`;
-            } else if (game.character.name === "Никитос") {
-                game.ap += 25;
-                effect = `⚡ Ускорение! +25 AP!`;
-            } else if (game.character.name === "Полина") {
-                let vampHeal = Math.floor(damage / 2);
-                game.hp = Math.min(game.maxHp, game.hp + vampHeal);
-                currentEnemy.hp -= damage;
-                effect = `🧛 ${game.character.skill}! ${damage} урона, +${vampHeal} HP!`;
+            addLog(`⚔️ Ты поднимаешь бунт против ${game.master.name}!`, "win");
+            
+            if (myPower > masterPower) {
+                addLog(`🎉 ПОБЕДА! Ты освободился от рабства! 🎉`, "win");
+                game.master = null;
+                game.gold += 200;
             } else {
-                currentEnemy.hp -= damage;
-                effect = `✨ ${game.character.skill}! ${damage} урона!`;
+                addLog(`💀 ПОРАЖЕНИЕ! Твой предводитель ${game.master.name} наказывает тебя!`, "damage");
+                game.hp = Math.floor(game.hp * 0.7);
+                game.gold = Math.floor(game.gold * 0.8);
             }
-            
-            addLog(`✨ ${game.character.skill}! ${effect}`, "skill");
-            
+            save();
+            updateUI();
+        }
+
+        // ===== ОСНОВНЫЕ ДЕЙСТВИЯ =====
+        function attack() {
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
+            if (currentEnemy.hp <= 0) { startBattle(); return; }
+            if (game.ap < 20) { addLog(`❌ Нужно 20 AP! У тебя ${Math.floor(game.ap)}. ЖМИ "ЖДАТЬ"!`, "damage"); return; }
+            game.ap -= 20;
+            let dmg = game.strength + Math.floor(Math.random() * 10);
+            if (game.buff.dmgBonus > 0) { dmg += game.buff.dmgBonus; addLog(`🔥 Бафф: +${game.buff.dmgBonus} к урону!`, "skill"); game.buff.turns--; if (game.buff.turns <= 0) game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 }; }
+            currentEnemy.hp -= dmg;
+            addLog(`🔫 Атака! ${dmg} урона!`, "damage");
             if (currentEnemy.hp <= 0) {
-                game.gold += currentEnemy.gold;
-                game.exp += currentEnemy.exp;
+                game.gold += currentEnemy.gold; game.exp += currentEnemy.exp;
                 addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
                 let needExp = game.level * 100;
-                while (game.exp >= needExp) {
-                    game.level++;
-                    game.exp -= needExp;
-                    game.strength += 5;
-                    game.maxHp += 20;
-                    game.maxAp += 10;
-                    game.hp = game.maxHp;
-                    game.ap = game.maxAp;
-                    needExp = game.level * 100;
-                    if (game.level % 3 === 0) {
-                        skillBaseDamage += 5;
-                        addLog(`✨ УЛУЧШЕНИЕ! Урон умения увеличен до ${skillBaseDamage}! ✨`, "skill");
-                    }
-                    addLog(`🎉 УРОВЕНЬ ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win");
-                }
-                game.floor++;
-                updateZoneUI();
-                save();
-                startBattle();
-                updateRating();
-                return;
+                while (game.exp >= needExp) { game.level++; game.exp -= needExp; game.strength += 5; game.maxHp += 20; game.maxAp += 10; game.hp = game.maxHp; game.ap = game.maxAp; needExp = game.level * 100; if (game.level % 3 === 0) { skillBaseDamage += 5; addLog(`✨ УЛУЧШЕНИЕ! Урон умения увеличен до ${skillBaseDamage}! ✨`, "skill"); } addLog(`🎉 УРОВЕНЬ ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win"); }
+                game.floor++; updateZoneUI(); save(); startBattle(); updateRating(); return;
             }
-            
-            if (!enemyFrozen) {
-                waitingForTurn = false;
-                updateUI();
-                save();
-                setTimeout(() => { enemyTurn(); }, 800);
-            } else {
-                enemyFrozen = false;
-                addLog("❄️ Враг пропускает ход!", "skill");
-                waitingForTurn = true;
-                restoreAp();
-                updateUI();
-                save();
+            waitingForTurn = false; updateUI(); save(); setTimeout(() => { enemyTurn(); }, 800);
+        }
+
+        function useSkill() {
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
+            if (!game.character) { addLog("❌ Сначала выбери персонажа!"); return; }
+            if (enemyFrozen) { addLog("❌ Враг заморожен! Атакуй!"); return; }
+            if (game.ap < 40) { addLog(`❌ Нужно 40 AP! У тебя ${Math.floor(game.ap)}. ЖМИ "ЖДАТЬ"!`, "damage"); return; }
+            game.ap -= 40;
+            let damage = skillBaseDamage + game.strength + Math.floor(Math.random() * 15);
+            if (game.character.name === "Илюха") { let heal = 50; game.hp = Math.min(game.maxHp, game.hp + heal); addLog(`💚 Исцеление! +${heal} HP!`, "heal"); }
+            else if (game.character.name === "Алина") { enemyFrozen = true; currentEnemy.hp -= damage; addLog(`❄️ ${game.character.skill}! ${damage} урона и заморозка!`, "skill"); }
+            else if (game.character.name === "Богдан") { game.buff = { dmgBonus: 0, defBonus: 50, turns: 1 }; addLog(`🛡️ Магический щит! -50% урона на 1 ход!`, "skill"); }
+            else if (game.character.name === "Никитос") { restoreAp(25); addLog(`⚡ Ускорение! +25 AP!`, "skill"); }
+            else if (game.character.name === "Полина") { let vampHeal = Math.floor(damage / 2); game.hp = Math.min(game.maxHp, game.hp + vampHeal); currentEnemy.hp -= damage; addLog(`🧛 ${game.character.skill}! ${damage} урона, +${vampHeal} HP!`, "skill"); }
+            else { currentEnemy.hp -= damage; addLog(`✨ ${game.character.skill}! ${damage} урона!`, "skill"); }
+            if (currentEnemy.hp <= 0) {
+                game.gold += currentEnemy.gold; game.exp += currentEnemy.exp;
+                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
+                let needExp = game.level * 100;
+                while (game.exp >= needExp) { game.level++; game.exp -= needExp; game.strength += 5; game.maxHp += 20; game.maxAp += 10; game.hp = game.maxHp; game.ap = game.maxAp; needExp = game.level * 100; if (game.level % 3 === 0) { skillBaseDamage += 5; addLog(`✨ УЛУЧШЕНИЕ! Урон умения увеличен до ${skillBaseDamage}! ✨`, "skill"); } addLog(`🎉 УРОВЕНЬ ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win"); }
+                game.floor++; updateZoneUI(); save(); startBattle(); updateRating(); return;
             }
+            if (!enemyFrozen) { waitingForTurn = false; updateUI(); save(); setTimeout(() => { enemyTurn(); }, 800); }
+            else { enemyFrozen = false; addLog("❄️ Враг пропускает ход!", "skill"); waitingForTurn = true; restoreAp(15); updateUI(); save(); }
         }
 
         function defend() {
-            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!", "normal"); return; }
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
             if (game.ap < 15) { addLog(`❌ Нужно 15 AP!`, "damage"); return; }
             game.ap -= 15;
             game.buff = { dmgBonus: 0, defBonus: 50, turns: 1 };
@@ -755,7 +444,7 @@
         }
 
         function healAction() {
-            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!", "normal"); return; }
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
             if (game.ap < 30) { addLog(`❌ Нужно 30 AP!`, "damage"); return; }
             game.ap -= 30;
             let healAmount = 40;
@@ -766,34 +455,39 @@
             save();
             setTimeout(() => { enemyTurn(); }, 800);
         }
+        
+        function wait() {
+            if (!waitingForTurn) { addLog("⏳ Сейчас не твой ход!"); return; }
+            restoreAp(15);
+            waitingForTurn = false;
+            updateUI();
+            save();
+            setTimeout(() => { enemyTurn(); }, 800);
+        }
 
         function enemyTurn() {
             if (currentEnemy.hp <= 0) return;
             let dmg = currentEnemy.damage;
-            let defMsg = "";
             if (game.buff.defBonus > 0) {
                 let oldDmg = dmg;
                 dmg = Math.floor(dmg * (100 - game.buff.defBonus) / 100);
-                defMsg = ` (было ${oldDmg}, защита снизила до ${dmg})`;
+                addLog(`🛡️ Защита снизила урон до ${dmg}!`, "skill");
                 game.buff.turns--;
                 if (game.buff.turns <= 0) game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
             }
             game.hp -= dmg;
-            addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!${defMsg}`, "damage");
-            
+            addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!`, "damage");
             if (game.hp <= 0) {
                 let penaltyGold = Math.floor(game.gold * 0.2);
-                let penaltyExp = Math.floor(game.exp * 0.1);
                 game.gold = Math.max(0, game.gold - penaltyGold);
-                game.exp = Math.max(0, game.exp - penaltyExp);
-                addLog(`💀 ТЫ ПОГИБ! ШТРАФ: -${penaltyGold}🍺, -${penaltyExp} XP! 💀`, "damage");
+                addLog(`💀 ТЫ ПОГИБ! ШТРАФ: -${penaltyGold}🍺! 💀`, "damage");
                 game.hp = Math.floor(game.maxHp / 2);
                 game.ap = Math.floor(game.maxAp / 2);
                 startBattle();
                 return;
             }
             waitingForTurn = true;
-            restoreAp();
+            restoreAp(20);
             updateUI();
             save();
         }
@@ -804,7 +498,6 @@
             game.maxHp = char.hp;
             game.hp = char.hp;
             save();
-            updateUpgradePrices();
             addLog(`🎭 Выбран ${char.name}! ⚔️ Сила: ${char.strength}, ❤️ HP: ${char.hp}`, "win");
             document.getElementById('charInfo').innerHTML = `✅ Выбран ${char.name}! ⚔️${char.strength} ❤️${char.hp}`;
             updateUI();
@@ -812,59 +505,19 @@
 
         function upgrade(type) {
             let cost = 0;
-            if (type === 'str') {
-                let level = Math.floor(game.strength / 5);
-                cost = Math.floor(50 * Math.pow(1.5, level));
-                if (game.gold >= cost) {
-                    game.gold -= cost;
-                    game.strength += 5;
-                    addLog(`✅ СИЛА +5! Теперь ${game.strength}! (тратишь ${cost}🍺)`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
-            } else if (type === 'hp') {
-                let level = Math.floor(game.maxHp / 20);
-                cost = Math.floor(60 * Math.pow(1.5, level));
-                if (game.gold >= cost) {
-                    game.gold -= cost;
-                    game.maxHp += 20;
-                    game.hp += 20;
-                    addLog(`✅ ЗДОРОВЬЕ +20! Теперь ${game.maxHp} HP! (тратишь ${cost}🍺)`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
-            } else if (type === 'ap') {
-                let level = Math.floor(game.maxAp / 10);
-                cost = Math.floor(70 * Math.pow(1.5, level));
-                if (game.gold >= cost) {
-                    game.gold -= cost;
-                    game.maxAp += 10;
-                    game.ap += 10;
-                    addLog(`✅ AP +10! Теперь ${game.maxAp} AP! (тратишь ${cost}🍺)`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
-            } else if (type === 'worker') {
-                let level = game.workers;
-                cost = Math.floor(100 * Math.pow(1.8, level));
-                if (game.gold >= cost) {
-                    game.gold -= cost;
-                    game.workers += 1;
-                    addLog(`✅ НАНЯТ РАБОТНИК! +1🍺/сек! (тратишь ${cost}🍺)`, "heal");
-                } else { addLog(`❌ Нужно ${cost}🍺! У тебя ${Math.floor(game.gold)}🍺`, "damage"); return; }
-            }
-            updateUpgradePrices();
-            updateUI();
-            save();
+            if (type === 'str') { let level = Math.floor(game.strength / 5); cost = Math.floor(50 * Math.pow(1.5, level)); if (game.gold >= cost) { game.gold -= cost; game.strength += 5; addLog(`✅ СИЛА +5! Теперь ${game.strength}!`, "heal"); } else { addLog(`❌ Нужно ${cost}🍺!`, "damage"); return; } }
+            else if (type === 'hp') { let level = Math.floor(game.maxHp / 20); cost = Math.floor(60 * Math.pow(1.5, level)); if (game.gold >= cost) { game.gold -= cost; game.maxHp += 20; game.hp += 20; addLog(`✅ ЗДОРОВЬЕ +20!`, "heal"); } else { addLog(`❌ Нужно ${cost}🍺!`, "damage"); return; } }
+            else if (type === 'ap') { let level = Math.floor(game.maxAp / 10); cost = Math.floor(70 * Math.pow(1.5, level)); if (game.gold >= cost) { game.gold -= cost; game.maxAp += 10; game.ap += 10; addLog(`✅ AP +10!`, "heal"); } else { addLog(`❌ Нужно ${cost}🍺!`, "damage"); return; } }
+            else if (type === 'worker') { let level = game.workers; cost = Math.floor(100 * Math.pow(1.8, level)); if (game.gold >= cost) { game.gold -= cost; game.workers += 1; addLog(`✅ НАНЯТ РАБОТНИК! +1🍺/сек!`, "heal"); } else { addLog(`❌ Нужно ${cost}🍺!`, "damage"); return; } }
+            updateUI(); save();
         }
 
         function updateRating() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
             let power = calcPower();
             let existing = ratings.find(r => r.id === userId);
-            if (existing) {
-                existing.name = game.character?.name || userName;
-                existing.level = game.level;
-                existing.floor = game.floor;
-                existing.power = power;
-                existing.pvpWins = game.pvpWins;
-            } else {
-                ratings.push({ id: userId, name: game.character?.name || userName, level: game.level, floor: game.floor, power: power, pvpWins: game.pvpWins });
-            }
+            if (existing) { existing.name = game.character?.name || userName; existing.level = game.level; existing.floor = game.floor; existing.power = power; existing.pvpWins = game.pvpWins; existing.slaves = game.slaves.length; }
+            else { ratings.push({ id: userId, name: game.character?.name || userName, level: game.level, floor: game.floor, power: power, pvpWins: game.pvpWins, slaves: game.slaves.length }); }
             ratings.sort((a, b) => b.power - a.power);
             ratings = ratings.slice(0, 30);
             localStorage.setItem('pisok_rating', JSON.stringify(ratings));
@@ -873,21 +526,17 @@
                 container.innerHTML = '';
                 ratings.slice(0, 10).forEach((r, i) => {
                     let medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
-                    container.innerHTML += `<div class="leaderboard-item"><span>${medal} ${r.name}</span><span>⚡${r.power} | 🏆${r.level}ур | 🏔️${r.floor}эт</span></div>`;
+                    container.innerHTML += `<div class="leaderboard-item"><span>${medal} ${r.name}</span><span>⚡${r.power} | 🏆${r.level}ур | 👥${r.slaves || 0}раб</span></div>`;
                 });
             }
         }
 
-        // ===== PVP =====
         function findPvPOpponent() {
             let ratings = JSON.parse(localStorage.getItem('pisok_rating') || '[]');
             let opponents = ratings.filter(r => r.id !== userId);
-            if (opponents.length === 0) {
-                document.getElementById('pvpStatus').innerHTML = '❌ Нет соперников! Пригласи друзей!';
-                return null;
-            }
+            if (opponents.length === 0) { document.getElementById('pvpStatus').innerHTML = '❌ Нет соперников! Пригласи друзей!'; return null; }
             let opp = opponents[Math.floor(Math.random() * opponents.length)];
-            document.getElementById('pvpStatus').innerHTML = `🎮 ${opp.name}<br>⚡ Сила: ${opp.power} | 🏆 ${opp.level} ур. | 🏔️ ${opp.floor} этаж`;
+            document.getElementById('pvpStatus').innerHTML = `🎮 ${opp.name}<br>⚡ Сила: ${opp.power} | 👥 Рабов: ${opp.slaves || 0}<br>💰 Награда за победу: ${100 + (opp.slaves || 0) * 20}🍺`;
             return opp;
         }
 
@@ -895,16 +544,21 @@
             let opponent = findPvPOpponent();
             if (!opponent) return;
             let myPower = calcPower();
+            let reward = 100 + (opponent.slaves || 0) * 20;
             if (myPower > opponent.power) {
                 game.pvpWins++;
-                game.gold += 100;
-                document.getElementById('pvpResult').innerHTML = `🎉 ПОБЕДА! Вы перепили ${opponent.name}! +100🍺!`;
-                addLog(`🏆 PVP ПОБЕДА над ${opponent.name}! +100🍺!`, "win");
+                game.gold += reward;
+                // Порабощаем противника!
+                game.slaves.push({ id: opponent.id, name: opponent.name, power: opponent.power });
+                addLog(`🏆 PVP ПОБЕДА! Ты поработил ${opponent.name}! +${reward}🍺 и +1 раб!`, "win");
+                document.getElementById('pvpResult').innerHTML = `🎉 ПОБЕДА! +${reward}🍺! ${opponent.name} теперь твой раб! 🎉`;
             } else {
                 game.pvpLosses++;
                 game.gold = Math.max(0, game.gold - 50);
-                document.getElementById('pvpResult').innerHTML = `💀 ПОРАЖЕНИЕ от ${opponent.name} -50🍺`;
-                addLog(`💀 PVP ПОРАЖЕНИЕ от ${opponent.name} -50🍺`, "damage");
+                // Противник порабощает тебя!
+                game.master = { id: opponent.id, name: opponent.name, power: opponent.power };
+                addLog(`💀 PVP ПОРАЖЕНИЕ! ${opponent.name} поработил тебя! -50🍺`, "damage");
+                document.getElementById('pvpResult').innerHTML = `💀 ПОРАЖЕНИЕ! ${opponent.name} сделал тебя своим рабом! -50🍺 💀`;
             }
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
@@ -912,7 +566,7 @@
             save();
             updateUI();
             updateRating();
-            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 3000);
+            setTimeout(() => { document.getElementById('pvpResult').innerHTML = ''; }, 5000);
             findPvPOpponent();
         }
 
@@ -937,7 +591,6 @@
             startBattle();
             updateUI();
             updateRating();
-            updateUpgradePrices();
             
             document.getElementById('pvpWins').innerText = game.pvpWins;
             document.getElementById('pvpLosses').innerText = game.pvpLosses;
@@ -965,9 +618,11 @@
             findPvPOpponent();
         }
 
+        // Пассивный доход от рабов и работников
         setInterval(() => {
-            if (game.workers > 0) {
-                game.gold += game.workers;
+            let income = game.workers + game.slaves.length;
+            if (income > 0) {
+                game.gold += income;
                 updateUI();
                 save();
             }
@@ -977,6 +632,8 @@
         document.getElementById('skillBtn')?.addEventListener('click', useSkill);
         document.getElementById('defendBtn')?.addEventListener('click', defend);
         document.getElementById('healBtn')?.addEventListener('click', healAction);
+        document.getElementById('waitBtn')?.addEventListener('click', wait);
+        document.getElementById('enslaveBtn')?.addEventListener('click', enslaveEnemy);
         document.getElementById('pvpFindBtn')?.addEventListener('click', pvpFight);
         document.querySelectorAll('[data-upgrade]').forEach(btn => btn.addEventListener('click', () => upgrade(btn.dataset.upgrade)));
         
@@ -988,12 +645,14 @@
                 document.getElementById(`${tab.dataset.tab}-panel`).classList.add('active');
                 if (tab.dataset.tab === 'rating') updateRating();
                 if (tab.dataset.tab === 'pvp') findPvPOpponent();
+                if (tab.dataset.tab === 'slaves') updateSlavesUI();
             });
         });
 
         load();
         addLog(`🍻 Добро пожаловать, ${userName}!`, "win");
-        addLog(`🏔️ Начинай свой путь с 1 этажа!`, "zone");
+        addLog(`👑 Побеждай в PVP и порабощай соперников!`, "win");
+        addLog(`⚔️ Рабы приносят +1🍺 в секунду каждый!`, "skill");
     </script>
 </body>
 </html>
