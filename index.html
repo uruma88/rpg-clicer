@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>RPG Кликер</title>
+    <title>🍺 Пивная RPG | Битва с похмельем</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -11,16 +11,27 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #2b1b0e 0%, #4a2c1a 50%, #2b1b0e 100%);
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: white;
+            color: #fff3e0;
             padding: 16px;
             padding-bottom: 30px;
         }
-        
+
+        .header {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 30px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+        }
+
         .stats {
             background: rgba(0,0,0,0.5);
             border-radius: 20px;
@@ -32,53 +43,60 @@
             gap: 10px;
             backdrop-filter: blur(10px);
         }
-        
+
         .stat {
             text-align: center;
             flex: 1;
             min-width: 70px;
         }
-        
+
         .stat-value {
             font-size: 20px;
             font-weight: bold;
-            color: #ffd700;
+            color: #f5b042;
         }
-        
+
         .stat-label {
             font-size: 10px;
-            opacity: 0.7;
+            opacity: 0.8;
         }
-        
+
         .battle-area {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             border-radius: 30px;
             padding: 20px;
             margin-bottom: 16px;
             text-align: center;
+            backdrop-filter: blur(10px);
         }
-        
+
         .enemy {
             cursor: pointer;
             transition: transform 0.05s linear;
             display: inline-block;
         }
-        
+
         .enemy:active {
             transform: scale(0.95);
         }
-        
+
         .enemy-emoji {
             font-size: 100px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
         }
-        
+
         .enemy-name {
             font-size: 22px;
             font-weight: bold;
             margin-top: 10px;
         }
-        
+
+        .enemy-desc {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
         .enemy-hp {
             background: rgba(0,0,0,0.5);
             border-radius: 20px;
@@ -87,71 +105,72 @@
             margin: 10px auto;
             overflow: hidden;
         }
-        
+
         .enemy-hp-fill {
-            background: linear-gradient(90deg, #ff4444, #ff8888);
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
             width: 100%;
             height: 100%;
             border-radius: 20px;
             transition: width 0.2s;
         }
-        
+
         .enemy-hp-text {
             font-size: 14px;
         }
-        
+
         .click-button {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #e67e22, #d35400);
             border: none;
             border-radius: 60px;
             padding: 18px;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: white;
             width: 100%;
             cursor: pointer;
             transition: transform 0.05s, box-shadow 0.2s;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
         }
-        
+
         .click-button:active {
             transform: scale(0.97);
         }
-        
+
         .tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
         }
-        
+
         .tab {
             flex: 1;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5);
             border: none;
             padding: 12px;
             border-radius: 30px;
-            color: white;
-            font-size: 13px;
+            color: #fff3e0;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .tab.active {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(135deg, #e67e22, #d35400);
         }
-        
+
         .panel {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             border-radius: 20px;
             padding: 16px;
             margin-top: 8px;
             display: none;
+            backdrop-filter: blur(10px);
         }
-        
+
         .panel.active {
             display: block;
         }
-        
+
         .upgrade-item {
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
@@ -161,72 +180,108 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .upgrade-info h4 {
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 4px;
         }
-        
+
         .upgrade-info p {
             font-size: 10px;
-            opacity: 0.7;
+            opacity: 0.8;
         }
-        
+
         .upgrade-button {
-            background: #ffd700;
+            background: #f5b042;
             border: none;
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: bold;
-            color: #1a1a2e;
+            color: #2b1b0e;
             cursor: pointer;
         }
-        
+
         .leaderboard-item {
             display: flex;
             justify-content: space-between;
             padding: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
         }
-        
-        .pvp-section {
-            text-align: center;
-        }
-        
-        .pvp-opponent {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 15px;
+
+        .class-select {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
             margin: 15px 0;
         }
-        
+
+        .class-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            flex: 1;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .class-card.selected {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            transform: scale(1.02);
+        }
+
+        .class-card:hover {
+            transform: scale(1.05);
+        }
+
+        .class-emoji {
+            font-size: 40px;
+        }
+
+        .class-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .item-slot {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .damage-number {
             position: fixed;
             font-size: 24px;
             font-weight: bold;
-            color: #ffaa00;
+            color: #f5b042;
             text-shadow: 0 0 5px rgba(0,0,0,0.5);
             pointer-events: none;
             z-index: 1000;
             animation: floatUp 0.5s ease-out forwards;
         }
-        
+
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-50px); }
         }
-        
+
         @keyframes clickRipple {
             0% { transform: scale(1); opacity: 0.5; }
             100% { transform: scale(2); opacity: 0; }
         }
-        
+
         .ripple {
             position: fixed;
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,215,0,0) 70%);
+            background: radial-gradient(circle, rgba(245,176,66,0.6) 0%, rgba(245,176,66,0) 70%);
             pointer-events: none;
             animation: clickRipple 0.3s ease-out forwards;
             z-index: 999;
@@ -234,10 +289,14 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        🍺 ПИВНАЯ БИТВА 🍺
+    </div>
+
     <div class="stats">
         <div class="stat">
             <div class="stat-value" id="gold">0</div>
-            <div class="stat-label">💰 ЗОЛОТО</div>
+            <div class="stat-label">🍺 БЮДЖЕТ</div>
         </div>
         <div class="stat">
             <div class="stat-value" id="level">1</div>
@@ -245,205 +304,378 @@
         </div>
         <div class="stat">
             <div class="stat-value" id="dps">0</div>
-            <div class="stat-label">⚔️ DPS</div>
+            <div class="stat-label">🍻 МОЩНОСТЬ</div>
         </div>
     </div>
-    
+
     <div class="tabs">
-        <button class="tab active" data-tab="fight">⚔️ БОЙ</button>
-        <button class="tab" data-tab="upgrade">📈 ПРОКАТКА</button>
+        <button class="tab active" data-tab="fight">🍺 ПИТЬ/ВОЕВАТЬ</button>
+        <button class="tab" data-tab="class">🎭 КЛАСС</button>
+        <button class="tab" data-tab="items">🎒 ПРЕДМЕТЫ</button>
+        <button class="tab" data-tab="upgrade">📊 ПРОКАЧКА</button>
         <button class="tab" data-tab="leaderboard">🏆 РЕЙТИНГ</button>
         <button class="tab" data-tab="pvp">⚔️ PVP</button>
     </div>
-    
+
+    <!-- БОЕВАЯ ПАНЕЛЬ -->
     <div id="fight-panel" class="panel active">
         <div class="battle-area">
             <div class="enemy" id="enemy-click">
-                <div class="enemy-emoji" id="enemy-emoji">👹</div>
-                <div class="enemy-name" id="enemy-name">Гоблин</div>
+                <div class="enemy-emoji" id="enemy-emoji">🍺</div>
+                <div class="enemy-name" id="enemy-name">Залежавшееся Пиво</div>
+                <div class="enemy-desc" id="enemy-desc">"Просрочено на месяц..."</div>
                 <div class="enemy-hp">
                     <div class="enemy-hp-fill" id="enemy-hp-fill" style="width: 100%"></div>
                 </div>
-                <div class="enemy-hp-text" id="enemy-hp-text">❤️ 100/100</div>
+                <div class="enemy-hp-text" id="enemy-hp-text">🍺 100/100</div>
             </div>
         </div>
-        <button class="click-button" id="click-btn">⚔️ КЛИКНИ! ⚔️</button>
+        <button class="click-button" id="click-btn">🍻 ВЫПИТЬ / АТАКОВАТЬ! 🍻</button>
+        <button class="click-button" id="skill-btn" style="background: linear-gradient(135deg, #8e44ad, #6c3483); display: none;">✨ КЛАССОВАЯ СПОСОБНОСТЬ ✨</button>
     </div>
-    
+
+    <!-- ВЫБОР КЛАССА -->
+    <div id="class-panel" class="panel">
+        <div class="class-select">
+            <div class="class-card" data-class="beer">
+                <div class="class-emoji">🍺</div>
+                <div class="class-name">Крафтовик</div>
+                <div style="font-size: 10px;">+25% силы</div>
+            </div>
+            <div class="class-card" data-class="mage">
+                <div class="class-emoji">🍻</div>
+                <div class="class-name">Пивной Маг</div>
+                <div style="font-size: 10px;">+25% магии</div>
+            </div>
+            <div class="class-card" data-class="barman">
+                <div class="class-emoji">🍸</div>
+                <div class="class-name">Бармен</div>
+                <div style="font-size: 10px;">+15% ко всем статам</div>
+            </div>
+            <div class="class-card" data-class="warrior">
+                <div class="class-emoji">🥃</div>
+                <div class="class-name">Алко-Воин</div>
+                <div style="font-size: 10px;">+50% HP</div>
+            </div>
+        </div>
+        <div id="class-info" style="margin-top: 15px; text-align: center; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 15px;">
+            Выбери класс, чтобы получить уникальную способность!
+        </div>
+    </div>
+
+    <!-- ПРЕДМЕТЫ -->
+    <div id="items-panel" class="panel">
+        <div id="items-list"></div>
+    </div>
+
+    <!-- ПРОКАЧКА -->
     <div id="upgrade-panel" class="panel">
         <div class="upgrade-item">
             <div class="upgrade-info">
-                <h4>💪 Урон клика</h4>
+                <h4>🍺 КРЕПОСТЬ</h4>
                 <p>Уровень: <span id="dmg-level">1</span> | +5 урона</p>
             </div>
-            <button class="upgrade-button" data-upgrade="dmg">🔧 Купить</button>
+            <button class="upgrade-button" data-upgrade="dmg">🍻 +</button>
         </div>
         <div class="upgrade-item">
             <div class="upgrade-info">
-                <h4>🖱️ Скорость клика</h4>
-                <p>Уровень: <span id="speed-level">1</span> | +0.5 кликов/сек</p>
+                <h4>⚡ СКОРОСТЬ</h4>
+                <p>Уровень: <span id="speed-level">1</span> | +0.5 ударов/сек</p>
             </div>
-            <button class="upgrade-button" data-upgrade="speed">🔧 Купить</button>
+            <button class="upgrade-button" data-upgrade="speed">🍻 +</button>
         </div>
         <div class="upgrade-item">
             <div class="upgrade-info">
-                <h4>👥 Работники</h4>
-                <p>Уровень: <span id="worker-level">0</span> | +1 золото/сек</p>
+                <h4>👥 ПОМОЩНИКИ</h4>
+                <p>Уровень: <span id="worker-level">0</span> | пассивный доход</p>
             </div>
-            <button class="upgrade-button" data-upgrade="worker">🔧 Купить</button>
-        </div>
-        <div class="upgrade-item">
-            <div class="upgrade-info">
-                <h4>💀 Критический удар</h4>
-                <p>Уровень: <span id="crit-level">0</span> | шанс x2 урона</p>
-            </div>
-            <button class="upgrade-button" data-upgrade="crit">🔧 Купить</button>
+            <button class="upgrade-button" data-upgrade="worker">🍻 +</button>
         </div>
     </div>
-    
+
+    <!-- РЕЙТИНГ -->
     <div id="leaderboard-panel" class="panel">
         <div class="leaderboard-item" style="font-weight: bold;">
             <span>👤 ИГРОК</span>
-            <span>🏆 УРОВЕНЬ И ПОБЕДЫ</span>
+            <span>🍺 УРОВЕНЬ | ПОБЕД</span>
         </div>
         <div id="leaderboard-list"></div>
     </div>
-    
+
+    <!-- PVP -->
     <div id="pvp-panel" class="panel">
         <div class="pvp-section">
-            <div id="pvp-opponent" class="pvp-opponent">
+            <div id="pvp-opponent" class="upgrade-item" style="flex-direction: column; text-align: center;">
                 <span id="pvp-status">🔍 Поиск соперника...</span>
             </div>
-            <button class="click-button" id="pvp-fight-btn" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">⚔️ НАЙТИ PVP ⚔️</button>
+            <button class="click-button" id="pvp-fight-btn" style="background: linear-gradient(135deg, #e67e22, #d35400); margin-top: 10px;">⚔️ НАЙТИ PVP ⚔️</button>
             <div id="pvp-result" style="margin-top: 15px;"></div>
         </div>
     </div>
 
     <script>
-        // Telegram WebApp
         const tg = window.Telegram.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
-        }
-        
-        // Данные игрока
-        const user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : { id: Math.floor(Math.random() * 1000000), first_name: "Гость" };
-        
-        // Игровое состояние
+        if (tg) { tg.ready(); tg.expand(); }
+
+        const user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) 
+            ? tg.initDataUnsafe.user 
+            : { id: Math.floor(Math.random() * 1000000), first_name: "Гость" };
+
+        // Пивные враги
+        const enemies = [
+            { name: "🍺 Залежавшееся Пиво", emoji: "🍺", desc: "Просрочено на месяц...", hp: 80, gold: 15, exp: 10, minLevel: 1, maxLevel: 5 },
+            { name: "🍻 Пустая Кружка", emoji: "🍻", desc: "Ни капли внутри!", hp: 60, gold: 10, exp: 8, minLevel: 1, maxLevel: 5 },
+            { name: "😵 Похмелье", emoji: "😵", desc: "Голова раскалывается", hp: 100, gold: 20, exp: 15, minLevel: 1, maxLevel: 5 },
+            { name: "🧟 Пивной Зомби", emoji: "🧟", desc: "Пьёт без остановки", hp: 150, gold: 30, exp: 22, minLevel: 5, maxLevel: 10 },
+            { name: "👮 Пивной Контролёр", emoji: "👮", desc: "Проверяет документы", hp: 180, gold: 35, exp: 25, minLevel: 5, maxLevel: 10 },
+            { name: "💰 Бармен-Жмот", emoji: "💰", desc: "Экономит на пене", hp: 200, gold: 50, exp: 30, minLevel: 10, maxLevel: 15 },
+            { name: "🔥 ПЯТНИЦА 18:00", emoji: "🔥", desc: "Час расплаты!", hp: 500, gold: 200, exp: 150, isBoss: true, bossLevel: 10 },
+            { name: "🍺 КЕГА-БОСС", emoji: "🍺", desc: "20 литров чистого ужаса", hp: 800, gold: 400, exp: 250, isBoss: true, bossLevel: 15 },
+        ];
+
+        // Классы
+        const classes = {
+            beer: { name: "Крафтовик", emoji: "🍺", bonus: { strength: 25, magic: 0, hp: 0 }, skill: "Знаток вкуса", skillEffect: "+50% урона на 3 удара" },
+            mage: { name: "Пивной Маг", emoji: "🍻", bonus: { strength: 0, magic: 25, hp: 0 }, skill: "Тяга к магии", skillEffect: "Восстанавливает 30% HP" },
+            barman: { name: "Бармен", emoji: "🍸", bonus: { strength: 15, magic: 15, hp: 15 }, skill: "Социальный бонус", skillEffect: "Даёт +100 золота" },
+            warrior: { name: "Алко-Воин", emoji: "🥃", bonus: { strength: 10, magic: 10, hp: 50 }, skill: "Стойкий оловянный", skillEffect: "Неуязвимость на 1 ход" }
+        };
+
+        // Предметы
+        const items = [
+            { id: "beer1", name: "🍺 Банка Пива", type: "consumable", effect: "Восстанавливает 50 HP", cost: 80, emoji: "🍺" },
+            { id: "beer2", name: "🍻 Кружка Крафта", type: "consumable", effect: "Увеличивает урон на 10", cost: 150, emoji: "🍻" },
+            { id: "snack", name: "🥨 Крендельки", type: "consumable", effect: "Даёт +30 к HP", cost: 40, emoji: "🥨" },
+            { id: "shot", name: "🥃 Шот", type: "consumable", effect: "Удваивает следующий удар", cost: 100, emoji: "🥃" },
+            { id: "mug", name: "🏆 Кружка Бармена", type: "weapon", effect: "+15 к урону постоянно", cost: 300, emoji: "🏆" },
+            { id: "apron", name: "👕 Фартук Бармена", type: "armor", effect: "+50 к HP постоянно", cost: 250, emoji: "👕" },
+        ];
+
         let gameState = {
-            gold: 100,
+            gold: 150,
             level: 1,
             exp: 0,
-            clickDamage: 10,
+            clickDamage: 15,
             clickSpeed: 1,
             workers: 0,
-            critChance: 0,
             totalClicks: 0,
             pvpWins: 0,
-            pvpLosses: 0
+            pvpLosses: 0,
+            className: "beer",
+            items: [],
+            skillCooldown: 0
         };
-        
-        // Текущий враг
-        let currentEnemy = {
-            name: "Гоблин",
-            emoji: "👹",
-            hp: 100,
-            maxHp: 100,
-            goldReward: 10,
-            expReward: 10
-        };
-        
-        // Стоимость улучшений
-        const upgradeCosts = {
-            dmg: { base: 50, multiplier: 1.5 },
-            speed: { base: 80, multiplier: 1.6 },
-            worker: { base: 100, multiplier: 1.8 },
-            crit: { base: 150, multiplier: 2.0 }
-        };
-        
-        // Загрузка сохранений
+
+        let currentEnemy = null;
+
+        function getEnemyForLevel() {
+            let available = enemies.filter(e => {
+                if (e.isBoss) return e.bossLevel === gameState.level;
+                return gameState.level >= e.minLevel && gameState.level <= e.maxLevel;
+            });
+            if (available.length === 0) available = enemies.slice(0, 3);
+            return JSON.parse(JSON.stringify(available[Math.floor(Math.random() * available.length)]));
+        }
+
+        function initEnemy() {
+            currentEnemy = getEnemyForLevel();
+            updateUI();
+        }
+
         function loadGame() {
             try {
-                const saved = localStorage.getItem(`clicker_${user.id}`);
+                const saved = localStorage.getItem(`beer_clicker_${user.id}`);
                 if (saved) {
                     const data = JSON.parse(saved);
                     gameState = { ...gameState, ...data };
                 }
-            } catch(e) {
-                console.log("Ошибка загрузки:", e);
-            }
+            } catch(e) {}
+            initEnemy();
             updateUI();
+            updateItemsUI();
         }
-        
-        // Сохранение
+
         function saveGame() {
             try {
-                localStorage.setItem(`clicker_${user.id}`, JSON.stringify(gameState));
-            } catch(e) {
-                console.log("Ошибка сохранения:", e);
-            }
+                localStorage.setItem(`beer_clicker_${user.id}`, JSON.stringify(gameState));
+            } catch(e) {}
         }
-        
-        // Обновление UI
+
         function updateUI() {
             document.getElementById('gold').innerText = Math.floor(gameState.gold);
             document.getElementById('level').innerText = gameState.level;
             document.getElementById('dmg-level').innerText = Math.floor(gameState.clickDamage / 5);
             document.getElementById('speed-level').innerText = gameState.clickSpeed;
             document.getElementById('worker-level').innerText = gameState.workers;
-            document.getElementById('crit-level').innerText = gameState.critChance;
             
             const dps = gameState.clickDamage * gameState.clickSpeed + gameState.workers;
             document.getElementById('dps').innerText = dps;
             
-            document.getElementById('enemy-name').innerText = currentEnemy.name;
-            document.getElementById('enemy-emoji').innerText = currentEnemy.emoji;
-            const hpPercent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
-            document.getElementById('enemy-hp-fill').style.width = `${Math.max(0, hpPercent)}%`;
-            document.getElementById('enemy-hp-text').innerHTML = `❤️ ${Math.max(0, Math.floor(currentEnemy.hp))}/${currentEnemy.maxHp}`;
+            if (currentEnemy) {
+                document.getElementById('enemy-name').innerText = currentEnemy.name;
+                document.getElementById('enemy-emoji').innerText = currentEnemy.emoji;
+                document.getElementById('enemy-desc').innerText = currentEnemy.desc || "";
+                const hpPercent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
+                document.getElementById('enemy-hp-fill').style.width = `${Math.max(0, hpPercent)}%`;
+                document.getElementById('enemy-hp-text').innerHTML = `🍺 ${Math.max(0, Math.floor(currentEnemy.hp))}/${currentEnemy.maxHp}`;
+            }
+            
+            // Кнопка способности (КД 5 ударов)
+            const skillBtn = document.getElementById('skill-btn');
+            if (skillBtn) {
+                if (gameState.skillCooldown > 0) {
+                    skillBtn.style.display = 'block';
+                    skillBtn.innerText = `⏳ СПОСОБНОСТЬ (готово через ${gameState.skillCooldown} ударов)`;
+                    skillBtn.disabled = true;
+                } else {
+                    skillBtn.style.display = 'block';
+                    skillBtn.innerText = `✨ ${classes[gameState.className].skill} ✨`;
+                    skillBtn.disabled = false;
+                }
+            }
         }
-        
-        // Анимация урона
-        function showDamage(x, y, damage) {
-            const div = document.createElement('div');
-            div.className = 'damage-number';
-            div.innerText = `-${damage}`;
-            div.style.left = `${x - 20}px`;
-            div.style.top = `${y - 30}px`;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 500);
+
+        function updateItemsUI() {
+            const container = document.getElementById('items-list');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="upgrade-item" style="font-weight: bold;">🏪 МАГАЗИН ПРЕДМЕТОВ 🏪</div>';
+            
+            items.forEach(item => {
+                const owned = gameState.items.filter(i => i === item.id).length;
+                container.innerHTML += `
+                    <div class="upgrade-item">
+                        <div>
+                            <h4>${item.emoji} ${item.name}</h4>
+                            <p>${item.effect} | Цена: ${item.cost}🍺</p>
+                            ${owned > 0 ? `<p style="color: #f5b042;">В наличии: ${owned} шт.</p>` : ''}
+                        </div>
+                        <button class="upgrade-button" onclick="buyItem('${item.id}')">Купить</button>
+                    </div>
+                `;
+            });
         }
-        
-        // Анимация клика
-        function addRipple(x, y) {
-            const ripple = document.createElement('div');
-            ripple.className = 'ripple';
-            ripple.style.left = `${x - 50}px`;
-            ripple.style.top = `${y - 50}px`;
-            document.body.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 300);
+
+        function buyItem(itemId) {
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+            if (gameState.gold >= item.cost) {
+                gameState.gold -= item.cost;
+                gameState.items.push(itemId);
+                saveGame();
+                updateItemsUI();
+                alert(`✅ Вы купили ${item.name}!`);
+            } else {
+                alert(`❌ Не хватает бюджета! Нужно ${item.cost}🍺`);
+            }
         }
-        
-        // Удар по врагу
+
+        function useItem(itemId) {
+            const index = gameState.items.indexOf(itemId);
+            if (index === -1) return;
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+            
+            gameState.items.splice(index, 1);
+            
+            if (item.id === "beer1") {
+                // Восстановление HP (учитываем, что у игрока нет HP в текущей механике, даём золото)
+                gameState.gold += 30;
+                alert(`🍺 Вы выпили пиво! +30 к бюджету!`);
+            } else if (item.id === "beer2") {
+                gameState.clickDamage += 10;
+                alert(`🍻 Вы выпили крафт! +10 к урону!`);
+            } else if (item.id === "snack") {
+                gameState.gold += 50;
+                alert(`🥨 Вы закусили крендельками! +50 к бюджету!`);
+            } else if (item.id === "shot") {
+                // Удвоение следующего удара
+                window.nextDamageMultiplier = 2;
+                alert(`🥃 Шот! Следующий удар удвоен!`);
+            } else if (item.id === "mug") {
+                gameState.clickDamage += 15;
+                alert(`🏆 Вы купили кружку бармена! +15 к урону навсегда!`);
+            } else if (item.id === "apron") {
+                // В текущей механике нет HP игрока, даём бонус к урону
+                gameState.clickDamage += 10;
+                alert(`👕 Фартук даёт +10 к продуктивности!`);
+            }
+            
+            saveGame();
+            updateUI();
+            updateItemsUI();
+        }
+
+        function useClassSkill() {
+            if (gameState.skillCooldown > 0) {
+                alert(`⏳ Способность перезаряжается! Осталось ${gameState.skillCooldown} ударов.`);
+                return;
+            }
+            
+            const playerClass = classes[gameState.className];
+            let message = "";
+            
+            switch(gameState.className) {
+                case "beer":
+                    window.nextDamageMultiplier = 1.5;
+                    message = `🍺 ${playerClass.skill}! Следующие 3 удара увеличены на 50%!`;
+                    gameState.skillCooldown = 3;
+                    break;
+                case "mage":
+                    gameState.gold += 100;
+                    message = `🍻 ${playerClass.skill}! +100 к бюджету!`;
+                    gameState.skillCooldown = 5;
+                    break;
+                case "barman":
+                    gameState.gold += 150;
+                    message = `🍸 ${playerClass.skill}! +150 к бюджету!`;
+                    gameState.skillCooldown = 4;
+                    break;
+                case "warrior":
+                    window.nextDamageMultiplier = 2;
+                    message = `🥃 ${playerClass.skill}! Следующий удар удвоен!`;
+                    gameState.skillCooldown = 3;
+                    break;
+            }
+            
+            alert(message);
+            saveGame();
+            updateUI();
+        }
+
         function attack() {
             let damage = gameState.clickDamage;
-            let isCritical = false;
             
-            if (Math.random() * 100 < gameState.critChance) {
-                damage *= 2;
-                isCritical = true;
+            if (window.nextDamageMultiplier) {
+                damage *= window.nextDamageMultiplier;
+                window.nextDamageMultiplier = null;
             }
             
             currentEnemy.hp -= damage;
             gameState.totalClicks++;
             
-            // Анимация
+            if (gameState.skillCooldown > 0) {
+                gameState.skillCooldown--;
+                updateUI();
+            }
+            
             const btn = document.getElementById('click-btn');
             if (btn) {
                 const rect = btn.getBoundingClientRect();
-                addRipple(rect.left + rect.width/2, rect.top + rect.height/2);
-                showDamage(rect.left + rect.width/2, rect.top - 20, isCritical ? `${damage}!!!` : damage);
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.left = `${rect.left + rect.width/2 - 50}px`;
+                ripple.style.top = `${rect.top + rect.height/2 - 50}px`;
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 300);
+                
+                const damageDiv = document.createElement('div');
+                damageDiv.className = 'damage-number';
+                damageDiv.innerText = `-${damage}`;
+                damageDiv.style.left = `${rect.left + rect.width/2 - 20}px`;
+                damageDiv.style.top = `${rect.top - 30}px`;
+                document.body.appendChild(damageDiv);
+                setTimeout(() => damageDiv.remove(), 500);
             }
             
             if (currentEnemy.hp <= 0) {
@@ -454,82 +686,38 @@
                 if (gameState.exp >= expNeeded) {
                     gameState.level++;
                     gameState.exp -= expNeeded;
-                    gameState.clickDamage += 3;
+                    gameState.clickDamage += 5;
+                    alert(`🎉 УРОВЕНЬ ${gameState.level}! +5 урона! 🎉`);
                 }
                 
-                const enemies = [
-                    { name: "Гоблин", emoji: "👹", hp: 80 + gameState.level * 5, gold: 10 + gameState.level, exp: 10 + gameState.level },
-                    { name: "Волк", emoji: "🐺", hp: 100 + gameState.level * 6, gold: 15 + gameState.level, exp: 15 + gameState.level },
-                    { name: "Орк", emoji: "🧌", hp: 150 + gameState.level * 8, gold: 25 + gameState.level, exp: 20 + gameState.level },
-                    { name: "Дракон", emoji: "🐉", hp: 300 + gameState.level * 10, gold: 50 + gameState.level * 2, exp: 40 + gameState.level }
-                ];
-                const newEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-                currentEnemy = {
-                    name: newEnemy.name,
-                    emoji: newEnemy.emoji,
-                    hp: newEnemy.hp,
-                    maxHp: newEnemy.hp,
-                    goldReward: newEnemy.gold,
-                    expReward: newEnemy.exp
-                };
+                currentEnemy = getEnemyForLevel();
             }
             
             updateUI();
             saveGame();
             updateLeaderboard();
         }
-        
-        // Улучшение
-        function upgrade(type) {
-            let currentLevel = 0;
-            switch(type) {
-                case 'dmg': currentLevel = Math.floor(gameState.clickDamage / 5); break;
-                case 'speed': currentLevel = gameState.clickSpeed; break;
-                case 'worker': currentLevel = gameState.workers; break;
-                case 'crit': currentLevel = gameState.critChance / 2; break;
-            }
-            const cost = Math.floor(upgradeCosts[type].base * Math.pow(upgradeCosts[type].multiplier, currentLevel));
+
+        function selectClass(className) {
+            gameState.className = className;
+            saveGame();
+            document.querySelectorAll('.class-card').forEach(card => card.classList.remove('selected'));
+            document.querySelector(`.class-card[data-class="${className}"]`).classList.add('selected');
             
-            if (gameState.gold >= cost) {
-                gameState.gold -= cost;
-                
-                switch(type) {
-                    case 'dmg':
-                        gameState.clickDamage += 5;
-                        break;
-                    case 'speed':
-                        gameState.clickSpeed += 0.5;
-                        break;
-                    case 'worker':
-                        gameState.workers += 1;
-                        break;
-                    case 'crit':
-                        gameState.critChance = Math.min(50, gameState.critChance + 2);
-                        break;
-                }
-                
-                updateUI();
-                saveGame();
-            } else {
-                alert(`❌ Не хватает золота! Нужно ${cost}💰`);
-            }
+            const classInfo = classes[className];
+            document.getElementById('class-info').innerHTML = `
+                🎭 ВЫБРАН КЛАСС: ${classInfo.name} ${classInfo.emoji}<br>
+                📊 Бонусы: +${classInfo.bonus.strength}% силы, +${classInfo.bonus.magic}% магии, +${classInfo.bonus.hp}% HP<br>
+                ✨ Способность: ${classInfo.skill} — ${classInfo.skillEffect}
+            `;
+            
+            updateUI();
         }
-        
-        // Пассивный доход
-        setInterval(() => {
-            const passiveIncome = gameState.workers;
-            if (passiveIncome > 0) {
-                gameState.gold += passiveIncome;
-                updateUI();
-                saveGame();
-            }
-        }, 1000);
-        
-        // Рейтинг
+
         function updateLeaderboard() {
             let globalLeaderboard = [];
             try {
-                globalLeaderboard = JSON.parse(localStorage.getItem('clicker_global_leaderboard') || '[]');
+                globalLeaderboard = JSON.parse(localStorage.getItem('beer_leaderboard') || '[]');
             } catch(e) {}
             
             const existing = globalLeaderboard.find(p => p.id === user.id);
@@ -550,7 +738,7 @@
             
             globalLeaderboard.sort((a, b) => b.level - a.level);
             globalLeaderboard = globalLeaderboard.slice(0, 30);
-            localStorage.setItem('clicker_global_leaderboard', JSON.stringify(globalLeaderboard));
+            localStorage.setItem('beer_leaderboard', JSON.stringify(globalLeaderboard));
             
             const container = document.getElementById('leaderboard-list');
             if (container) {
@@ -560,52 +748,49 @@
                     container.innerHTML += `
                         <div class="leaderboard-item">
                             <span>${medal} ${p.name.substring(0, 15)}</span>
-                            <span>Ур. ${p.level} | 🏆 ${p.pvpWins}</span>
+                            <span>🍺 Ур.${p.level} | 🏆 ${p.pvpWins}</span>
                         </div>
                     `;
                 });
-                if (globalLeaderboard.length === 0) {
-                    container.innerHTML = '<div class="leaderboard-item">Нет игроков</div>';
-                }
             }
         }
-        
-        // PvP
+
         function findPvPOpponent() {
             let globalLeaderboard = [];
             try {
-                globalLeaderboard = JSON.parse(localStorage.getItem('clicker_global_leaderboard') || '[]');
+                globalLeaderboard = JSON.parse(localStorage.getItem('beer_leaderboard') || '[]');
             } catch(e) {}
             const opponents = globalLeaderboard.filter(p => p.id !== user.id);
             
             if (opponents.length === 0) {
-                document.getElementById('pvp-status').innerHTML = '❌ Нет других игроков! Пригласи друзей!<br>👇';
+                document.getElementById('pvp-status').innerHTML = '❌ Нет других игроков! Пригласи друзей!';
                 return null;
             }
             
             const opponent = opponents[Math.floor(Math.random() * opponents.length)];
             document.getElementById('pvp-status').innerHTML = `
-                🎮 <strong>${opponent.name}</strong><br>
+                🎮 СОПЕРНИК: ${opponent.name}<br>
                 📊 Уровень: ${opponent.level}<br>
-                🏆 Побед в PvP: ${opponent.pvpWins}
+                🏆 Побед: ${opponent.pvpWins}
             `;
             return opponent;
         }
-        
+
         function pvpFight() {
             const opponent = findPvPOpponent();
             if (!opponent) return;
             
-            const playerPower = gameState.level * 10 + gameState.clickDamage + gameState.workers * 5 + gameState.critChance;
+            const playerPower = gameState.level * 10 + gameState.clickDamage + gameState.workers * 5;
             const opponentPower = opponent.level * 10;
             
             let result;
             if (playerPower > opponentPower) {
                 gameState.pvpWins++;
-                result = `🎉 ПОБЕДА! Вы победили ${opponent.name}! 🎉\n🏆 +1 победа в PvP!`;
+                result = `🎉 ПОБЕДА! Вы перепили ${opponent.name}! 🎉\n🏆 +1 победа в PvP! +50🍺!`;
+                gameState.gold += 50;
             } else {
                 gameState.pvpLosses++;
-                result = `💀 ПОРАЖЕНИЕ! Вы проиграли ${opponent.name}... 💀\n😢 Старайся лучше!`;
+                result = `💀 ПОРАЖЕНИЕ! ${opponent.name} оказался крепче... 💀\n😢 Следующий раз повезёт!`;
             }
             
             saveGame();
@@ -613,46 +798,94 @@
             const resultDiv = document.getElementById('pvp-result');
             if (resultDiv) {
                 resultDiv.innerHTML = result;
-                setTimeout(() => {
-                    resultDiv.innerHTML = '';
-                }, 4000);
+                setTimeout(() => resultDiv.innerHTML = '', 4000);
             }
             updateLeaderboard();
             findPvPOpponent();
         }
-        
-        // Переключение табов
+
+        function upgrade(type) {
+            let currentLevel = 0;
+            let baseCost = 0;
+            let multiplier = 0;
+            
+            switch(type) {
+                case 'dmg':
+                    currentLevel = Math.floor(gameState.clickDamage / 5);
+                    baseCost = 50;
+                    multiplier = 1.5;
+                    break;
+                case 'speed':
+                    currentLevel = gameState.clickSpeed;
+                    baseCost = 80;
+                    multiplier = 1.6;
+                    break;
+                case 'worker':
+                    currentLevel = gameState.workers;
+                    baseCost = 100;
+                    multiplier = 1.8;
+                    break;
+            }
+            
+            const cost = Math.floor(baseCost * Math.pow(multiplier, currentLevel));
+            
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                switch(type) {
+                    case 'dmg': gameState.clickDamage += 5; break;
+                    case 'speed': gameState.clickSpeed += 0.5; break;
+                    case 'worker': gameState.workers += 1; break;
+                }
+                updateUI();
+                saveGame();
+            } else {
+                alert(`❌ Не хватает бюджета! Нужно ${cost}🍺`);
+            }
+        }
+
+        // Пассивный доход
+        setInterval(() => {
+            const passiveIncome = gameState.workers;
+            if (passiveIncome > 0) {
+                gameState.gold += passiveIncome;
+                updateUI();
+                saveGame();
+            }
+        }, 1000);
+
+        // Табы
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 tab.classList.add('active');
                 const panelId = `${tab.dataset.tab}-panel`;
-                const panel = document.getElementById(panelId);
-                if (panel) panel.classList.add('active');
-                
+                document.getElementById(panelId).classList.add('active');
                 if (tab.dataset.tab === 'leaderboard') updateLeaderboard();
                 if (tab.dataset.tab === 'pvp') findPvPOpponent();
+                if (tab.dataset.tab === 'items') updateItemsUI();
             });
         });
-        
+
         // Обработчики
-        const clickBtn = document.getElementById('click-btn');
-        if (clickBtn) clickBtn.addEventListener('click', attack);
+        document.getElementById('click-btn')?.addEventListener('click', attack);
+        document.getElementById('skill-btn')?.addEventListener('click', useClassSkill);
+        document.getElementById('pvp-fight-btn')?.addEventListener('click', pvpFight);
         
         document.querySelectorAll('[data-upgrade]').forEach(btn => {
             btn.addEventListener('click', () => upgrade(btn.dataset.upgrade));
         });
         
-        const pvpBtn = document.getElementById('pvp-fight-btn');
-        if (pvpBtn) pvpBtn.addEventListener('click', pvpFight);
-        
-        // Запуск
+        document.querySelectorAll('.class-card').forEach(card => {
+            card.addEventListener('click', () => selectClass(card.dataset.class));
+        });
+
         loadGame();
         updateLeaderboard();
         findPvPOpponent();
         
-        console.log("Игра запущена, user:", user.first_name);
+        // Выделяем выбранный класс
+        document.querySelector(`.class-card[data-class="${gameState.className}"]`)?.classList.add('selected');
     </script>
 </body>
 </html>
