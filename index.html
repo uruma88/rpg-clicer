@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>🍺 Пивная RPG | писок крут</title>
+    <title>🍺 Пивная RPG | Пошаговые бои</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -58,7 +58,6 @@
             opacity: 0.7;
         }
 
-        /* БОЕВАЯ ЗОНА */
         .combat-area {
             background: rgba(0,0,0,0.6);
             border-radius: 20px;
@@ -135,7 +134,6 @@
             font-weight: bold;
         }
 
-        /* КНОПКИ ДЕЙСТВИЙ */
         .actions {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -167,23 +165,37 @@
             color: #c39bd3;
         }
 
-        /* ЛОГ */
         .log-area {
             background: rgba(0,0,0,0.5);
             border-radius: 12px;
             padding: 8px;
-            height: 100px;
+            height: 120px;
             overflow-y: auto;
-            font-size: 10px;
+            font-size: 11px;
             font-family: monospace;
         }
 
         .log-line {
-            padding: 2px;
+            padding: 3px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* ТАБЫ */
+        .log-damage {
+            color: #ff6b6b;
+        }
+
+        .log-heal {
+            color: #6bff6b;
+        }
+
+        .log-skill {
+            color: #c39bd3;
+        }
+
+        .log-win {
+            color: #ffd700;
+        }
+
         .tabs {
             display: flex;
             gap: 5px;
@@ -216,7 +228,6 @@
             display: block;
         }
 
-        /* ВЫБОР ПЕРСОНАЖА */
         .chars-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
@@ -261,7 +272,6 @@
             margin-top: 5px;
         }
 
-        /* ПРОКАЧКА */
         .upgrade-item {
             background: rgba(255,255,255,0.1);
             border-radius: 12px;
@@ -328,14 +338,15 @@
 
             <div class="actions">
                 <button class="action-btn" id="attackBtn">🔫 АТАКА (20 AP)</button>
-                <button class="action-btn special" id="skillBtn">✨ СПОСОБНОСТЬ</button>
+                <button class="action-btn special" id="skillBtn">✨ СПОСОБНОСТЬ (40 AP)</button>
                 <button class="action-btn" id="defendBtn">🛡️ ЗАЩИТА (15 AP)</button>
                 <button class="action-btn" id="healBtn">💚 ЛЕЧЕНИЕ (30 AP)</button>
             </div>
 
             <div class="log-area" id="logArea">
-                <div class="log-line">Добро пожаловать в Пивную RPG!</div>
-                <div class="log-line">Выбери персонажа → ДРУЗЬЯ</div>
+                <div class="log-line">🍺 Добро пожаловать в Пивную RPG!</div>
+                <div class="log-line">👥 Выбери персонажа в разделе ДРУЗЬЯ</div>
+                <div class="log-line">⚔️ AP восстанавливаются каждый ход</div>
             </div>
         </div>
     </div>
@@ -416,10 +427,15 @@
         let waitingForTurn = true;
         let enemyFrozen = false;
 
-        function addLog(msg) {
-            logs.unshift(msg);
+        function addLog(msg, type = "normal") {
+            let colorClass = "";
+            if (type === "damage") colorClass = "log-damage";
+            if (type === "heal") colorClass = "log-heal";
+            if (type === "skill") colorClass = "log-skill";
+            if (type === "win") colorClass = "log-win";
+            logs.unshift(`<div class="log-line ${colorClass}">${msg}</div>`);
             if (logs.length > 20) logs.pop();
-            document.getElementById('logArea').innerHTML = logs.map(l => `<div class="log-line">${l}</div>`).join('');
+            document.getElementById('logArea').innerHTML = logs.join('');
         }
 
         function getEnemy() {
@@ -438,6 +454,12 @@
             };
         }
 
+        function restoreAp() {
+            let restore = 25;
+            game.ap = Math.min(game.maxAp, game.ap + restore);
+            addLog(`⚡ Восстановлено ${restore} AP! (${Math.floor(game.ap)}/${game.maxAp})`);
+        }
+
         function startBattle() {
             currentEnemy = getEnemy();
             game.hp = Math.min(game.maxHp, game.hp);
@@ -446,7 +468,8 @@
             game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
             waitingForTurn = true;
             updateUI();
-            addLog(`☢️ Появился ${currentEnemy.name}! Твой ход!`);
+            restoreAp();
+            addLog(`☢️ Появился ${currentEnemy.name}! Твой ход!`, "win");
         }
 
         function calcPower() {
@@ -480,10 +503,17 @@
                 }
             }
             
+            let attackBtn = document.getElementById('attackBtn');
             let skillBtn = document.getElementById('skillBtn');
+            let defendBtn = document.getElementById('defendBtn');
+            let healBtn = document.getElementById('healBtn');
+            
+            if (attackBtn) attackBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 20;
+            if (defendBtn) defendBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 15;
+            if (healBtn) healBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 30;
             if (skillBtn && game.character) {
-                skillBtn.innerHTML = `✨ ${game.character.skill} ✨`;
-                skillBtn.disabled = !waitingForTurn || enemyFrozen;
+                skillBtn.innerHTML = `✨ ${game.character.skill} (40 AP) ✨`;
+                skillBtn.disabled = !waitingForTurn || enemyFrozen || game.ap < 40;
             }
         }
 
@@ -491,43 +521,62 @@
             if (currentEnemy.hp <= 0) return;
             
             let dmg = currentEnemy.damage;
+            let defMsg = "";
             if (game.buff.defBonus > 0) {
+                let oldDmg = dmg;
                 dmg = Math.floor(dmg * (100 - game.buff.defBonus) / 100);
-                addLog(`🛡️ Защита снизила урон до ${dmg}!`);
+                defMsg = ` (было ${oldDmg}, защита снизила до ${dmg})`;
                 game.buff.turns--;
                 if (game.buff.turns <= 0) game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
             }
             
             game.hp -= dmg;
-            addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!`);
+            addLog(`💥 ${currentEnemy.name} наносит ${dmg} урона!${defMsg}`, "damage");
             
             if (game.hp <= 0) {
-                addLog("💀 Ты погиб! Возрождение...");
+                addLog("💀 Ты погиб! Возрождение с 50% HP...", "damage");
                 game.hp = Math.floor(game.maxHp / 2);
                 game.ap = Math.floor(game.maxAp / 2);
                 startBattle();
+                return;
             }
             
             waitingForTurn = true;
+            restoreAp();
             updateUI();
             save();
         }
 
         function attack() {
-            if (!waitingForTurn) return;
-            if (game.ap < 20) { addLog("❌ Нет AP!"); return; }
+            if (!waitingForTurn) {
+                addLog("⏳ Сейчас не твой ход!", "normal");
+                return;
+            }
+            if (currentEnemy.hp <= 0) {
+                startBattle();
+                return;
+            }
+            if (game.ap < 20) {
+                addLog(`❌ Не хватает AP! Нужно 20, у тебя ${Math.floor(game.ap)}`, "damage");
+                return;
+            }
             
             game.ap -= 20;
             let dmg = game.strength + Math.floor(Math.random() * 10);
-            if (game.buff.dmgBonus > 0) dmg += game.buff.dmgBonus;
+            if (game.buff.dmgBonus > 0) {
+                dmg += game.buff.dmgBonus;
+                addLog(`🔥 Бафф: +${game.buff.dmgBonus} к урону!`, "skill");
+                game.buff.turns--;
+                if (game.buff.turns <= 0) game.buff = { dmgBonus: 0, defBonus: 0, turns: 0 };
+            }
             
             currentEnemy.hp -= dmg;
-            addLog(`🔫 Атака! ${dmg} урона!`);
+            addLog(`🔫 Атака! ${dmg} урона по ${currentEnemy.name}!`, "damage");
             
             if (currentEnemy.hp <= 0) {
                 game.gold += currentEnemy.gold;
                 game.exp += currentEnemy.exp;
-                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`);
+                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
                 
                 let needExp = game.level * 100;
                 while (game.exp >= needExp) {
@@ -539,7 +588,7 @@
                     game.hp = game.maxHp;
                     game.ap = game.maxAp;
                     needExp = game.level * 100;
-                    addLog(`🎉 УРОВЕНЬ ${game.level}! 🎉`);
+                    addLog(`🎉 ПОВЫШЕНИЕ УРОВНЯ ДО ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win");
                 }
                 
                 save();
@@ -551,21 +600,30 @@
             waitingForTurn = false;
             updateUI();
             save();
-            setTimeout(enemyTurn, 800);
+            setTimeout(() => { enemyTurn(); }, 800);
         }
 
         function useSkill() {
-            if (!waitingForTurn) return;
-            if (!game.character) { addLog("❌ Выбери персонажа!"); return; }
-            if (enemyFrozen) { addLog("❌ Враг заморожен!"); return; }
+            if (!waitingForTurn) {
+                addLog("⏳ Сейчас не твой ход!", "normal");
+                return;
+            }
+            if (!game.character) {
+                addLog("❌ Сначала выбери персонажа в разделе ДРУЗЬЯ!", "normal");
+                return;
+            }
+            if (enemyFrozen) {
+                addLog("❌ Враг заморожен! Атакуй!", "normal");
+                return;
+            }
+            if (game.ap < 40) {
+                addLog(`❌ Не хватает AP для способности! Нужно 40, у тебя ${Math.floor(game.ap)}`, "damage");
+                return;
+            }
             
-            let skillCost = 40;
-            if (game.ap < skillCost) { addLog(`❌ Нужно ${skillCost} AP!`); return; }
-            
-            game.ap -= skillCost;
+            game.ap -= 40;
             let effect = "";
             
-            // Уникальные способности
             switch(game.character.name) {
                 case "Алина":
                     enemyFrozen = true;
@@ -624,12 +682,12 @@
                     effect = `✨ ${game.character.skill}! ${defDmg} урона!`;
             }
             
-            addLog(`✨ ${game.character.skill}! ${effect}`);
+            addLog(`✨ ${game.character.skill}! ${effect}`, "skill");
             
             if (currentEnemy.hp <= 0) {
                 game.gold += currentEnemy.gold;
                 game.exp += currentEnemy.exp;
-                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`);
+                addLog(`✅ Победа! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP!`, "win");
                 
                 let needExp = game.level * 100;
                 while (game.exp >= needExp) {
@@ -641,7 +699,7 @@
                     game.hp = game.maxHp;
                     game.ap = game.maxAp;
                     needExp = game.level * 100;
-                    addLog(`🎉 УРОВЕНЬ ${game.level}! 🎉`);
+                    addLog(`🎉 ПОВЫШЕНИЕ УРОВНЯ ДО ${game.level}! +5 силы, +20 HP, +10 AP! 🎉`, "win");
                 }
                 
                 save();
@@ -654,43 +712,56 @@
                 waitingForTurn = false;
                 updateUI();
                 save();
-                setTimeout(enemyTurn, 800);
+                setTimeout(() => { enemyTurn(); }, 800);
             } else {
                 enemyFrozen = false;
-                addLog("❄️ Враг пропускает ход!");
+                addLog("❄️ Враг пропускает ход из-за заморозки!", "skill");
                 waitingForTurn = true;
+                restoreAp();
                 updateUI();
                 save();
             }
         }
 
         function defend() {
-            if (!waitingForTurn) return;
-            if (game.ap < 15) { addLog("❌ Нет AP!"); return; }
+            if (!waitingForTurn) {
+                addLog("⏳ Сейчас не твой ход!", "normal");
+                return;
+            }
+            if (game.ap < 15) {
+                addLog(`❌ Не хватает AP для защиты! Нужно 15, у тебя ${Math.floor(game.ap)}`, "damage");
+                return;
+            }
             
             game.ap -= 15;
             game.buff = { dmgBonus: 0, defBonus: 50, turns: 1 };
-            addLog("🛡️ Защита! -50% урона в следующем ходу!");
+            addLog("🛡️ Защита активирована! Следующий урон врага снижен на 50%!", "skill");
             
             waitingForTurn = false;
             updateUI();
             save();
-            setTimeout(enemyTurn, 800);
+            setTimeout(() => { enemyTurn(); }, 800);
         }
 
         function heal() {
-            if (!waitingForTurn) return;
-            if (game.ap < 30) { addLog("❌ Нет AP!"); return; }
+            if (!waitingForTurn) {
+                addLog("⏳ Сейчас не твой ход!", "normal");
+                return;
+            }
+            if (game.ap < 30) {
+                addLog(`❌ Не хватает AP для лечения! Нужно 30, у тебя ${Math.floor(game.ap)}`, "damage");
+                return;
+            }
             
             game.ap -= 30;
             let healAmount = 40;
             game.hp = Math.min(game.maxHp, game.hp + healAmount);
-            addLog(`💚 Лечение! +${healAmount} HP!`);
+            addLog(`💚 Лечение! +${healAmount} HP! (${Math.floor(game.hp)}/${game.maxHp})`, "heal");
             
             waitingForTurn = false;
             updateUI();
             save();
-            setTimeout(enemyTurn, 800);
+            setTimeout(() => { enemyTurn(); }, 800);
         }
 
         function selectCharacter(char) {
@@ -699,7 +770,7 @@
             game.maxHp = char.hp;
             game.hp = char.hp;
             save();
-            addLog(`🎭 Выбран ${char.name}! Сила: ${char.strength}, HP: ${char.hp}`);
+            addLog(`🎭 Выбран ${char.name}! ⚔️ Сила: ${char.strength}, ❤️ HP: ${char.hp}`, "win");
             document.getElementById('charInfo').innerHTML = `✅ Выбран ${char.name}! ⚔️${char.strength} ❤️${char.hp}`;
             updateUI();
         }
@@ -712,8 +783,8 @@
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.strength += 5;
-                    addLog(`✅ Сила +5!`);
-                } else { addLog(`❌ Нужно ${cost}🍺`); return; }
+                    addLog(`✅ Сила увеличена до ${game.strength}!`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
             } else if (type === 'hp') {
                 let lvl = Math.floor(game.maxHp / 20);
                 cost = Math.floor(60 * Math.pow(1.5, lvl));
@@ -721,8 +792,8 @@
                     game.gold -= cost;
                     game.maxHp += 20;
                     game.hp += 20;
-                    addLog(`✅ HP +20!`);
-                } else { addLog(`❌ Нужно ${cost}🍺`); return; }
+                    addLog(`✅ HP увеличено до ${game.maxHp}!`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
             } else if (type === 'ap') {
                 let lvl = Math.floor(game.maxAp / 10);
                 cost = Math.floor(70 * Math.pow(1.5, lvl));
@@ -730,16 +801,16 @@
                     game.gold -= cost;
                     game.maxAp += 10;
                     game.ap += 10;
-                    addLog(`✅ AP +10!`);
-                } else { addLog(`❌ Нужно ${cost}🍺`); return; }
+                    addLog(`✅ AP увеличено до ${game.maxAp}!`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
             } else if (type === 'worker') {
                 let lvl = game.workers;
                 cost = Math.floor(100 * Math.pow(1.8, lvl));
                 if (game.gold >= cost) {
                     game.gold -= cost;
                     game.workers += 1;
-                    addLog(`✅ Нанят работник! +1🍺/сек!`);
-                } else { addLog(`❌ Нужно ${cost}🍺`); return; }
+                    addLog(`✅ Нанят работник! +1🍺/сек!`, "heal");
+                } else { addLog(`❌ Нужно ${cost}🍺`, "damage"); return; }
             }
             updateUI();
             save();
