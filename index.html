@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RPG Кликер</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: white;
+            padding: 16px;
+            padding-bottom: 30px;
+        }
+        
+        .stats {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+            min-width: 70px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+        
+        .battle-area {
+            background: rgba(0,0,0,0.4);
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .enemy {
+            cursor: pointer;
+            transition: transform 0.05s linear;
+            display: inline-block;
+        }
+        
+        .enemy:active {
+            transform: scale(0.95);
+        }
+        
+        .enemy-emoji {
+            font-size: 100px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+        
+        .enemy-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .enemy-hp {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            height: 12px;
+            width: 200px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        
+        .enemy-hp-fill {
+            background: linear-gradient(90deg, #ff4444, #ff8888);
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.2s;
+        }
+        
+        .enemy-hp-text {
+            font-size: 14px;
+        }
+        
+        .click-button {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 60px;
+            padding: 18px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            transition: transform 0.05s, box-shadow 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .click-button:active {
+            transform: scale(0.97);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .tab {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+        
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        .upgrade-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .upgrade-info h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .upgrade-info p {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+        
+        .upgrade-button {
+            background: #ffd700;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #1a1a2e;
+            cursor: pointer;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .pvp-section {
+            text-align: center;
+        }
+        
+        .pvp-opponent {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .damage-number {
+            position: fixed;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffaa00;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatUp 0.5s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        
+        @keyframes clickRipple {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .ripple {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,215,0,0) 70%);
+            pointer-events: none;
+            animation: clickRipple 0.3s ease-out forwards;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value" id="gold">0</div>
+            <div class="stat-label">💰 ЗОЛОТО</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="level">1</div>
+            <div class="stat-label">🌟 УРОВЕНЬ</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="dps">0</div>
+            <div class="stat-label">⚔️ DPS</div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="fight">⚔️ БОЙ</button>
+        <button class="tab" data-tab="upgrade">📈 ПРОКАТКА</button>
+        <button class="tab" data-tab="leaderboard">🏆 РЕЙТИНГ</button>
+        <button class="tab" data-tab="pvp">⚔️ PVP</button>
+    </div>
+    
+    <div id="fight-panel" class="panel active">
+        <div class="battle-area">
+            <div class="enemy" id="enemy-click">
+                <div class="enemy-emoji" id="enemy-emoji">👹</div>
+                <div class="enemy-name" id="enemy-name">Гоблин</div>
+                <div class="enemy-hp">
+                    <div class="enemy-hp-fill" id="enemy-hp-fill" style="width: 100%"></div>
+                </div>
+                <div class="enemy-hp-text" id="enemy-hp-text">❤️ 100/100</div>
+            </div>
+        </div>
+        <button class="click-button" id="click-btn">⚔️ КЛИКНИ! ⚔️</button>
+    </div>
+    
+    <div id="upgrade-panel" class="panel">
+        <div class="upgrade-item">
+            <div class="upgrade-info">
+                <h4>💪 Урон клика</h4>
+                <p>Уровень: <span id="dmg-level">1</span> | +5 урона</p>
+            </div>
+            <button class="upgrade-button" data-upgrade="dmg">🔧 Купить</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-info">
+                <h4>🖱️ Скорость клика</h4>
+                <p>Уровень: <span id="speed-level">1</span> | +0.5 кликов/сек</p>
+            </div>
+            <button class="upgrade-button" data-upgrade="speed">🔧 Купить</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-info">
+                <h4>👥 Работники</h4>
+                <p>Уровень: <span id="worker-level">0</span> | +1 золото/сек</p>
+            </div>
+            <button class="upgrade-button" data-upgrade="worker">🔧 Купить</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-info">
+                <h4>💀 Критический удар</h4>
+                <p>Уровень: <span id="crit-level">0</span> | шанс x2 урона</p>
+            </div>
+            <button class="upgrade-button" data-upgrade="crit">🔧 Купить</button>
+        </div>
+    </div>
+    
+    <div id="leaderboard-panel" class="panel">
+        <div class="leaderboard-item" style="font-weight: bold;">
+            <span>👤 ИГРОК</span>
+            <span>🏆 УРОВЕНЬ И ПОБЕДЫ</span>
+        </div>
+        <div id="leaderboard-list"></div>
+    </div>
+    
+    <div id="pvp-panel" class="panel">
+        <div class="pvp-section">
+            <div id="pvp-opponent" class="pvp-opponent">
+                <span id="pvp-status">🔍 Поиск соперника...</span>
+            </div>
+            <button class="click-button" id="pvp-fight-btn" style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);">⚔️ НАЙТИ PVP ⚔️</button>
+            <div id="pvp-result" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+        
+        // Данные игрока
+        const user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : { id: Math.floor(Math.random() * 1000000), first_name: "Гость" };
+        
+        // Игровое состояние
+        let gameState = {
+            gold: 100,
+            level: 1,
+            exp: 0,
+            clickDamage: 10,
+            clickSpeed: 1,
+            workers: 0,
+            critChance: 0,
+            totalClicks: 0,
+            pvpWins: 0,
+            pvpLosses: 0
+        };
+        
+        // Текущий враг
+        let currentEnemy = {
+            name: "Гоблин",
+            emoji: "👹",
+            hp: 100,
+            maxHp: 100,
+            goldReward: 10,
+            expReward: 10
+        };
+        
+        // Стоимость улучшений
+        const upgradeCosts = {
+            dmg: { base: 50, multiplier: 1.5 },
+            speed: { base: 80, multiplier: 1.6 },
+            worker: { base: 100, multiplier: 1.8 },
+            crit: { base: 150, multiplier: 2.0 }
+        };
+        
+        // Загрузка сохранений
+        function loadGame() {
+            try {
+                const saved = localStorage.getItem(`clicker_${user.id}`);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    gameState = { ...gameState, ...data };
+                }
+            } catch(e) {
+                console.log("Ошибка загрузки:", e);
+            }
+            updateUI();
+        }
+        
+        // Сохранение
+        function saveGame() {
+            try {
+                localStorage.setItem(`clicker_${user.id}`, JSON.stringify(gameState));
+            } catch(e) {
+                console.log("Ошибка сохранения:", e);
+            }
+        }
+        
+        // Обновление UI
+        function updateUI() {
+            document.getElementById('gold').innerText = Math.floor(gameState.gold);
+            document.getElementById('level').innerText = gameState.level;
+            document.getElementById('dmg-level').innerText = Math.floor(gameState.clickDamage / 5);
+            document.getElementById('speed-level').innerText = gameState.clickSpeed;
+            document.getElementById('worker-level').innerText = gameState.workers;
+            document.getElementById('crit-level').innerText = gameState.critChance;
+            
+            const dps = gameState.clickDamage * gameState.clickSpeed + gameState.workers;
+            document.getElementById('dps').innerText = dps;
+            
+            document.getElementById('enemy-name').innerText = currentEnemy.name;
+            document.getElementById('enemy-emoji').innerText = currentEnemy.emoji;
+            const hpPercent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
+            document.getElementById('enemy-hp-fill').style.width = `${Math.max(0, hpPercent)}%`;
+            document.getElementById('enemy-hp-text').innerHTML = `❤️ ${Math.max(0, Math.floor(currentEnemy.hp))}/${currentEnemy.maxHp}`;
+        }
+        
+        // Анимация урона
+        function showDamage(x, y, damage) {
+            const div = document.createElement('div');
+            div.className = 'damage-number';
+            div.innerText = `-${damage}`;
+            div.style.left = `${x - 20}px`;
+            div.style.top = `${y - 30}px`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 500);
+        }
+        
+        // Анимация клика
+        function addRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = `${x - 50}px`;
+            ripple.style.top = `${y - 50}px`;
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 300);
+        }
+        
+        // Удар по врагу
+        function attack() {
+            let damage = gameState.clickDamage;
+            let isCritical = false;
+            
+            if (Math.random() * 100 < gameState.critChance) {
+                damage *= 2;
+                isCritical = true;
+            }
+            
+            currentEnemy.hp -= damage;
+            gameState.totalClicks++;
+            
+            // Анимация
+            const btn = document.getElementById('click-btn');
+            if (btn) {
+                const rect = btn.getBoundingClientRect();
+                addRipple(rect.left + rect.width/2, rect.top + rect.height/2);
+                showDamage(rect.left + rect.width/2, rect.top - 20, isCritical ? `${damage}!!!` : damage);
+            }
+            
+            if (currentEnemy.hp <= 0) {
+                gameState.gold += currentEnemy.goldReward;
+                gameState.exp += currentEnemy.expReward;
+                
+                const expNeeded = gameState.level * 100;
+                if (gameState.exp >= expNeeded) {
+                    gameState.level++;
+                    gameState.exp -= expNeeded;
+                    gameState.clickDamage += 3;
+                }
+                
+                const enemies = [
+                    { name: "Гоблин", emoji: "👹", hp: 80 + gameState.level * 5, gold: 10 + gameState.level, exp: 10 + gameState.level },
+                    { name: "Волк", emoji: "🐺", hp: 100 + gameState.level * 6, gold: 15 + gameState.level, exp: 15 + gameState.level },
+                    { name: "Орк", emoji: "🧌", hp: 150 + gameState.level * 8, gold: 25 + gameState.level, exp: 20 + gameState.level },
+                    { name: "Дракон", emoji: "🐉", hp: 300 + gameState.level * 10, gold: 50 + gameState.level * 2, exp: 40 + gameState.level }
+                ];
+                const newEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                currentEnemy = {
+                    name: newEnemy.name,
+                    emoji: newEnemy.emoji,
+                    hp: newEnemy.hp,
+                    maxHp: newEnemy.hp,
+                    goldReward: newEnemy.gold,
+                    expReward: newEnemy.exp
+                };
+            }
+            
+            updateUI();
+            saveGame();
+            updateLeaderboard();
+        }
+        
+        // Улучшение
+        function upgrade(type) {
+            let currentLevel = 0;
+            switch(type) {
+                case 'dmg': currentLevel = Math.floor(gameState.clickDamage / 5); break;
+                case 'speed': currentLevel = gameState.clickSpeed; break;
+                case 'worker': currentLevel = gameState.workers; break;
+                case 'crit': currentLevel = gameState.critChance / 2; break;
+            }
+            const cost = Math.floor(upgradeCosts[type].base * Math.pow(upgradeCosts[type].multiplier, currentLevel));
+            
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                
+                switch(type) {
+                    case 'dmg':
+                        gameState.clickDamage += 5;
+                        break;
+                    case 'speed':
+                        gameState.clickSpeed += 0.5;
+                        break;
+                    case 'worker':
+                        gameState.workers += 1;
+                        break;
+                    case 'crit':
+                        gameState.critChance = Math.min(50, gameState.critChance + 2);
+                        break;
+                }
+                
+                updateUI();
+                saveGame();
+            } else {
+                alert(`❌ Не хватает золота! Нужно ${cost}💰`);
+            }
+        }
+        
+        // Пассивный доход
+        setInterval(() => {
+            const passiveIncome = gameState.workers;
+            if (passiveIncome > 0) {
+                gameState.gold += passiveIncome;
+                updateUI();
+                saveGame();
+            }
+        }, 1000);
+        
+        // Рейтинг
+        function updateLeaderboard() {
+            let globalLeaderboard = [];
+            try {
+                globalLeaderboard = JSON.parse(localStorage.getItem('clicker_global_leaderboard') || '[]');
+            } catch(e) {}
+            
+            const existing = globalLeaderboard.find(p => p.id === user.id);
+            if (existing) {
+                existing.level = gameState.level;
+                existing.gold = gameState.gold;
+                existing.pvpWins = gameState.pvpWins;
+                existing.name = user.first_name || "Игрок";
+            } else {
+                globalLeaderboard.push({
+                    id: user.id,
+                    name: user.first_name || "Игрок",
+                    level: gameState.level,
+                    gold: gameState.gold,
+                    pvpWins: gameState.pvpWins
+                });
+            }
+            
+            globalLeaderboard.sort((a, b) => b.level - a.level);
+            globalLeaderboard = globalLeaderboard.slice(0, 30);
+            localStorage.setItem('clicker_global_leaderboard', JSON.stringify(globalLeaderboard));
+            
+            const container = document.getElementById('leaderboard-list');
+            if (container) {
+                container.innerHTML = '';
+                globalLeaderboard.slice(0, 10).forEach((p, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
+                    container.innerHTML += `
+                        <div class="leaderboard-item">
+                            <span>${medal} ${p.name.substring(0, 15)}</span>
+                            <span>Ур. ${p.level} | 🏆 ${p.pvpWins}</span>
+                        </div>
+                    `;
+                });
+                if (globalLeaderboard.length === 0) {
+                    container.innerHTML = '<div class="leaderboard-item">Нет игроков</div>';
+                }
+            }
+        }
+        
+        // PvP
+        function findPvPOpponent() {
+            let globalLeaderboard = [];
+            try {
+                globalLeaderboard = JSON.parse(localStorage.getItem('clicker_global_leaderboard') || '[]');
+            } catch(e) {}
+            const opponents = globalLeaderboard.filter(p => p.id !== user.id);
+            
+            if (opponents.length === 0) {
+                document.getElementById('pvp-status').innerHTML = '❌ Нет других игроков! Пригласи друзей!<br>👇';
+                return null;
+            }
+            
+            const opponent = opponents[Math.floor(Math.random() * opponents.length)];
+            document.getElementById('pvp-status').innerHTML = `
+                🎮 <strong>${opponent.name}</strong><br>
+                📊 Уровень: ${opponent.level}<br>
+                🏆 Побед в PvP: ${opponent.pvpWins}
+            `;
+            return opponent;
+        }
+        
+        function pvpFight() {
+            const opponent = findPvPOpponent();
+            if (!opponent) return;
+            
+            const playerPower = gameState.level * 10 + gameState.clickDamage + gameState.workers * 5 + gameState.critChance;
+            const opponentPower = opponent.level * 10;
+            
+            let result;
+            if (playerPower > opponentPower) {
+                gameState.pvpWins++;
+                result = `🎉 ПОБЕДА! Вы победили ${opponent.name}! 🎉\n🏆 +1 победа в PvP!`;
+            } else {
+                gameState.pvpLosses++;
+                result = `💀 ПОРАЖЕНИЕ! Вы проиграли ${opponent.name}... 💀\n😢 Старайся лучше!`;
+            }
+            
+            saveGame();
+            updateUI();
+            const resultDiv = document.getElementById('pvp-result');
+            if (resultDiv) {
+                resultDiv.innerHTML = result;
+                setTimeout(() => {
+                    resultDiv.innerHTML = '';
+                }, 4000);
+            }
+            updateLeaderboard();
+            findPvPOpponent();
+        }
+        
+        // Переключение табов
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const panelId = `${tab.dataset.tab}-panel`;
+                const panel = document.getElementById(panelId);
+                if (panel) panel.classList.add('active');
+                
+                if (tab.dataset.tab === 'leaderboard') updateLeaderboard();
+                if (tab.dataset.tab === 'pvp') findPvPOpponent();
+            });
+        });
+        
+        // Обработчики
+        const clickBtn = document.getElementById('click-btn');
+        if (clickBtn) clickBtn.addEventListener('click', attack);
+        
+        document.querySelectorAll('[data-upgrade]').forEach(btn => {
+            btn.addEventListener('click', () => upgrade(btn.dataset.upgrade));
+        });
+        
+        const pvpBtn = document.getElementById('pvp-fight-btn');
+        if (pvpBtn) pvpBtn.addEventListener('click', pvpFight);
+        
+        // Запуск
+        loadGame();
+        updateLeaderboard();
+        findPvPOpponent();
+        
+        console.log("Игра запущена, user:", user.first_name);
+    </script>
+</body>
+</html>
