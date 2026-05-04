@@ -3,527 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>🍺 Пивная Битва · Классы (маг/воин/вор)</title>
+    <title>🍺 Писок Данжен · Пивная RPG</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background: radial-gradient(circle at 20% 30%, #fbdd9f, #c27e41);
-            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 16px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .game-container {
-            max-width: 580px;
-            width: 100%;
-            background: #fffaeef2;
-            backdrop-filter: blur(2px);
-            border-radius: 56px;
-            padding: 18px 16px 24px;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.25);
-            border: 2px solid #ffda99;
-        }
-        .hero-stats {
-            background: #2b2417;
-            border-radius: 60px;
-            padding: 8px 12px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 6px;
-            color: #ffdd99;
-            font-weight: bold;
-            margin-bottom: 16px;
-        }
-        .stat {
-            background: #00000077;
-            padding: 4px 12px;
-            border-radius: 40px;
-            display: flex;
-            gap: 6px;
-            font-size: 12px;
-        }
-        .battle-card {
-            background: #f5e7cf;
-            border-radius: 40px;
-            padding: 18px 12px;
-            margin: 16px 0;
-            box-shadow: inset 0 0 0 2px #fff0cf, 0 6px 12px rgba(0,0,0,0.1);
-        }
-        .enemy {
-            text-align: center;
-        }
-        .enemy-avatar { font-size: 62px; }
-        .enemy-name {
-            background: #4c351be0;
-            display: inline-block;
-            padding: 4px 20px;
-            border-radius: 60px;
-            color: #ffefc0;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-        .hp-bar-bg {
-            background: #895e32;
-            border-radius: 30px;
-            height: 12px;
-            width: 100%;
-            margin: 10px 0 6px;
-        }
-        .hp-fill {
-            background: #e34d2b;
-            width: 100%;
-            height: 100%;
-            border-radius: 30px;
-            transition: width 0.2s;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin: 18px 0 12px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            flex: 1;
-            background: #e7a13a;
-            border: none;
-            padding: 12px 0;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 15px;
-            color: #2c1f0c;
-            box-shadow: 0 4px 0 #8b5a2b;
-            transition: 0.05s linear;
-            cursor: pointer;
-        }
-        .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #8b5a2b; }
-        .log {
-            background: #241f15;
-            border-radius: 32px;
-            padding: 10px;
-            height: 100px;
-            overflow-y: auto;
-            font-size: 12px;
-            color: #ffeaad;
-            font-family: monospace;
-        }
-        .tab-bar {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin: 12px 0 8px;
-        }
-        .tab {
-            background: #644e2d;
-            flex: 1;
-            text-align: center;
-            padding: 7px;
-            border-radius: 40px;
-            font-weight: bold;
-            color: #ffeaad;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .tab.active {
-            background: #f3b33d;
-            color: #2d1d07;
-        }
-        .panel {
-            display: none;
-            background: #f3e7d3;
-            border-radius: 36px;
-            padding: 16px;
-            margin-top: 14px;
-        }
-        .panel.active { display: block; }
-        .friends-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        .friend-card {
-            background: #bd9a63;
-            border-radius: 50px;
-            padding: 5px 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .friend-card.selected {
-            background: #f3b33d;
-            box-shadow: 0 0 0 2px gold;
-        }
-        .class-select {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin: 15px 0;
-        }
-        .class-card {
-            background: #b48646;
-            border-radius: 60px;
-            padding: 8px 16px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .class-card.selected {
-            background: #f3b33d;
-            color: black;
-        }
-        button {
-            background: #f5b642;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .damage-number {
-            position: fixed;
-            font-size: 26px;
-            font-weight: bold;
-            color: #ffd966;
-            text-shadow: 0 0 5px black;
-            pointer-events: none;
-            z-index: 1000;
-            animation: floatUp 0.5s forwards;
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0px); }
-            100% { opacity: 0; transform: translateY(-50px); }
-        }
+        body { margin: 0; background: #0f0a05; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        canvas { border-radius: 32px; box-shadow: 0 0 0 4px #f3b33d; }
+        .info { position: fixed; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 12px; color: #ffda99; background: #000000aa; width: fit-content; margin: 0 auto; padding: 4px 16px; border-radius: 60px; pointer-events: none; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
 </head>
 <body>
-<div class="game-container">
-    <div class="hero-stats">
-        <div class="stat">🍺 <span id="gold">200</span></div>
-        <div class="stat">⚔️ <span id="strength">10</span></div>
-        <div class="stat">❤️ <span id="hp">90</span>/<span id="maxHp">90</span></div>
-        <div class="stat">💙 <span id="ap">100</span>/<span id="maxAp">100</span></div>
-        <div class="stat">📈 lvl <span id="level">1</span></div>
-    </div>
-
-    <div class="battle-card">
-        <div class="enemy">
-            <div class="enemy-avatar" id="enemyAvatar">🍺</div>
-            <div class="enemy-name" id="enemyName">Залежавшееся Пиво</div>
-            <div class="hp-bar-bg"><div class="hp-fill" id="enemyHpFill" style="width:100%"></div></div>
-            <div id="enemyHpText">❤️ 55 / 55</div>
-        </div>
-        <div class="action-buttons">
-            <button class="btn" id="attackBtn">⚔️ АТАКА</button>
-            <button class="btn" id="skillBtn">✨ СПОСОБНОСТЬ</button>
-            <button class="btn" id="restBtn">😴 ОТДЫХ (+20 AP)</button>
-        </div>
-        <div class="log" id="logArea"><div>⚔️ Выбери друга и класс</div></div>
-    </div>
-
-    <div class="tab-bar">
-        <div class="tab active" data-tab="main">🥊 БОЙ</div>
-        <div class="tab" data-tab="friends">👥 ДРУЗЬЯ</div>
-        <div class="tab" data-tab="class">🎭 КЛАСС</div>
-    </div>
-
-    <div id="friendsPanel" class="panel">
-        <div class="friends-grid" id="friendsGrid"></div>
-        <div style="text-align:center; margin-top:10px;">👇 Выбери друга — он даст бонус к здоровью</div>
-    </div>
-
-    <div id="classPanel" class="panel">
-        <div class="class-select">
-            <div class="class-card" data-class="mage">🧙 МАГ<br>+колдовство</div>
-            <div class="class-card" data-class="warrior">⚔️ ВОИН<br>ярость</div>
-            <div class="class-card" data-class="rogue">🗡️ ВОР<br>двойной удар</div>
-        </div>
-        <div id="classInfo" style="margin-top:12px; text-align:center;">Класс меняет стиль боя!</div>
-    </div>
-
-    <div id="ratingPanel" class="panel" style="display:none;"></div>
-</div>
-
+<div class="info">🍺 ПИСОК ДАНЖЕН • Кнопки внизу • Класс – в игре</div>
 <script>
-    // ----- ДРУЗЬЯ С АВАТАРКАМИ -----
-    const FRIENDS = [
-        { name: "Алина", avatar: "avatars/алина.jpg", emoji: "👩‍🦰", hpBonus: 10 },
-        { name: "Бень", avatar: "avatars/бень.jpg", emoji: "🐻", hpBonus: 20 },
-        { name: "Богдан", avatar: "avatars/богдан.jpg", emoji: "💪", hpBonus: 5 },
-        { name: "Ваня", avatar: "avatars/ваня.jpg", emoji: "🧢", hpBonus: 12 },
-        { name: "Егор", avatar: "avatars/егор.jpg", emoji: "⚡", hpBonus: 8 },
-        { name: "Илюха", avatar: "avatars/илюха.jpg", emoji: "🛡️", hpBonus: 15 },
-        { name: "Капрал", avatar: "avatars/капрал.jpg", emoji: "🎖️", hpBonus: 18 },
-        { name: "Кирилл", avatar: "avatars/кирилл.jpg", emoji: "👊", hpBonus: 6 },
-        { name: "Лера", avatar: "avatars/лера.jpg", emoji: "🌸", hpBonus: 10 },
-        { name: "Никитос", avatar: "avatars/никитос.jpg", emoji: "👊", hpBonus: 12 },
-        { name: "Полина", avatar: "avatars/полина.jpg", emoji: "✨", hpBonus: 8 },
-        { name: "Рома", avatar: "avatars/рома.jpg", emoji: "⚔️", hpBonus: 16 },
-        { name: "Саша", avatar: "avatars/саша.jpg", emoji: "⚔️", hpBonus: 18 },
-        { name: "Серега", avatar: "avatars/серега.jpg", emoji: "💣", hpBonus: 10 },
-        { name: "Таня", avatar: "avatars/таня.jpg", emoji: "🍀", hpBonus: 8 },
-        { name: "Юра", avatar: "avatars/юра.jpg", emoji: "🌪️", hpBonus: 12 }
-    ];
+    (function(){
+        let player = { gold:300, strength:12, hp:95, maxHp:95, ap:100, maxAp:100, level:1, floor:1, className:'warrior', weaponBonus:0, armorBonus:0 };
+        let currentEnemy = null;
+        let waitingForAction = true;
+        let log = [];
+        let gameScene = null;
+        let shopActive = false;
 
-    let game = {
-        gold: 200,
-        baseStrength: 10,
-        baseHp: 85,
-        hp: 85,
-        ap: 100,
-        maxAp: 100,
-        level: 1,
-        exp: 0,
-        activeFriend: null,
-        className: "mage"
-    };
-
-    let currentEnemy = { name: "Залежавшееся Пиво", emoji: "🍺", hp: 55, maxHp: 55, damage: 8, goldReward: 30, expReward: 25 };
-    let logs = [];
-    let waitingForAction = true;
-
-    function totalStrength() { return game.baseStrength; }
-    function totalMaxHp() { return game.baseHp + (game.activeFriend ? game.activeFriend.hpBonus : 0); }
-
-    function refreshUI() {
-        document.getElementById('gold').innerText = Math.floor(game.gold);
-        document.getElementById('strength').innerText = totalStrength();
-        let maxHp = totalMaxHp();
-        document.getElementById('maxHp').innerText = maxHp;
-        document.getElementById('hp').innerText = game.hp;
-        document.getElementById('level').innerText = game.level;
-        document.getElementById('ap').innerText = game.ap;
-        document.getElementById('maxAp').innerText = game.maxAp;
-        if (currentEnemy) {
-            let percent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
-            document.getElementById('enemyHpFill').style.width = `${Math.max(0, percent)}%`;
-            document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.max(0, currentEnemy.hp)} / ${currentEnemy.maxHp}`;
-            document.getElementById('enemyName').innerHTML = currentEnemy.name;
-            document.getElementById('enemyAvatar').innerHTML = currentEnemy.emoji;
+        function addLog(msg){ log.unshift(msg); if(log.length>6)log.pop(); if(gameScene?.logText) gameScene.logText.setText(log.join('\n')); }
+        function updateUI(){
+            if(!gameScene)return;
+            let totalStr = player.strength + player.weaponBonus;
+            let totalHp = player.maxHp + player.armorBonus;
+            gameScene.playerStats.setText([`🍺 ${Math.floor(player.gold)}   ⚔️ ${totalStr}`,`❤️ ${player.hp}/${totalHp}   💙 ${player.ap}/${player.maxAp}`,`📈 lvl ${player.level}   🏔️ этаж ${player.floor}`]);
+            if(currentEnemy){
+                let percent = (currentEnemy.hp/currentEnemy.maxHp)*100;
+                gameScene.hpBar.width = 200*(percent/100);
+                if(gameScene.hpBar.width<0) gameScene.hpBar.width=0;
+                gameScene.enemyText.setText(`${currentEnemy.name}\n❤️ ${Math.floor(currentEnemy.hp)}/${currentEnemy.maxHp}`);
+            }
+            gameScene.apBar.width = 200*((player.ap/player.maxAp)/100);
         }
-    }
-
-    function addLog(msg) { logs.unshift(`<div>🍺 ${msg}</div>`); if (logs.length > 12) logs.pop(); document.getElementById('logArea').innerHTML = logs.join(''); }
-
-    function saveGame() {
-        let save = { gold: game.gold, baseStrength: game.baseStrength, baseHp: game.baseHp, hp: game.hp, level: game.level, exp: game.exp, ap: game.ap, maxAp: game.maxAp, activeFriend: game.activeFriend, className: game.className };
-        localStorage.setItem('pivoSave', JSON.stringify(save));
-    }
-    function loadGame() {
-        let raw = localStorage.getItem('pivoSave');
-        if (raw) { try { let data = JSON.parse(raw); for (let k in data) game[k] = data[k]; } catch (e) {} }
-        if (!game.activeFriend) game.activeFriend = FRIENDS[0];
-        game.hp = Math.min(game.hp, totalMaxHp());
-        refreshUI();
-        startBattle();
-        renderFriends();
-        highlightClass();
-    }
-
-    function startBattle() {
-        let enemies = [
-            { name: "Залежавшееся Пиво", emoji: "🍺", hp: 55, maxHp: 55, damage: 8, gold: 30, exp: 25 },
-            { name: "Бочка Брожения", emoji: "🛢️", hp: 85, maxHp: 85, damage: 10, gold: 45, exp: 40 },
-            { name: "Барный Вышибала", emoji: "💪", hp: 110, maxHp: 110, damage: 13, gold: 65, exp: 60 }
-        ];
-        let idx = Math.floor(Math.random() * enemies.length);
-        let e = enemies[idx];
-        currentEnemy = { name: e.name, emoji: e.emoji, hp: e.hp, maxHp: e.maxHp, damage: e.damage, goldReward: e.gold, expReward: e.exp };
-        waitingForAction = true;
-        refreshUI();
-        addLog(`Новый враг: ${currentEnemy.name}`);
-    }
-
-    function victory() {
-        game.gold += currentEnemy.goldReward;
-        game.exp += currentEnemy.expReward;
-        addLog(`🏆 ПОБЕДА! +${currentEnemy.goldReward}🍺 +${currentEnemy.expReward} опыта`);
-        let needExp = game.level * 100;
-        while (game.exp >= needExp) {
-            game.level++;
-            game.exp -= needExp;
-            game.baseStrength += 2;
-            game.baseHp += 10;
-            game.maxAp += 5;
-            game.ap = game.maxAp;
-            game.hp = totalMaxHp();
-            addLog(`🎉 УРОВЕНЬ ${game.level}! +2 силы, +10 HP, +5 AP`);
-            needExp = game.level * 100;
+        function saveGame(){ localStorage.setItem('pisokSave',JSON.stringify({ gold:player.gold, strength:player.strength, hp:player.hp, maxHp:player.maxHp, ap:player.ap, maxAp:player.maxAp, level:player.level, floor:player.floor, className:player.className, weaponBonus:player.weaponBonus, armorBonus:player.armorBonus })); }
+        function loadGame(){ let s=localStorage.getItem('pisokSave'); if(s){ let d=JSON.parse(s); for(let k in d) player[k]=d[k]; } startBattle(); updateUI(); }
+        function startBattle(){
+            let enemies = [{ name:"🍺 Пиво", hp:55, damage:8, gold:30 },{ name:"🛢️ Бочка", hp:80, damage:10, gold:45 },{ name:"💪 Вышибала", hp:110, damage:13, gold:65 }];
+            let idx = Math.floor(Math.random()*enemies.length);
+            let e = enemies[idx];
+            let isBoss = (player.floor%5===0);
+            currentEnemy = isBoss ? { name:"👑 БОСС", hp:180, maxHp:180, damage:18, gold:150 } : { name:e.name, hp:e.hp, maxHp:e.hp, damage:e.damage, gold:e.gold };
+            waitingForAction = true;
+            addLog(`Противник: ${currentEnemy.name}`);
+            updateUI();
         }
-        startBattle();
-        refreshUI();
-        saveGame();
-    }
-
-    function showDamage(dmg) {
-        let div = document.createElement('div');
-        div.className = 'damage-number';
-        div.innerText = `-${dmg}`;
-        div.style.left = (Math.random() * 70 + 15) + '%';
-        div.style.top = '25%';
-        document.body.appendChild(div);
-        setTimeout(() => div.remove(), 500);
-    }
-
-    // ========== БОЕВЫЕ ДЕЙСТВИЯ С УЧЁТОМ КЛАССА ==========
-    async function attackAction() {
-        if (!waitingForAction) { addLog(`Дождись хода врага!`); return; }
-        if (game.ap < 15) { addLog(`❌ Не хватает AP (нужно 15)`); return; }
-        game.ap -= 15;
-
-        let damage = totalStrength() + Math.floor(Math.random() * 7);
-        let msg = `⚔️ Атака! ${damage} урона`;
-
-        if (game.className === 'warrior') {
-            let crit = Math.random() < 0.3;
-            if (crit) { damage = Math.floor(damage * 1.5); msg = `💢 ВОИН! КРИТИЧЕСКИЙ УДАР! ${damage} урона`; }
-        } else if (game.className === 'rogue') {
-            damage = Math.floor(damage * 1.2 + Math.random() * 6);
-            msg = `🗡️ ВОР! Скрытный удар на ${damage} урона`;
-        }
-        currentEnemy.hp -= damage;
-        addLog(msg);
-        showDamage(damage);
-
-        if (currentEnemy.hp <= 0) { victory(); refreshUI(); return; }
-        waitingForAction = false;
-        refreshUI();
-        saveGame();
-        setTimeout(enemyTurn, 700);
-    }
-
-    async function castSpell() {
-        if (!waitingForAction) { addLog(`Дождись хода врага!`); return; }
-        if (game.ap < 30) { addLog(`❌ Не хватает AP (нужно 30)`); return; }
-        game.ap -= 30;
-        let damage = 0;
-        let msg = "";
-
-        if (game.className === 'mage') {
-            let spells = ["🔥 Огненный шар", "❄️ Ледяная стрела", "⚡ Цепная молния"];
-            let idx = Math.floor(Math.random() * spells.length);
-            damage = totalStrength() + Math.floor(Math.random() * 18) + 10;
-            msg = `🧙 МАГ! ${spells[idx]} наносит ${damage} урона!`;
-        } else if (game.className === 'warrior') {
-            damage = totalStrength() + Math.floor(Math.random() * 15) + 8;
-            msg = `⚔️ ВОИН! Яростный выпад на ${damage} урона!`;
-        } else if (game.className === 'rogue') {
-            damage = Math.floor(totalStrength() * 1.5) + Math.floor(Math.random() * 20);
-            msg = `🗡️ ВОР! ТАНЕЦ КЛИНКОВ — ${damage} урона!`;
-        }
-        currentEnemy.hp -= damage;
-        addLog(msg);
-        showDamage(damage);
-        if (currentEnemy.hp <= 0) { victory(); refreshUI(); return; }
-        waitingForAction = false;
-        refreshUI();
-        saveGame();
-        setTimeout(enemyTurn, 700);
-    }
-
-    function rest() {
-        if (!waitingForAction) { addLog(`Сейчас нельзя отдыхать!`); return; }
-        let gain = 20;
-        game.ap = Math.min(game.maxAp, game.ap + gain);
-        addLog(`😴 Отдых! +${gain} AP (теперь ${game.ap}/${game.maxAp})`);
-        waitingForAction = false;
-        refreshUI();
-        saveGame();
-        setTimeout(enemyTurn, 600);
-    }
-
-    function enemyTurn() {
-        if (currentEnemy.hp <= 0) return;
-        let dmg = currentEnemy.damage;
-        game.hp -= dmg;
-        addLog(`😖 ${currentEnemy.name} атакует! -${dmg} HP`);
-        if (game.hp <= 0) {
-            addLog(`💀 Поражение! -30 золота`);
-            game.gold = Math.max(0, game.gold - 30);
-            game.hp = totalMaxHp();
-            game.ap = game.maxAp;
+        function victory(){
+            player.gold += currentEnemy.gold;
+            player.ap = Math.min(player.maxAp, player.ap+20);
+            addLog(`🏆 ПОБЕДА! +${currentEnemy.gold}🍺 +20 AP`);
+            player.floor++;
             startBattle();
+            updateUI();
+            saveGame();
         }
-        waitingForAction = true;
-        refreshUI();
-        saveGame();
-    }
-
-    // ----- ДРУЗЬЯ + АВАТАРКИ -----
-    function renderFriends() {
-        let grid = document.getElementById('friendsGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        FRIENDS.forEach(f => {
-            let div = document.createElement('div');
-            div.className = `friend-card ${game.activeFriend?.name === f.name ? 'selected' : ''}`;
-            div.innerHTML = `<img src="${f.avatar}" width="35" height="35" style="border-radius:50%; background:#5e3e1e;" onerror="this.style.display='none'; this.parentElement.innerHTML='${f.emoji}'"> ${f.name} +${f.hpBonus}❤️`;
-            div.onclick = () => {
-                game.activeFriend = f;
-                game.hp = Math.min(totalMaxHp(), game.hp);
-                refreshUI();
-                renderFriends();
-                addLog(`🍻 Выбран друг: ${f.name}`);
-                saveGame();
-            };
-            grid.appendChild(div);
-        });
-    }
-
-    function selectClass(className) {
-        game.className = className;
-        saveGame();
-        highlightClass();
-        addLog(`🎭 Класс изменён на ${className === 'mage' ? 'МАГ' : className === 'warrior' ? 'ВОИН' : 'ВОР'}`);
-    }
-
-    function highlightClass() {
-        document.querySelectorAll('.class-card').forEach(card => {
-            if (card.dataset.class === game.className) card.classList.add('selected');
-            else card.classList.remove('selected');
-        });
-    }
-
-    // ----- ПАНЕЛИ -----
-    function switchPanel(panel) {
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(panel + 'Panel').classList.add('active');
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.tab[data-tab="${panel}"]`).classList.add('active');
-        if (panel === 'friends') renderFriends();
-    }
-
-    document.getElementById('attackBtn').onclick = attackAction;
-    document.getElementById('skillBtn').onclick = castSpell;
-    document.getElementById('restBtn').onclick = rest;
-    document.querySelectorAll('.class-card').forEach(card => {
-        card.onclick = () => selectClass(card.dataset.class);
-    });
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.onclick = () => {
-            let target = tab.dataset.tab;
-            if (target === 'main') {
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            } else switchPanel(target);
+        function attack(){
+            if(!waitingForAction){ addLog(`Дождись хода!`); return; }
+            if(player.ap<15){ addLog(`❌ Нет AP`); return; }
+            player.ap-=15;
+            let total = player.strength+player.weaponBonus;
+            let dmg = total + Math.floor(Math.random()*8);
+            let msg = `⚔️ Удар! ${dmg} урона`;
+            if(player.className==='warrior' && Math.random()<0.3){ dmg=Math.floor(dmg*1.6); msg=`💢 КРИТ ВОИНА! ${dmg} урона`; }
+            if(player.className==='rogue'){ dmg=Math.floor(dmg*1.2+Math.random()*8); msg=`🗡️ Удар вора! ${dmg} урона`; }
+            currentEnemy.hp -= dmg;
+            addLog(msg);
+            if(currentEnemy.hp<=0){ victory(); return; }
+            waitingForAction=false;
+            updateUI();
+            setTimeout(enemyTurn,800);
+        }
+        function skill(){
+            if(!waitingForAction){ addLog(`Дождись хода!`); return; }
+            if(player.ap<30){ addLog(`❌ Нужно 30 AP`); return; }
+            player.ap-=30;
+            let total = player.strength+player.weaponBonus;
+            let dmg = total + Math.floor(Math.random()*20)+15;
+            let msg = `✨ ОСОБЫЙ УДАР! ${dmg} урона`;
+            if(player.className==='mage') msg = `🧙 МАГ: Огненный шар — ${dmg} урона!`;
+            if(player.className==='warrior') msg = `⚔️ ВОИН: Сокрушитель — ${dmg} урона!`;
+            if(player.className==='rogue') msg = `🗡️ ВОР: Танец клинков — ${dmg} урона!`;
+            currentEnemy.hp -= dmg;
+            addLog(msg);
+            if(currentEnemy.hp<=0){ victory(); return; }
+            waitingForAction=false;
+            updateUI();
+            setTimeout(enemyTurn,600);
+        }
+        function enemyTurn(){
+            if(currentEnemy.hp<=0) return;
+            let dmg = currentEnemy.damage;
+            player.hp -= dmg;
+            addLog(`😖 ${currentEnemy.name} атакует! -${dmg} HP`);
+            if(player.hp<=0){
+                addLog(`💀 Поражение! -30 золота`);
+                player.gold = Math.max(0, player.gold-30);
+                player.hp = player.maxHp+player.armorBonus;
+                player.ap = player.maxAp;
+                startBattle();
+            }
+            waitingForAction=true;
+            updateUI();
+            saveGame();
+        }
+        function setClass(cls){ player.className=cls; saveGame(); addLog(`🎭 Класс изменён на ${cls==='mage'?'МАГ':cls==='warrior'?'ВОИН':'ВОР'}`); }
+        function openShop(){ shopActive=true; addLog(`🛒 МАГАЗИН: W - оружие(+5силы 120🍺), A - броня(+20HP 100🍺). ESC - выход`); }
+        function buyWeapon(){ if(player.gold>=120 && !player.weaponBonus){ player.gold-=120; player.weaponBonus=5; addLog(`✅ Куплено оружие! +5 силы`); saveGame(); updateUI(); } else addLog(`❌ Не хватает золота или уже есть`); }
+        function buyArmor(){ if(player.gold>=100 && !player.armorBonus){ player.gold-=100; player.armorBonus=20; player.hp+=20; addLog(`✅ Куплена броня! +20 HP`); saveGame(); updateUI(); } else addLog(`❌ Не хватает золота или уже есть`); }
+        
+        const config = {
+            type: Phaser.AUTO,
+            width: 700,
+            height: 700,
+            backgroundColor: '#221c0e',
+            scene: { preload(){}, create(){
+                gameScene=this;
+                this.playerStats = this.add.text(20,20,'',{fontSize:'14px', fill:'#ffeaad'});
+                this.enemyText = this.add.text(350,160,'',{fontSize:'20px',fill:'#fff0cf'}).setOrigin(0.5);
+                let hpBg = this.add.rectangle(350,250,200,12,0x895e32).setOrigin(0.5);
+                this.hpBar = this.add.rectangle(350,250,200,10,0xe34d2b).setOrigin(0.5);
+                let apBg = this.add.rectangle(350,275,200,10,0x6b4c2c).setOrigin(0.5);
+                this.apBar = this.add.rectangle(350,275,200,8,0x4dabf7).setOrigin(0.5);
+                this.logText = this.add.text(20,320,'',{fontSize:'12px',fill:'#ffeecc'});
+                let attackZone = this.add.rectangle(140,620,160,50,0xe7a13a,0.9).setInteractive();
+                let skillZone = this.add.rectangle(320,620,160,50,0xb57c34,0.9).setInteractive();
+                let restZone = this.add.rectangle(500,620,160,50,0x8b5a2b,0.9).setInteractive();
+                let shopZone = this.add.rectangle(80,620,100,40,0x4d7c3b,0.9).setInteractive();
+                this.add.text(140,620,'⚔️ АТАКА',{fontSize:'16px',fill:'#2c1f0c'}).setOrigin(0.5);
+                this.add.text(320,620,'✨ СПОСОБНОСТЬ',{fontSize:'14px',fill:'#2c1f0c'}).setOrigin(0.5);
+                this.add.text(500,620,'😴 ОТДЫХ (+20 AP)',{fontSize:'14px',fill:'#2c1f0c'}).setOrigin(0.5);
+                this.add.text(80,620,'🛒',{fontSize:'20px',fill:'#fff'}).setOrigin(0.5);
+                attackZone.on('pointerdown',attack);
+                skillZone.on('pointerdown',skill);
+                restZone.on('pointerdown',()=>{
+                    if(waitingForAction){ player.ap=Math.min(player.maxAp,player.ap+20); addLog(`😴 Отдых! +20 AP`); waitingForAction=false; updateUI(); setTimeout(enemyTurn,600); }
+                    else addLog(`Сейчас нельзя отдыхать`);
+                });
+                shopZone.on('pointerdown',openShop);
+                let btnW = this.add.rectangle(220,480,100,40,0xb57c34).setInteractive();
+                let btnM = this.add.rectangle(350,480,100,40,0xb57c34).setInteractive();
+                let btnR = this.add.rectangle(480,480,100,40,0xb57c34).setInteractive();
+                this.add.text(220,480,'ВОИН',{fontSize:'16px',fill:'#2c1f0c'}).setOrigin(0.5);
+                this.add.text(350,480,'МАГ',{fontSize:'16px',fill:'#2c1f0c'}).setOrigin(0.5);
+                this.add.text(480,480,'ВОР',{fontSize:'16px',fill:'#2c1f0c'}).setOrigin(0.5);
+                btnW.on('pointerdown',()=>setClass('warrior'));
+                btnM.on('pointerdown',()=>setClass('mage'));
+                btnR.on('pointerdown',()=>setClass('rogue'));
+                loadGame();
+                updateUI();
+            }, update(){
+                if(shopActive){
+                    this.input.keyboard.once('keydown-W',()=>{ buyWeapon(); shopActive=false; });
+                    this.input.keyboard.once('keydown-A',()=>{ buyArmor(); shopActive=false; });
+                    this.input.keyboard.once('keydown-ESC',()=>{ shopActive=false; addLog(`Магазин закрыт`); });
+                }
+            } }
         };
-    });
-
-    loadGame();
-    highlightClass();
-    addLog(`🍻 Добро пожаловать! Выбери друга и класс (Маг/Воин/Вор)`);
+        new Phaser.Game(config);
+    })();
 </script>
 </body>
 </html>
