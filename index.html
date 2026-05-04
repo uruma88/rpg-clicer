@@ -176,6 +176,11 @@
         // ОБНОВЛЕННАЯ ФУНКЦИЯ ИНТЕРФЕЙСА
         function updateUI() {
             if (!gameState) return;
+            // Эта строка у тебя уже есть (обновляет полоску)
+    document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+    
+    // ЭТУ СТРОКУ ДОБАВЬ (она напишет цифры 160 / 160 поверх полоски)
+    document.getElementById('hp-text').innerText = `${gameState.hp} / ${gameState.maxHp}`;
             document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
             document.getElementById('display-class').innerText = gameState.class;
             document.getElementById('gold').innerText = gameState.gold;
@@ -215,7 +220,15 @@
             document.getElementById(id).classList.add('active');
         }
         function saveGame() { localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState)); }
-        function startDungeon() { document.getElementById('battle-log').innerHTML = ""; showScreen('screen-battle'); }
+        function startDungeon() { 
+            document.getElementById('battle-log').innerHTML = ""; 
+            // Это подставит твою аватарку из папки avatars в экран боя
+            document.getElementById('battle-img').src = `avatars/${gameState.friend}.jpg`;
+            document.getElementById('battle-player-name').innerText = gameState.friend.toUpperCase();
+            
+            showScreen('screen-battle'); 
+            updateUI(); 
+        }
 
         init();
     </script>
