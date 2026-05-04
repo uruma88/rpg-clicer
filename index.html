@@ -118,13 +118,22 @@
 </div>
 
 <script>
+    // 1. Инициализация Supabase
+    const SUPABASE_URL = 'https://uvyapclbduzxuyxqnbvz.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_juj8gj9mZGfv_ltA4VH4pg_Vl4uPmy5'; // Без S в конце!
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     // --- ДАННЫЕ ИГРОКА ---
     let p = JSON.parse(localStorage.getItem('psk_rpg_diablo')) || {
-        name: 'Юра', gold: 100, hp: 100, max: 100, floor: 1,
+        name: 'Юра', 
+        gold: 100, 
+        hp: 100, 
+        max: 100, 
+        floor: 1,
         equipment: { weapon: null, armor: null, helmet: null, ring: null },
         inv: []
     };
-
+    
     let enemy = null;
 
     function save() { localStorage.setItem('psk_rpg_diablo', JSON.stringify(p)); }
@@ -251,7 +260,45 @@
         box.scrollTop = box.scrollHeight;
         // Здесь будет supabase.from('messages').insert(...)
     }
+// --- ЛОГИКА ЧАТА (Добавь это вниз) ---
 
+// 1. Загрузка истории (вызывай это при открытии экрана чата)
+async function loadHistory() {
+    const { data, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+    if (error) return console.error("Ошибка загрузки:", error);
+
+    const box = document.getElementById('chat-box');
+    box.innerHTML = '';
+    data.reverse().forEach(m => {
+        box.innerHTML += `<div class="msg"><b>${m.username}:</b> ${m.text}</div>`;
+    });
+    box.scrollTop = box.scrollHeight;
+}
+
+// 2. Слушаем новые сообщения (Realtime)
+supabaseClient
+    .channel('public:messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div class="msg"><b>${payload.new.username}:</b> ${payload.new.text}</div>`;
+        box.scrollTop = box.scrollHeight;
+    })
+    .subscribe();
+
+// 3. Обновленная функция отправки (замени свою старую на эту)
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    await supabaseClient.from('messages').insert([{ username: p.name, text: text }]);
+    input.value = '';
+}
     updateUI();
 </script>
 </body>
