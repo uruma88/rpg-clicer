@@ -2,349 +2,54 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>🍺 Писок Данжен · Phaser 3</title>
-    <style>
-        body { margin: 0; background: #0c0e0a; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        canvas { border-radius: 28px; box-shadow: 0 0 0 4px #cf9f4a; }
-        .info { position: fixed; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 12px; color: #f3c26b; background: #000000aa; width: fit-content; margin: 0 auto; padding: 4px 16px; border-radius: 40px; pointer-events: none; }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Писок Данжен</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="info">🍺 ПИСОК ДАНЖЕН · нажми на здание</div>
-<script>
-    // ----- ДРУЗЬЯ (аватарки для выбора) -----
-    const FRIENDS = [
-        { name: "Алина", avatar: "avatars/алина.jpg", emoji: "👩", str: 15, vit: 12, int: 8, agi: 10 },
-        { name: "Богдан", avatar: "avatars/богдан.jpg", emoji: "💪", str: 18, vit: 14, int: 6, agi: 8 },
-        { name: "Капрал", avatar: "avatars/капрал.jpg", emoji: "🎖️", str: 20, vit: 16, int: 5, agi: 9 },
-        { name: "Саша", avatar: "avatars/саша.jpg", emoji: "⚔️", str: 17, vit: 15, int: 7, agi: 11 }
-    ];
+    <div id="game-container">
+        <div id="header">
+            <span id="player-name">Загрузка...</span>
+            <div class="stats-row">
+                <span>💰 <span id="gold">0</span></span>
+                <span>⭐ LVL: <span id="lvl">1</span></span>
+            </div>
+        </div>
 
-    let gameData = {
-        gold: 300,
-        level: 1,
-        exp: 0,
-        expNeeded: 100,
-        skillPoints: 0,
-        strength: 12,
-        vitality: 12,
-        intelligence: 10,
-        agility: 10,
-        hp: 100,
-        maxHp: 100,
-        ap: 100,
-        maxAp: 100,
-        floor: 1,
-        className: null,
-        classLocked: false,
-        friend: null,
-        weapon: null,   // { atk: 5 }
-        armor: null,    // { def: 3 }
-        inBattle: false,
-        currentEnemy: null,
-        waitingTurn: true
-    };
+        <div id="screen-city" class="screen">
+            <h2>🏘️ Город (Хаб)</h2>
+            <div class="city-grid">
+                <button onclick="changeScreen('tavern')">🍺 Таверна</button>
+                <button onclick="changeScreen('blacksmith')">⚒️ Кузнец</button>
+                <button onclick="changeScreen('guild')">👥 Гильдия</button>
+                <button onclick="startDungeon()" class="btn-primary">🚪 В Данж</button>
+            </div>
+        </div>
 
-    let currentScene = null;
-    let uiTexts = {};
+        <div id="screen-battle" class="screen" style="display: none;">
+            <div class="battle-arena">
+                <div id="enemy-sprite">👾</div>
+                <div class="hp-bar"><div id="enemy-hp-fill"></div></div>
+                <p id="enemy-name">Слизень</p>
+            </div>
+            
+            <div class="player-status">
+                <p>Ваше HP: <span id="hp">100</span>/<span id="max-hp">100</span></p>
+                <div class="hp-bar player"><div id="hp-fill"></div></div>
+                <p>Энергия (AP): <span id="ap">50</span></p>
+                <div class="ap-bar"><div id="ap-fill"></div></div>
+            </div>
 
-    // ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
-    function totalAtk() { let w = gameData.weapon?.atk || 0; return gameData.strength + w; }
-    function totalDef() { let a = gameData.armor?.def || 0; return gameData.vitality + a; }
-    function totalMaxHp() { return 80 + gameData.vitality*3 + (gameData.armor?.hpBonus||0); }
-    function calcDamage(attackerStr, targetDef) { let dmg = attackerStr - targetDef; return dmg < 1 ? 1 : dmg; } // минимально 1 урона
+            <div class="battle-actions">
+                <button onclick="playerAction('attack')">⚔️ Атака (15 AP)</button>
+                <button onclick="playerAction('skill')">🔥 Скилл (30 AP)</button>
+                <button onclick="playerAction('rest')">💤 Отдых (+20 AP)</button>
+            </div>
+            <div id="battle-log">Вы вошли в данж...</div>
+        </div>
+    </div>
 
-    function saveToLocal() { localStorage.setItem('pisokPhaser', JSON.stringify(gameData)); }
-    function loadFromLocal() { let s = localStorage.getItem('pisokPhaser'); if(s) { let d=JSON.parse(s); for(let k in d) gameData[k]=d[k]; } gameData.hp = Math.min(gameData.hp, totalMaxHp()); }
-
-    // ----- БОЕВАЯ СЦЕНА (вызывается из города) -----
-    class BattleScene extends Phaser.Scene {
-        constructor() { super({ key: 'BattleScene' }); }
-        create() {
-            currentScene = this;
-            this.enemy = gameData.currentEnemy;
-            this.add.rectangle(0,0,800,600,0x221c0e).setOrigin(0);
-            // враг
-            this.enemySprite = this.add.text(400, 120, `${this.enemy.name}\n❤️ ${this.enemy.hp}/${this.enemy.maxHp}`, { fontSize: '24px', fill: '#f7c56e', fontFamily: 'monospace', align: 'center' }).setOrigin(0.5);
-            this.enemyHpText = this.enemySprite;
-            // герой
-            this.heroSprite = this.add.text(400, 400, `${gameData.friend?.name || "Герой"}\n❤️ ${gameData.hp}/${totalMaxHp()}  💙 ${gameData.ap}/${gameData.maxAp}`, { fontSize: '20px', fill: '#ddb563', fontFamily: 'monospace', align: 'center' }).setOrigin(0.5);
-            // кнопки
-            let attackBtn = this.add.rectangle(150, 530, 160, 50, 0xc97e2a).setInteractive();
-            let skillBtn = this.add.rectangle(350, 530, 160, 50, 0x9b5e2a).setInteractive();
-            let restBtn = this.add.rectangle(550, 530, 160, 50, 0x6b4422).setInteractive();
-            this.add.text(150, 530, '⚔️ АТАКА', { fontSize: '18px', fill: '#fff' }).setOrigin(0.5);
-            this.add.text(350, 530, '✨ УМЕНИЕ', { fontSize: '18px', fill: '#fff' }).setOrigin(0.5);
-            this.add.text(550, 530, '😴 ОТДЫХ (+20 AP)', { fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
-            attackBtn.on('pointerdown', () => this.playerAttack());
-            skillBtn.on('pointerdown', () => this.playerSkill());
-            restBtn.on('pointerdown', () => { if(gameData.waitingTurn && !gameData.inBattle) return; if(gameData.ap+20 <= gameData.maxAp){ gameData.ap += 20; this.updateHeroHp(); this.addLog(`😴 Отдых +20 AP`); gameData.waitingTurn=false; this.enemyTurn(); } else this.addLog(`AP полны`); });
-            this.logArea = this.add.text(20, 80, '', { fontSize: '12px', fill: '#e2b870', fontFamily: 'monospace' });
-            this.logLines = [];
-            this.addLog(`⚔️ Бой с ${this.enemy.name}`);
-            gameData.waitingTurn = true;
-            this.updateEnemyHp();
-        }
-        addLog(msg) { this.logLines.unshift(msg); if(this.logLines.length>5) this.logLines.pop(); this.logArea.setText(this.logLines.join('\n')); }
-        updateEnemyHp() { this.enemySprite.setText(`${this.enemy.name}\n❤️ ${Math.floor(this.enemy.hp)}/${this.enemy.maxHp}`); }
-        updateHeroHp() { this.heroSprite.setText(`${gameData.friend?.name || "Герой"}\n❤️ ${Math.floor(gameData.hp)}/${totalMaxHp()}  💙 ${gameData.ap}/${gameData.maxAp}`); }
-        async playerAttack() {
-            if(!gameData.waitingTurn) return;
-            if(gameData.ap < 15) { this.addLog(`❌ Не хватает AP (нужно 15)`); return; }
-            gameData.ap -= 15;
-            let dmg = calcDamage(totalAtk(), this.enemy.defense);
-            this.enemy.hp -= dmg;
-            this.addLog(`⚔️ Атака! ${dmg} урона`);
-            this.updateEnemyHp();
-            if(this.enemy.hp <= 0) { this.victory(); return; }
-            gameData.waitingTurn = false;
-            this.updateHeroHp();
-            setTimeout(() => this.enemyTurn(), 800);
-        }
-        async playerSkill() {
-            if(!gameData.waitingTurn) return;
-            if(gameData.ap < 30) { this.addLog(`❌ Нужно 30 AP`); return; }
-            gameData.ap -= 30;
-            let bonus = 0;
-            if(gameData.className === 'mage') bonus = gameData.intelligence;
-            let dmg = calcDamage(totalAtk()+bonus+10, this.enemy.defense);
-            this.enemy.hp -= dmg;
-            this.addLog(`✨ УМЕНИЕ! ${dmg} урона`);
-            this.updateEnemyHp();
-            if(this.enemy.hp <= 0) { this.victory(); return; }
-            gameData.waitingTurn = false;
-            this.updateHeroHp();
-            setTimeout(() => this.enemyTurn(), 800);
-        }
-        enemyTurn() {
-            if(this.enemy.hp <= 0) return;
-            let dmg = calcDamage(this.enemy.atk, totalDef());
-            gameData.hp -= dmg;
-            this.addLog(`😖 ${this.enemy.name} атакует! -${dmg} HP`);
-            this.updateHeroHp();
-            if(gameData.hp <= 0) {
-                this.addLog(`💀 ПОРАЖЕНИЕ! -30 золота`);
-                gameData.gold = Math.max(0, gameData.gold-30);
-                gameData.hp = totalMaxHp();
-                gameData.ap = gameData.maxAp;
-                saveToLocal();
-                this.scene.start('TownScene');
-                return;
-            }
-            gameData.waitingTurn = true;
-            this.updateHeroHp();
-            saveToLocal();
-        }
-        victory() {
-            gameData.gold += this.enemy.gold;
-            gameData.exp += this.enemy.exp;
-            this.addLog(`🏆 ПОБЕДА! +${this.enemy.gold}🍺 +${this.enemy.exp} XP`);
-            if(gameData.exp >= gameData.expNeeded) {
-                gameData.level++;
-                gameData.exp -= gameData.expNeeded;
-                gameData.expNeeded = Math.floor(gameData.expNeeded * 1.2);
-                gameData.skillPoints += 3;
-                this.addLog(`🎉 УРОВЕНЬ ${gameData.level}! +3 очка навыков! 🎉`);
-            }
-            gameData.floor++;
-            saveToLocal();
-            this.scene.start('TownScene');
-        }
-    }
-
-    // ----- ГОРОД С ДОМАМИ (кликабельные здания) -----
-    class TownScene extends Phaser.Scene {
-        constructor() { super({ key: 'TownScene' }); }
-        create() {
-            currentScene = this;
-            this.add.rectangle(0,0,800,600,0x2b4620).setOrigin(0);
-            // статус
-            this.add.text(20, 20, `🍺 ${Math.floor(gameData.gold)}  ⚔️ ${totalAtk()}  ❤️ ${Math.floor(gameData.hp)}/${totalMaxHp()}  💙 ${gameData.ap}/${gameData.maxAp}  🌟 lvl ${gameData.level}  🏔️ этаж ${gameData.floor}`, { fontSize: '14px', fill: '#ffec9f', fontFamily: 'monospace' });
-            // рисуем домики
-            let houses = [
-                { x: 150, y: 150, name: 'tavern', label: '🍺 ТАВЕРНА' },
-                { x: 450, y: 150, name: 'smith', label: '⚒️ КУЗНЕЦ' },
-                { x: 150, y: 380, name: 'guild', label: '👥 ГИЛЬДИЯ' },
-                { x: 450, y: 380, name: 'gate', label: '🚪 ВОРОТА' }
-            ];
-            houses.forEach(h => {
-                let zone = this.add.rectangle(h.x, h.y, 140, 100, 0xab8b50).setInteractive();
-                this.add.text(h.x, h.y, h.label, { fontSize: '16px', fill: '#35220c', fontFamily: 'monospace' }).setOrigin(0.5);
-                zone.on('pointerdown', () => this.openBuilding(h.name));
-            });
-            // если первый раз – сразу открыть гильдию для выбора друга/класса
-            if(!gameData.classLocked || !gameData.friend) this.openBuilding('guild');
-        }
-        openBuilding(type) {
-            if(type === 'tavern') {
-                this.showMenuPanel([
-                    { text: '💚 ЛЕЧЕНИЕ (30🍺)', action: () => { if(gameData.gold>=30){ gameData.gold-=30; gameData.hp=totalMaxHp(); gameData.ap=gameData.maxAp; saveToLocal(); this.refreshStatus(); this.addFloatingMsg(`Вылечен!`); } else this.addFloatingMsg(`Не хватает золота`); } },
-                    { text: '🏠 ЗАКРЫТЬ', action: () => this.closePanel() }
-                ]);
-            }
-            else if(type === 'smith') {
-                this.showMenuPanel([
-                    { text: '🗡️ ДУБИНА (+5 силы) 150🍺', action: () => { if(gameData.gold>=150 && !gameData.weapon){ gameData.gold-=150; gameData.weapon={atk:5}; saveToLocal(); this.refreshStatus(); this.addFloatingMsg(`Куплена дубина!`); } else this.addFloatingMsg(`Ошибка`); } },
-                    { text: '🛡️ КОЖАНАЯ БРОНЯ (+3 защиты) 120🍺', action: () => { if(gameData.gold>=120 && !gameData.armor){ gameData.gold-=120; gameData.armor={def:3, hpBonus:0}; saveToLocal(); this.refreshStatus(); this.addFloatingMsg(`Куплена броня!`); } else this.addFloatingMsg(`Ошибка`); } },
-                    { text: '🏠 ЗАКРЫТЬ', action: () => this.closePanel() }
-                ]);
-            }
-            else if(type === 'guild') {
-                if(!gameData.friend || !gameData.className) {
-                    this.showFriendClassSelection();
-                } else {
-                    this.showMenuPanel([
-                        { text: '👤 МОЙ ГЕРОЙ', action: () => this.showHeroProfile() },
-                        { text: '🎒 ИНВЕНТАРЬ', action: () => this.showInventory() },
-                        { text: '⚔️ СНАРЯЖЕНИЕ', action: () => this.showEquipment() },
-                        { text: '📈 ПРОКАЧКА', action: () => this.showUpgrade() },
-                        { text: '🏠 ЗАКРЫТЬ', action: () => this.closePanel() }
-                    ]);
-                }
-            }
-            else if(type === 'gate') {
-                this.showMenuPanel([
-                    { text: '🍺 НАЧАТЬ ЗАБЕГ', action: () => { this.startDungeon(); } },
-                    { text: '🏠 ЗАКРЫТЬ', action: () => this.closePanel() }
-                ]);
-            }
-        }
-        startDungeon() {
-            let enemies = [
-                { name: "🍺 Пиво", hp: 55, maxHp: 55, atk: 10, defense: 5, gold: 30, exp: 35 },
-                { name: "🛢️ Бочка", hp: 80, maxHp: 80, atk: 12, defense: 7, gold: 45, exp: 45 },
-                { name: "💪 Вышибала", hp: 110, maxHp: 110, atk: 15, defense: 9, gold: 65, exp: 60 }
-            ];
-            let isBoss = (gameData.floor % 5 === 0);
-            let enemy = isBoss ? { name: "👑 БОСС", hp: 180, maxHp:180, atk:20, defense:12, gold:150, exp:120 } : enemies[Math.floor(Math.random()*enemies.length)];
-            gameData.currentEnemy = { ...enemy, hp: enemy.hp, maxHp: enemy.maxHp };
-            gameData.waitingTurn = true;
-            saveToLocal();
-            this.scene.start('BattleScene');
-        }
-        showHeroProfile() {
-            let f = gameData.friend || { name: "Герой", emoji: "🍺" };
-            this.showMenuPanel([
-                { text: `${f.name} (${gameData.className?.toUpperCase() || "НЕТ"})`, action: null },
-                { text: `💪 Сила: ${totalAtk()}  🧠 Инт: ${gameData.intelligence}  🏃 Агил: ${gameData.agility}`, action: null },
-                { text: `❤️ Здоровье: ${gameData.hp}/${totalMaxHp()}  💙 AP: ${gameData.ap}/${gameData.maxAp}`, action: null },
-                { text: '🔙 НАЗАД', action: () => this.closePanel() }
-            ]);
-        }
-        showInventory() {
-            let items = [];
-            if(gameData.weapon) items.push(`🗡️ ${gameData.weapon.name || "Оружие"} (+${gameData.weapon.atk}⚔️)`);
-            if(gameData.armor) items.push(`🛡️ ${gameData.armor.name || "Броня"} (+${gameData.armor.def}🛡️)`);
-            let panel = [{ text: items.length ? items.join('\n') : '🎒 ПУСТО', action: null }, { text: '🔙 НАЗАД', action: () => this.closePanel() }];
-            this.showMenuPanel(panel);
-        }
-        showEquipment() {
-            this.showMenuPanel([
-                { text: `🗡️ ОРУЖИЕ: ${gameData.weapon?.name || "---"}`, action: () => { gameData.weapon=null; saveToLocal(); this.showEquipment(); } },
-                { text: `🛡️ БРОНЯ: ${gameData.armor?.name || "---"}`, action: () => { gameData.armor=null; saveToLocal(); this.showEquipment(); } },
-                { text: '🔙 НАЗАД', action: () => this.closePanel() }
-            ]);
-        }
-        showUpgrade() {
-            let sp = gameData.skillPoints;
-            this.showMenuPanel([
-                { text: `✨ ОЧКИ НАВЫКОВ: ${sp}`, action: null },
-                { text: '💪 СИЛА +1', action: () => { if(sp>0){ gameData.skillPoints--; gameData.strength++; saveToLocal(); this.showUpgrade(); this.refreshStatus(); } else this.addFloatingMsg(`Нет очков`); } },
-                { text: '🧠 ИНТЕЛЛЕКТ +1', action: () => { if(sp>0){ gameData.skillPoints--; gameData.intelligence++; saveToLocal(); this.showUpgrade(); this.refreshStatus(); } else this.addFloatingMsg(`Нет очков`); } },
-                { text: '🏃 ЛОВКОСТЬ +1', action: () => { if(sp>0){ gameData.skillPoints--; gameData.agility++; saveToLocal(); this.showUpgrade(); this.refreshStatus(); } else this.addFloatingMsg(`Нет очков`); } },
-                { text: '❤️ ЗДОРОВЬЕ +1', action: () => { if(sp>0){ gameData.skillPoints--; gameData.vitality++; gameData.hp = Math.min(totalMaxHp(), gameData.hp+5); saveToLocal(); this.showUpgrade(); this.refreshStatus(); } else this.addFloatingMsg(`Нет очков`); } },
-                { text: '🔙 НАЗАД', action: () => this.closePanel() }
-            ]);
-        }
-        showFriendClassSelection() {
-            let container = this.add.container(400, 300);
-            let bg = this.add.rectangle(0,0,500,400,0x000000cc).setInteractive();
-            container.add(bg);
-            let yOff = -150;
-            this.add.text(0, yOff, 'ВЫБЕРИ ДРУГА', { fontSize: '20px', fill: '#f2c45a' }).setOrigin(0.5);
-            yOff += 50;
-            FRIENDS.forEach(f => {
-                let btn = this.add.rectangle(0, yOff, 200, 40, 0xaa8040).setInteractive();
-                this.add.text(0, yOff, `${f.name} (⚔️${f.str} ❤️${f.vit})`, { fontSize: '14px', fill: '#fff' }).setOrigin(0.5);
-                btn.on('pointerdown', () => {
-                    gameData.friend = f;
-                    gameData.strength = f.str;
-                    gameData.vitality = f.vit;
-                    gameData.intelligence = f.int;
-                    gameData.agility = f.agi;
-                    gameData.hp = totalMaxHp();
-                    container.destroy();
-                    this.showClassSelection();
-                });
-                container.add(btn);
-                yOff += 50;
-            });
-        }
-        showClassSelection() {
-            let container = this.add.container(400, 300);
-            let bg = this.add.rectangle(0,0,500,400,0x000000cc).setInteractive();
-            container.add(bg);
-            let yOff = -100;
-            this.add.text(0, yOff, 'ВЫБЕРИ КЛАСС НАВСЕГДА', { fontSize: '20px', fill: '#f2c45a' }).setOrigin(0.5);
-            yOff += 60;
-            let classes = [
-                { name: '⚔️ ВОИН', stat: 'strength', bonus: 4 },
-                { name: '🧙 МАГ', stat: 'intelligence', bonus: 5 },
-                { name: '🗡️ ВОР', stat: 'agility', bonus: 4 }
-            ];
-            classes.forEach(cls => {
-                let btn = this.add.rectangle(0, yOff, 200, 40, 0xaa8040).setInteractive();
-                this.add.text(0, yOff, cls.name, { fontSize: '18px', fill: '#fff' }).setOrigin(0.5);
-                btn.on('pointerdown', () => {
-                    gameData.className = cls.stat;
-                    gameData.classLocked = true;
-                    if(cls.stat === 'strength') gameData.strength += cls.bonus;
-                    if(cls.stat === 'intelligence') gameData.intelligence += cls.bonus;
-                    if(cls.stat === 'agility') gameData.agility += cls.bonus;
-                    gameData.hp = totalMaxHp();
-                    saveToLocal();
-                    container.destroy();
-                    this.refreshStatus();
-                    this.closePanel();
-                });
-                container.add(btn);
-                yOff += 50;
-            });
-        }
-        showMenuPanel(buttons) {
-            if(this.panel) this.panel.destroy();
-            this.panel = this.add.container(400, 300);
-            let bg = this.add.rectangle(0,0,400, 70+buttons.length*50, 0x2b2113).setInteractive();
-            this.panel.add(bg);
-            let yOff = - (buttons.length*25);
-            buttons.forEach(btn => {
-                let txt = this.add.text(0, yOff, btn.text, { fontSize: '18px', fill: '#f9e2a7', fontFamily: 'monospace' }).setOrigin(0.5);
-                this.panel.add(txt);
-                if(btn.action) {
-                    let zone = this.add.rectangle(0, yOff, 300, 40, 0x00000000).setInteractive();
-                    zone.on('pointerdown', () => { btn.action(); if(btn.text !== '🔙 НАЗАД') this.closePanel(); });
-                    this.panel.add(zone);
-                }
-                yOff += 45;
-            });
-        }
-        closePanel() { if(this.panel) this.panel.destroy(); this.panel=null; }
-        refreshStatus() { if(this.statusText) this.statusText.destroy(); this.statusText = this.add.text(20, 20, `🍺 ${Math.floor(gameData.gold)}  ⚔️ ${totalAtk()}  ❤️ ${Math.floor(gameData.hp)}/${totalMaxHp()}  💙 ${gameData.ap}/${gameData.maxAp}  🌟 lvl ${gameData.level}  🏔️ этаж ${gameData.floor}`, { fontSize: '14px', fill: '#ffec9f', fontFamily: 'monospace' }); }
-        addFloatingMsg(msg) { let t = this.add.text(400, 500, msg, { fontSize: '18px', fill: '#ffd966' }).setOrigin(0.5); this.time.delayedCall(1200, () => t.destroy()); }
-    }
-
-    // ----- ЗАПУСК -----
-    loadFromLocal();
-    const config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        parent: document.body,
-        scene: [TownScene, BattleScene]
-    };
-    window.game = new Phaser.Game(config);
-</script>
+    <script src="script.js"></script>
 </body>
 </html>
