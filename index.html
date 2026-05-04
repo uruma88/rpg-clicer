@@ -3,152 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PISOK RPG: ULTIMATE EDITION</title>
+    <title>PISOK RPG: LEGACY</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg: #0d0d12; --card: #16161e; --accent: #f1c40f;
             --text: #e0e0e0; --blue: #3498db; --red: #e74c3c;
-            --mana: #9b59b6; --rare: #3498db; --legend: #f1c40f;
+            --mana: #9b59b6; --green: #27ae60;
         }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 10px; margin: 0; }
         .game-container { width: 100%; max-width: 480px; }
-        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #2a2a3a; margin-bottom: 15px; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #2a2a3a; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         
-        /* Прокачка */
-        .stats-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin: 4px 0; }
-        .stat-up { background: var(--accent); border: none; border-radius: 4px; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
+        /* Статы и бары */
+        .stats-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 10px; margin: 6px 0; border: 1px solid #222; }
+        .stat-up { background: var(--accent); border: none; border-radius: 5px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; color: #000; }
         
-        /* Бары */
-        .bar { background: #222; height: 14px; border-radius: 7px; overflow: hidden; margin: 4px 0; position: relative; border: 1px solid #000; }
-        .bar-fill { height: 100%; transition: 0.3s; }
+        .bar { background: #222; height: 16px; border-radius: 8px; overflow: hidden; margin: 5px 0; position: relative; border: 1px solid #000; }
+        .bar-fill { height: 100%; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .hp-fill { background: linear-gradient(90deg, #c0392b, #e74c3c); }
         .mana-fill { background: linear-gradient(90deg, #8e44ad, #9b59b6); }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 9px; top: 0; line-height: 14px; font-weight: bold; }
+        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 0; line-height: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
 
-        /* Бой */
-        .battle-ui { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); }
-        .btn-atk { background: var(--red); }
-        .btn-skl { background: var(--mana); }
-        .btn-heal { background: #27ae60; }
+        /* Кнопки */
+        .btn { padding: 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; text-transform: uppercase; font-size: 13px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:active { transform: scale(0.96); }
+        .btn-atk { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-skl { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .btn-arena { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .btn-chat { background: linear-gradient(135deg, #27ae60, #219150); }
         
-        .inventory { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
-        .item { background: #1e1e26; border: 1px solid #444; border-radius: 8px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-        .rarity-legend { border-color: var(--accent); box-shadow: 0 0 5px var(--accent); }
+        /* Инвентарь */
+        .inventory { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; min-height: 50px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .item { background: #1e1e26; border: 2px solid #333; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; transition: 0.2s; }
+        .item:hover { border-color: var(--accent); }
+        .rarity-rare { border-color: var(--blue); }
+        .rarity-legend { border-color: var(--accent); box-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
         
-        .screen { display: none; } .active { display: block; }
-        .avatar-picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .av-item img { width: 100%; border-radius: 8px; border: 2px solid transparent; cursor: pointer; }
-        .av-item.selected img { border-color: var(--accent); }
+        .screen { display: none; } .active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .class-desc { font-size: 10px; opacity: 0.8; font-weight: normal; text-transform: none; margin-top: 2px; }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <!-- SETUP -->
+    <!-- ЭКРАН СОЗДАНИЯ -->
     <div id="scr-setup" class="screen active">
         <div class="card">
-            <h3 style="text-align:center">ВЫБЕРИ ГЕРОЯ</h3>
-            <div class="avatar-picker" id="hero-list"></div>
-            <h3 style="text-align:center">КЛАСС</h3>
-            <div style="display:grid; gap:5px;">
-                <button class="btn btn-atk" onclick="startRPG('Воин', 200, 15, 50, 'Мощный удар (x2 урон)')">🛡️ ВОИН</button>
-                <button class="btn btn-skl" onclick="startRPG('Маг', 100, 10, 150, 'Огненный шар (x3 урон)')">🔮 МАГ</button>
-                <button class="btn btn-heal" onclick="startRPG('Жрец', 140, 12, 100, 'Святое лечение (+50 HP)')">☀️ ЖРЕЦ</button>
+            <h2 style="text-align:center; color:var(--accent)">СОЗДАНИЕ ГЕРОЯ</h2>
+            <div id="hero-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:20px;"></div>
+            
+            <div style="display:grid; gap:10px;">
+                <button class="btn btn-atk" onclick="startRPG('Воин', 200, 15, 60, 'Вихрь стали (Урон x2)')">
+                    <div>⚔️ ВОИН<div class="class-desc">+Бонус к HP и базовая мощь</div></div>
+                </button>
+                <button class="btn btn-skl" onclick="startRPG('Маг', 110, 10, 180, 'Взрыв разума (Урон x3)')">
+                    <div>🔮 МАГ<div class="class-desc">+Огромный запас маны</div></div>
+                </button>
+                <button class="btn btn-chat" onclick="startRPG('Разбойник', 140, 18, 90, 'Удар в спину (Крит x4)')">
+                    <div>🗡️ РАЗБОЙНИК<div class="class-desc">+Высокий базовый урон</div></div>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN -->
+    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="scr-main" class="screen">
         <div class="card">
-            <div style="display:flex; align-items:center; margin-bottom:10px;">
-                <img id="p-img" src="" style="width:60px; height:60px; border-radius:10px; border:2px solid var(--accent); margin-right:10px;">
+            <div style="display:flex; align-items:center; margin-bottom:15px;">
+                <img id="p-img" src="" style="width:70px; height:70px; border-radius:12px; border:2px solid var(--accent); margin-right:15px; object-fit: cover;">
                 <div style="flex:1">
-                    <b id="p-name">Имя</b> <small id="p-lvl">LVL 1</small>
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <b id="p-name" style="font-size:18px">ЮРА</b>
+                        <small id="p-lvl" style="color:var(--accent)">Lvl 1</small>
+                    </div>
                     <div class="bar"><div id="hp-fill" class="bar-fill hp-fill"></div><div id="hp-txt" class="bar-text"></div></div>
                     <div class="bar"><div id="mp-fill" class="bar-fill mana-fill"></div><div id="mp-txt" class="bar-text"></div></div>
                 </div>
             </div>
 
-            <div id="points-notif" style="color:var(--accent); text-align:center; font-size:12px; margin-bottom:5px; display:none;">Есть свободные очки!</div>
-            <div class="stats-box" style="font-size:12px;">
-                <div class="stats-row"><span>💪 Сила (Урон)</span> <span id="s-str">0</span> <button class="stat-up" onclick="upStat('str')">+</button></div>
-                <div class="stats-row"><span>❤️ Живучесть (HP)</span> <span id="s-vit">0</span> <button class="stat-up" onclick="upStat('vit')">+</button></div>
-                <div class="stats-row"><span>🧠 Интеллект (MP)</span> <span id="s-int">0</span> <button class="stat-up" onclick="upStat('int')">+</button></div>
+            <div id="points-notif" style="color:var(--accent); text-align:center; font-size:12px; margin-bottom:8px; display:none; animation: pulse 1s infinite;">✨ Есть свободные очки прокачки!</div>
+            
+            <div class="stats-box">
+                <div class="stats-row"><span>💪 Сила (Урон)</span> <div><span id="s-str">0</span> <button class="stat-up" onclick="upStat('str')">+</button></div></div>
+                <div class="stats-row"><span>❤️ Живучесть (HP)</span> <div><span id="s-vit">10</span> <button class="stat-up" onclick="upStat('vit')">+</button></div></div>
+                <div class="stats-row"><span>🧠 Интеллект (MP)</span> <div><span id="s-int">10</span> <button class="stat-up" onclick="upStat('int')">+</button></div></div>
             </div>
             
-            <div style="display:flex; justify-content:space-around; margin-top:10px; font-weight:bold; color:var(--accent);">
-                <span>💰 <span id="p-gold">0</span></span> <span>🏢 <span id="p-fl">1</span></span> <span>🏆 <span id="p-wins">0</span></span>
+            <div style="display:flex; justify-content:space-around; margin-top:15px; padding-top:10px; border-top:1px solid #333;">
+                <div style="text-align:center">💰<br><span id="p-gold">0</span></div>
+                <div style="text-align:center">🏢<br><span id="p-fl">1</span></div>
+                <div style="text-align:center">🏆<br><span id="p-wins">0</span></div>
             </div>
         </div>
 
-        <button class="btn btn-atk" style="width:100%" onclick="goBattle(false)">⚔️ В БОЙ (ПОДЗЕМЕЛЬЕ)</button>
+        <button class="btn btn-atk" style="width:100%; font-size:16px;" onclick="goBattle(false)">⚔️ В БОЙ (ПОДЗЕМЕЛЬЕ)</button>
+        
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-            <button class="btn btn-skl" onclick="openScreen('scr-top'); loadTop();">🏆 АРЕНА</button>
-            <button class="btn btn-heal" onclick="openScreen('scr-chat'); loadChat();">💬 ЧАТ</button>
+            <button class="btn btn-arena" onclick="openScreen('scr-top'); loadTop();">🏆 АРЕНА</button>
+            <button class="btn btn-chat" onclick="openScreen('scr-chat'); loadChat();">💬 ЧАТ</button>
         </div>
         
+        <div style="margin-top:15px; font-size:12px; color:#888;">ИНВЕНТАРЬ (нажми, чтобы экипировать):</div>
         <div class="inventory" id="p-inv"></div>
     </div>
 
-    <!-- BATTLE -->
+    <!-- ЭКРАН БОЯ -->
     <div id="scr-battle" class="screen">
         <div class="card" style="text-align:center">
-            <h4 id="en-name">МОНСТР</h4>
-            <div class="bar" style="height:18px"><div id="en-hp" class="bar-fill hp-fill"></div><div id="en-hp-txt" class="bar-text"></div></div>
-            <div id="battle-log" style="font-size:11px; color:var(--accent); margin-top:10px; height:40px; overflow:hidden;"></div>
+            <h3 id="en-name">МОНСТР</h3>
+            <div class="bar" style="height:20px"><div id="en-hp" class="bar-fill hp-fill"></div><div id="en-hp-txt" class="bar-text"></div></div>
+            <div id="battle-log" style="font-size:13px; color:var(--accent); margin-top:15px; min-height:50px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">Готов к бою!</div>
         </div>
         
-        <div class="battle-ui">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button class="btn btn-atk" onclick="turn('atk')">🗡️ УДАР</button>
             <button class="btn btn-skl" onclick="turn('skl')">✨ НАВЫК</button>
-            <button class="btn btn-heal" id="btn-potion" onclick="turn('heal')">🧪 ХИЛ (0)</button>
-            <button class="btn btn-gray" style="background:#444" onclick="openScreen('scr-main')">🏳️ ПОБЕГ</button>
+            <button class="btn btn-chat" id="btn-potion" style="background:#27ae60" onclick="turn('heal')">🧪 ХИЛ (0)</button>
+            <button class="btn" style="background:#444" onclick="openScreen('scr-main')">🏳️ ПОБЕГ</button>
         </div>
     </div>
 
-    <!-- TOP -->
+    <!-- ТАБЛИЦА ЛИДЕРОВ -->
     <div id="scr-top" class="screen">
         <div class="card">
-            <h3>РЕЙТИНГ ПОБЕД</h3>
-            <div id="top-box" style="max-height:300px; overflow-y:auto;"></div>
-            <button class="btn btn-atk" style="width:100%; margin-top:10px;" onclick="openScreen('scr-main')">НАЗАД</button>
+            <h3 style="text-align:center">🏆 ЛУЧШИЕ БОЙЦЫ</h3>
+            <div id="top-box" style="max-height:350px; overflow-y:auto;"></div>
+            <button class="btn" style="width:100%; margin-top:15px; background:#444" onclick="openScreen('scr-main')">ВЕРНУТЬСЯ</button>
         </div>
     </div>
 
-    <!-- CHAT -->
+    <!-- ЧАТ -->
     <div id="scr-chat" class="screen">
         <div class="card">
-            <div id="chat-box" style="height:300px; overflow-y:auto; font-size:12px; margin-bottom:10px; border-bottom:1px solid #333;"></div>
-            <div style="display:flex; gap:5px;">
-                <input id="chat-in" type="text" style="flex:1; padding:10px; border-radius:8px; border:none; background:#222; color:white;">
-                <button class="btn btn-blue" style="background:var(--blue)" onclick="sendChat()">></button>
+            <div id="chat-box" style="height:300px; overflow-y:auto; font-size:13px; margin-bottom:10px; padding-right:5px;"></div>
+            <div style="display:flex; gap:8px;">
+                <input id="chat-in" type="text" placeholder="Сообщение..." style="flex:1; padding:12px; border-radius:10px; border:none; background:#222; color:white;">
+                <button class="btn btn-arena" style="width:50px" onclick="sendChat()">></button>
             </div>
-            <button class="btn btn-gray" style="width:100%; margin-top:10px; background:#444;" onclick="openScreen('scr-main')">НАЗАД</button>
+            <button class="btn" style="width:100%; margin-top:15px; background:#444" onclick="openScreen('scr-main')">НАЗАД</button>
         </div>
     </div>
 </div>
 
 <script>
-const NAMES = ['алина','бень','богдан','ваня','егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня','юра'];
+// Настройки
 const SUPABASE_URL = 'https://uvyapclbduzxuyxqnbvz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_juj8gj9mZGfv_ltA4VH4pg_Vl4uPmy5';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const AVATARS = ['алина','бень','богдан','ваня','егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня','юра'];
 
-let p = JSON.parse(localStorage.getItem('pisok_rpg_v3')) || null;
+let p = JSON.parse(localStorage.getItem('pisok_rpg_v4')) || null;
 let selName = 'юра';
 let enemy = null;
 
 window.onload = () => {
     if(!p) {
         const hList = document.getElementById('hero-list');
-        NAMES.forEach(n => {
+        AVATARS.forEach(n => {
             const div = document.createElement('div');
-            div.className = 'av-item';
-            div.innerHTML = `<img src="avatars/${n}.jpg" onclick="selectHero('${n}', this)">`;
+            div.innerHTML = `<img src="avatars/${n}.jpg" style="width:100%; border-radius:8px; cursor:pointer; border:2px solid transparent;" onclick="selectHero('${n}', this)">`;
             hList.appendChild(div);
         });
         openScreen('scr-setup');
@@ -159,8 +175,8 @@ window.onload = () => {
 }
 
 function selectHero(n, el) {
-    document.querySelectorAll('.av-item').forEach(x => x.classList.remove('selected'));
-    el.parentElement.classList.add('selected');
+    document.querySelectorAll('#hero-list img').forEach(img => img.style.borderColor = 'transparent');
+    el.style.borderColor = '#f1c40f';
     selName = n;
 }
 
@@ -175,21 +191,19 @@ function startRPG(cls, hp, str, mp, skill) {
         lvl: 1, exp: 0, gold: 0, floor: 1, wins: 0,
         hp: hp, maxHp: hp, mp: mp, maxMp: mp,
         stats: { str: str, vit: 10, int: 10 }, points: 5,
-        skillName: skill, potions: 3,
-        vampirism: 0, // % лечения от урона
-        equip: { w: null, a: null }, inv: []
+        skillName: skill, potions: 3, vampirism: 0, inv: []
     };
-    save(); location.reload();
+    save(); updateUI(); openScreen('scr-main');
 }
 
-function save() { localStorage.setItem('pisok_rpg_v3', JSON.stringify(p)); }
+function save() { localStorage.setItem('pisok_rpg_v4', JSON.stringify(p)); }
 
 function upStat(s) {
     if(p.points <= 0) return;
     p.points--;
-    if(s === 'str') p.stats.str += 3;
-    if(s === 'vit') { p.stats.vit += 5; p.maxHp += 25; p.hp = p.maxHp; }
-    if(s === 'int') { p.stats.int += 5; p.maxMp += 30; p.mp = p.maxMp; }
+    if(s === 'str') p.stats.str += 2;
+    if(s === 'vit') { p.stats.vit += 1; p.maxHp += 20; p.hp = p.maxHp; }
+    if(s === 'int') { p.stats.int += 1; p.maxMp += 15; p.mp = p.maxMp; }
     save(); updateUI();
 }
 
@@ -197,7 +211,7 @@ function updateUI() {
     if(!p) return;
     document.getElementById('p-img').src = p.img;
     document.getElementById('p-name').innerText = p.name.toUpperCase();
-    document.getElementById('p-lvl').innerText = `[${p.class} Lvl ${p.lvl}]`;
+    document.getElementById('p-lvl').innerText = `${p.class} | Lvl ${p.lvl}`;
     document.getElementById('hp-txt').innerText = `${Math.floor(p.hp)} / ${p.maxHp}`;
     document.getElementById('hp-fill').style.width = (p.hp / p.maxHp * 100) + '%';
     document.getElementById('mp-txt').innerText = `${p.mp} / ${p.maxMp}`;
@@ -210,11 +224,8 @@ function updateUI() {
     document.getElementById('p-fl').innerText = p.floor;
     document.getElementById('p-wins').innerText = p.wins;
     document.getElementById('btn-potion').innerText = `🧪 ХИЛ (${p.potions})`;
-    
     document.getElementById('points-notif').style.display = p.points > 0 ? 'block' : 'none';
-    document.querySelectorAll('.stat-up').forEach(btn => btn.style.display = p.points > 0 ? 'block' : 'none');
 
-    // Инвентарь
     const invDiv = document.getElementById('p-inv');
     invDiv.innerHTML = '';
     p.inv.forEach((item, i) => {
@@ -227,23 +238,11 @@ function updateUI() {
 }
 
 function goBattle(isPvP, target = null) {
-    if(isPvP) {
-        enemy = {
-            n: target.username,
-            hp: 100 + (target.floor * 20),
-            max: 100 + (target.floor * 20),
-            pwr: 10 + (target.floor * 2),
-            pvp: true
-        };
-    } else {
-        enemy = {
-            n: "Монстр Эт. " + p.floor,
-            hp: 50 + (p.floor * 15),
-            max: 50 + (p.floor * 15),
-            pwr: 5 + (p.floor * 2),
-            pvp: false
-        };
-    }
+    enemy = isPvP ? 
+        { n: target.username, hp: 100 + (target.floor * 25), max: 100 + (target.floor * 25), pwr: 10 + (target.floor * 3), pvp: true } :
+        { n: "Страж этажа " + p.floor, hp: 60 + (p.floor * 20), max: 60 + (p.floor * 20), pwr: 6 + (p.floor * 2.5), pvp: false };
+    
+    document.getElementById('battle-log').innerText = "Твой ход!";
     updateBattleUI();
     openScreen('scr-battle');
 }
@@ -256,89 +255,93 @@ function updateBattleUI() {
 
 function turn(type) {
     let log = "";
-    let dmg = p.stats.str;
+    let dmg = p.stats.str + (Math.random() * 5);
 
     if(type === 'atk') {
-        log = `Ты ударил на ${dmg}! `;
+        log = `Ты нанес ${Math.floor(dmg)} урона! `;
     } else if(type === 'skl') {
         if(p.mp < 30) { alert("Мало маны!"); return; }
         p.mp -= 30;
-        dmg *= 2.5;
+        dmg *= (p.class === 'Маг' ? 3 : 2);
         log = `Навык ${p.skillName}: ${Math.floor(dmg)} урона! `;
     } else if(type === 'heal') {
-        if(p.potions <= 0) { alert("Нет зелий!"); return; }
+        if(p.potions <= 0) { alert("Зелья кончились!"); return; }
         p.potions--;
-        p.hp = Math.min(p.maxHp, p.hp + (p.maxHp * 0.4));
-        log = "Ты выпил зелье (+40% HP). ";
+        let heal = p.maxHp * 0.5;
+        p.hp = Math.min(p.maxHp, p.hp + heal);
+        log = `Выпито зелье: +${Math.floor(heal)} HP! `;
         dmg = 0;
     }
 
-    // Вампиризм (если есть вещи)
     if(dmg > 0 && p.vampirism > 0) {
-        let heal = dmg * (p.vampirism / 100);
-        p.hp = Math.min(p.maxHp, p.hp + heal);
-        log += `Вампиризм: +${Math.floor(heal)} HP. `;
+        let vHeal = dmg * (p.vampirism / 100);
+        p.hp = Math.min(p.maxHp, p.hp + vHeal);
     }
 
     enemy.hp -= dmg;
+    if(enemy.hp <= 0) return win();
+
+    // Ответ врага
+    let eDmg = enemy.pwr + (Math.random() * 4);
+    p.hp -= eDmg;
+    log += `\nВраг бьет в ответ: -${Math.floor(eDmg)} HP`;
     
-    if(enemy.hp <= 0) {
-        win();
-    } else {
-        // Ход врага
-        let eDmg = enemy.pwr;
-        if(enemy.pvp && Math.random() > 0.7) eDmg *= 1.8; // Бот юзает скилл
-        p.hp -= eDmg;
-        log += `\nВраг ударил на ${eDmg}!`;
-        document.getElementById('battle-log').innerText = log;
-        if(p.hp <= 0) die();
-    }
+    document.getElementById('battle-log').innerText = log;
+    if(p.hp <= 0) die();
+    
     updateBattleUI();
     updateUI();
 }
 
 function win() {
-    alert("Победа!");
-    if(enemy.pvp) {
-        p.wins++;
-        p.gold += 100;
-    } else {
-        p.exp += 40 + (p.floor * 5);
-        p.gold += 10 + p.floor;
+    alert("ПОБЕДА!");
+    if(enemy.pvp) { p.wins++; p.gold += 50; } 
+    else {
+        p.exp += 50 + (p.floor * 10);
+        p.gold += 15 + p.floor;
         p.floor++;
-        // Дроп
-        if(Math.random() > 0.7) {
-            p.inv.push({i:'🗡️', s: p.floor, r: Math.random() > 0.9 ? 'legend' : 'rare'});
-            if(p.inv.length > 10) p.inv.shift();
-        }
+        if(Math.random() > 0.6) p.inv.push({i:'🗡️', s: p.floor, r: Math.random() > 0.8 ? 'legend' : 'rare'});
+        if(p.inv.length > 10) p.inv.shift();
     }
     
-    if(p.exp >= p.lvl * 100) {
+    if(p.exp >= p.lvl * 120) {
         p.lvl++; p.exp = 0; p.points += 5; p.potions = 3;
-        alert("УРОВЕНЬ ПОВЫШЕН!");
+        alert("НОВЫЙ УРОВЕНЬ: " + p.lvl);
     }
     
     supabaseClient.from('leaderboards').upsert({ username: p.name, floor: p.floor, pvp_wins: p.wins });
-    openScreen('scr-main');
-    save(); updateUI();
+    save(); updateUI(); openScreen('scr-main');
 }
 
 function die() {
-    alert("Ты погиб! Золото потеряно.");
-    p.hp = p.maxHp; p.mp = p.maxMp; p.gold = 0;
-    openScreen('scr-main');
+    alert("Ты пал в бою... Золото потеряно!");
+    p.hp = p.maxHp; p.gold = 0;
+    save(); updateUI(); openScreen('scr-main');
+}
+
+function useItem(idx) {
+    let it = p.inv[idx];
+    p.stats.str += it.s;
+    if(it.r === 'legend') p.vampirism += 3;
+    p.inv.splice(idx, 1);
+    alert(`Предмет поглощен! Бонус к силе: +${it.s}`);
     save(); updateUI();
 }
 
-// Сетевые функции (ТОП и ЧАТ)
+// Сетевые функции
 async function loadTop() {
-    const { data } = await supabaseClient.from('leaderboards').select('*').order('pvp_wins', { ascending: false }).limit(10);
-    document.getElementById('top-box').innerHTML = data.map(u => `
-        <div class="stats-row">
-            <span>${u.username} (🏆 ${u.pvp_wins || 0})</span>
-            <button class="stat-up" style="width:60px" onclick="attackPlayer('${u.username}')">БОЙ</button>
-        </div>
-    `).join('');
+    const topBox = document.getElementById('top-box');
+    topBox.innerHTML = "Загрузка...";
+    try {
+        const { data } = await supabaseClient.from('leaderboards').select('*').order('pvp_wins', { ascending: false }).limit(10);
+        if(!data) throw 'null';
+        topBox.innerHTML = data.map(u => `
+            <div class="stats-row">
+                <span>${u.username} (🏆 ${u.pvp_wins || 0})</span>
+                <button class="stat-up" style="width:70px; font-size:11px" onclick="attackPlayer('${u.username}')">АТАКА</button>
+            </div>
+        `).join('');
+    } catch(e) { topBox.innerHTML = "Ошибка базы. Но ты лучший!"; }
 }
 
 async function attackPlayer(name) {
@@ -348,24 +351,18 @@ async function attackPlayer(name) {
 
 async function loadChat() {
     const { data } = await supabaseClient.from('messages').select('*').order('id', { ascending: false }).limit(20);
-    document.getElementById('chat-box').innerHTML = data.reverse().map(m => `<div><b>${m.username}:</b> ${m.text}</div>`).join('');
+    if(data) {
+        document.getElementById('chat-box').innerHTML = data.reverse().map(m => 
+            `<div style="margin-bottom:5px"><b>${m.username}:</b> ${m.text}</div>`
+        ).join('');
+    }
 }
 
 async function sendChat() {
-    const txt = document.getElementById('chat-in').value;
-    if(!txt) return;
-    await supabaseClient.from('messages').insert({ username: p.name, text: txt });
-    document.getElementById('chat-in').value = '';
-    loadChat();
-}
-
-function useItem(idx) {
-    let it = p.inv[idx];
-    p.stats.str += it.s;
-    if(it.r === 'legend') p.vampirism += 5; // Легендарки дают вампиризм
-    p.inv.splice(idx, 1);
-    alert(`Экипировано! Сила +${it.s}`);
-    save(); updateUI();
+    const i = document.getElementById('chat-in');
+    if(!i.value) return;
+    await supabaseClient.from('messages').insert({ username: p.name, text: i.value });
+    i.value = ''; loadChat();
 }
 </script>
 </body>
