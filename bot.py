@@ -72,10 +72,10 @@ async def run_bot():
             await asyncio.sleep(1)
 
 async def run_api():
-    # Запускаем сервер на порту 8080 (стандарт BotHost)
-    config = uvicorn.Config(api, host="0.0.0.0", port=8080, log_level="info")
+    # Заменяем 8080 на 3000, как просит хостинг
+    config = uvicorn.Config(api, host="0.0.0.0", port=3000, log_level="info")
     server = uvicorn.Server(config)
-    print("🚀 API Сервер запущен на порту 8080")
+    print("🚀 API Сервер запущен на порту 3000")
     await server.serve()
 
 async def main():
