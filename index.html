@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Пивная Битва · Друзья</title>
+    <title>Пивная Битва · Инвентарь</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,20 +11,19 @@
             -webkit-tap-highlight-color: transparent;
         }
         body {
-            background: linear-gradient(145deg, #f8e2b0 0%, #cdaa6e 100%);
+            background: linear-gradient(145deg, #e2c28b, #b87c3a);
             font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
             margin: 0;
             padding: 16px;
-            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #1f1a0c;
+            color: #221c0e;
         }
         .game-container {
-            max-width: 550px;
+            max-width: 580px;
             width: 100%;
-            background: #fdf7e0dd;
+            background: #fcf3e0dd;
             backdrop-filter: blur(2px);
             border-radius: 48px;
             padding: 18px 16px 24px;
@@ -63,25 +62,24 @@
             text-align: center;
         }
         .enemy-avatar {
-            font-size: 68px;
+            font-size: 64px;
             filter: drop-shadow(2px 6px 8px #5f3f1a);
         }
         .enemy-name {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             background: #4c351be0;
             display: inline-block;
             padding: 4px 20px;
             border-radius: 60px;
             color: #ffecb3;
-            margin-top: 6px;
         }
         .hp-bar-bg {
             background: #6b4c2c;
             border-radius: 30px;
             height: 14px;
             width: 100%;
-            margin: 12px 0 6px;
+            margin: 10px 0 6px;
         }
         .hp-fill {
             background: #d8491e;
@@ -108,7 +106,10 @@
             transition: 0.05s linear;
             cursor: pointer;
         }
-        .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #8b5a2b; }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #8b5a2b;
+        }
         .log {
             background: #2a2418e0;
             border-radius: 32px;
@@ -123,6 +124,7 @@
             display: flex;
             gap: 8px;
             margin: 8px 0 12px;
+            flex-wrap: wrap;
         }
         .tab {
             background: #5a432a;
@@ -133,6 +135,7 @@
             font-weight: bold;
             color: #ffeaad;
             cursor: pointer;
+            font-size: 13px;
         }
         .tab.active {
             background: #f3b33d;
@@ -148,11 +151,13 @@
         .panel.active {
             display: block;
         }
-        .friend-grid {
+        .friends-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
+            max-height: 280px;
+            overflow-y: auto;
         }
         .friend-card {
             background: #c7a86b;
@@ -170,6 +175,21 @@
             color: black;
             box-shadow: 0 0 0 2px gold;
         }
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            background: #5e3e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .equipment-slot {
             background: #b68b40;
             border-radius: 60px;
@@ -180,10 +200,10 @@
             align-items: center;
             font-weight: bold;
         }
-        .shop-item, .upgrade-item {
+        .item-card {
             background: #dbbc87;
             border-radius: 60px;
-            padding: 10px 16px;
+            padding: 8px 15px;
             margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
@@ -202,16 +222,15 @@
 <body>
 <div class="game-container">
     <div class="hero-stats">
-        <div class="stat">🍺 <span id="gold">200</span></div>
+        <div class="stat">🍺 <span id="gold">300</span></div>
         <div class="stat">⚔️ <span id="strength">12</span></div>
-        <div class="stat">❤️ <span id="hp">90</span>/<span id="maxHp">90</span></div>
+        <div class="stat">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></div>
         <div class="stat">📈 lvl <span id="level">1</span></div>
     </div>
 
-    <!-- боевая панель -->
     <div class="battle-card">
         <div class="enemy">
-            <div class="enemy-avatar" id="enemyEmoji">🍺🍻</div>
+            <div class="enemy-avatar" id="enemyAvatar">🍺🍻</div>
             <div class="enemy-name" id="enemyName">Залежавшееся Пиво</div>
             <div class="hp-bar-bg"><div class="hp-fill" id="enemyHpFill" style="width:100%"></div></div>
             <div id="enemyHpText">❤️ 55 / 55</div>
@@ -220,95 +239,119 @@
             <button class="btn" id="attackBtn">💥 УДАР (15 AP)</button>
             <button class="btn" id="skillBtn">🍺 ОСОБЫЙ УДАР (30 AP)</button>
         </div>
-        <div class="log" id="logArea"><div>Напиток судьбы начат...</div></div>
+        <div class="log" id="logArea"><div>⚔️ Пивная битва началась!</div></div>
     </div>
 
     <div class="tab-bar">
         <div class="tab active" data-tab="main">🥊 БОЙ</div>
         <div class="tab" data-tab="friends">👥 ДРУЗЬЯ</div>
-        <div class="tab" data-tab="gear">⚔️ СНАРЯЖЕНИЕ</div>
+        <div class="tab" data-tab="inventory">🎒 ИНВЕНТАРЬ</div>
         <div class="tab" data-tab="shop">🛒 МАГАЗИН</div>
         <div class="tab" data-tab="rating">🏆 РЕЙТИНГ</div>
     </div>
 
-    <!-- ПАНЕЛЬ ВЫБОРА ДРУГА -->
+    <!-- ДРУЗЬЯ -->
     <div id="friendsPanel" class="panel">
-        <div class="friend-grid" id="friendsGrid"></div>
-        <div style="margin-top: 12px; text-align:center;">👇 Выбери персонажа — его способность будет помогать в бою</div>
+        <div class="friends-grid" id="friendsGrid"></div>
+        <div style="text-align:center; margin-top: 10px;">✨ Выбери друга – его бонусы добавятся к силе и здоровью</div>
     </div>
 
-    <!-- СНАРЯЖЕНИЕ (оружие, броня) -->
-    <div id="gearPanel" class="panel">
-        <div class="equipment-slot"><span>🗡️ Оружие</span> <span id="weaponSlot">---</span> <button id="unequipWeapon">Снять</button></div>
-        <div class="equipment-slot"><span>🛡️ Броня</span> <span id="armorSlot">---</span> <button id="unequipArmor">Снять</button></div>
-        <div class="equipment-slot"><span>🧢 Шлем</span> <span id="helmSlot">---</span> <button id="unequipHelm">Снять</button></div>
-        <div style="margin-top: 12px; background:#c7a86b; border-radius:40px; padding: 12px;">✨ Бонусы от вещей действуют постоянно</div>
+    <!-- ИНВЕНТАРЬ С УЛУЧШЕНИЯМИ -->
+    <div id="inventoryPanel" class="panel">
+        <div class="equipment-slot"><span>🗡️ ОРУЖИЕ</span> <span id="weaponName">---</span> <button id="unequipWeapon">Снять</button> <button id="upgradeWeapon">🔧 Улучшить</button></div>
+        <div class="equipment-slot"><span>🛡️ БРОНЯ</span> <span id="armorName">---</span> <button id="unequipArmor">Снять</button> <button id="upgradeArmor">🔧 Улучшить</button></div>
+        <div class="equipment-slot"><span>🧢 ШЛЕМ</span> <span id="helmName">---</span> <button id="unequipHelm">Снять</button> <button id="upgradeHelm">🔧 Улучшить</button></div>
+        <div class="equipment-slot"><span>💍 АКСЕССУАР</span> <span id="ringName">---</span> <button id="unequipRing">Снять</button> <button id="upgradeRing">🔧 Улучшить</button></div>
+        <div class="item-card"><span>✨ Бонус силы: <span id="bonusStr">0</span></span> <span>❤️ Бонус HP: <span id="bonusHp">0</span></span></div>
     </div>
 
     <!-- МАГАЗИН -->
     <div id="shopPanel" class="panel">
-        <div class="shop-item" data-item="hpPot">🍺 Зелье здоровья (+25 HP) <button>50 🍺</button></div>
-        <div class="shop-item" data-item="club">⚔️ Пивная дубина (+3 силы) <button>120 🍺</button></div>
-        <div class="shop-item" data-item="armor">🛡️ Кожаная броня (+15 HP) <button>100 🍺</button></div>
-        <div class="shop-item" data-item="helm">🧢 Шлем пивовара (+5 HP, +1 сила) <button>90 🍺</button></div>
+        <div class="item-card" data-item="club">⚔️ Пивная дубина (+3 силы) <button>120🍺</button></div>
+        <div class="item-card" data-item="armor">🛡️ Кожаная броня (+15 HP) <button>100🍺</button></div>
+        <div class="item-card" data-item="helm">🧢 Шлем пивовара (+2 силы, +5 HP) <button>90🍺</button></div>
+        <div class="item-card" data-item="ring">💍 Кольцо хмеля (+1 сила, +8 HP) <button>80🍺</button></div>
+        <div class="item-card" data-item="hpPot">🍺 Зелье здоровья (+25 HP) <button>40🍺</button></div>
     </div>
 
     <!-- РЕЙТИНГ -->
     <div id="ratingPanel" class="panel">
-        <div style="text-align:center;">🏆 ЛУЧШИЕ ПИВНЫЕ ВОИНЫ 🏆</div>
-        <div id="ratingList" style="margin-top:12px;">- Игроки появятся после боёв -</div>
-        <button id="refreshRatingBtn" style="margin-top: 12px;">🔄 Обновить</button>
+        <div id="ratingList" style="margin-bottom: 12px;">🏆 ЛУЧШИЕ ВОИНЫ</div>
+        <button id="refreshRating">🔄 Обновить</button>
     </div>
 </div>
 
 <script>
-    // ---------- ДРУЗЬЯ (персонажи) ----------
+    // ----- СПИСОК ДРУЗЕЙ (16 человек) с фото-заглушками (можно заменить реальными картинками) -----
     const FRIENDS = [
-        { name: "Алина", avatar: "👩‍🦰🍺", strengthBonus: 2, hpBonus: 10, skill: "Ледяной клинок" },
-        { name: "Богдан", avatar: "👨‍🦱⚡", strengthBonus: 3, hpBonus: 5, skill: "Громовая кружка" },
-        { name: "Капрал", avatar: "🎖️🍻", strengthBonus: 4, hpBonus: 0, skill: "Строгий приказ" },
-        { name: "Саша", avatar: "⚔️🍺", strengthBonus: 3, hpBonus: 8, skill: "Яростный залп" },
-        { name: "Рома", avatar: "🛡️🍺", strengthBonus: 1, hpBonus: 18, skill: "Стальная хватка" },
-        { name: "Никитос", avatar: "🔥🍺", strengthBonus: 2, hpBonus: 12, skill: "Огненный кулак" }
+        { name: "Алина", avatar: "avatars/алина.jpg", emoji: "👩‍🦰", strength: 1, hp: 95, skill: "Ледяной клинок" },
+        { name: "Бень", avatar: "avatars/бень.jpg", emoji: "🐻", strength: 16, hp: 130, skill: "Медвежья сила" },
+        { name: "Богдан", avatar: "avatars/богдан.jpg", emoji: "💪", strength: 8, hp: 90, skill: "Громовая кружка" },
+        { name: "Ваня", avatar: "avatars/ваня.jpg", emoji: "🧢", strength: 14, hp: 105, skill: "Ловкач" },
+        { name: "Егор", avatar: "avatars/егор.jpg", emoji: "⚡", strength: 17, hp: 115, skill: "Электроудар" },
+        { name: "Илюха", avatar: "avatars/илюха.jpg", emoji: "🛡️", strength: 15, hp: 100, skill: "Каменная стойка" },
+        { name: "Капрал", avatar: "avatars/капрал.jpg", emoji: "🎖️", strength: 20, hp: 130, skill: "Строгий приказ" },
+        { name: "Кирилл", avatar: "avatars/кирилл.jpg", emoji: "🔥", strength: 13, hp: 100, skill: "Огненный шар" },
+        { name: "Лера", avatar: "avatars/лера.jpg", emoji: "🌸", strength: 10, hp: 90, skill: "Целительный смех" },
+        { name: "Никитос", avatar: "avatars/никитос.jpg", emoji: "👊", strength: 16, hp: 110, skill: "Кулак дрожжей" },
+        { name: "Полина", avatar: "avatars/полина.jpg", emoji: "🍺✨", strength: 11, hp: 95, skill: "Пенная волна" },
+        { name: "Рома", avatar: "avatars/рома.jpg", emoji: "⚔️", strength: 19, hp: 125, skill: "Яростный залп" },
+        { name: "Саша", avatar: "avatars/саша.jpg", emoji: "🔥", strength: 18, hp: 130, skill: "Гнев пивовара" },
+        { name: "Серега", avatar: "avatars/серега.jpg", emoji: "🧨", strength: 17, hp: 115, skill: "Фугасная кружка" },
+        { name: "Таня", avatar: "avatars/таня.jpg", emoji: "🍀", strength: 12, hp: 100, skill: "Удача бражника" },
+        { name: "Юра", avatar: "avatars/юра.jpg", emoji: "🍺🗡️", strength: 16, hp: 110, skill: "Пивной вихрь" }
     ];
 
-    // Игровое состояние + экипировка
+    // ----- НАЧАЛЬНЫЕ ПРЕДМЕТЫ -----
     let game = {
-        gold: 200,
+        gold: 300,
         baseStrength: 10,
+        baseHp: 90,
         hp: 90,
         maxHp: 90,
         ap: 100,
         maxAp: 100,
         level: 1,
         exp: 0,
-        weapon: null,   // { name, bonusStr }
-        armor: null,    // { name, bonusHp }
-        helm: null,     // { name, bonusStr, bonusHp }
-        activeFriend: null  // выбранный друг
+        weapon: null,
+        armor: null,
+        helm: null,
+        ring: null,
+        activeFriend: null
     };
 
+    // враги
     let currentEnemy = {
-        name: "Залежавшееся Пиво", emoji: "🍺🍻", hp: 55, maxHp: 55, damage: 8, goldReward: 30, expReward: 25
+        name: "Залежавшееся Пиво",
+        emoji: "🍺🍻",
+        hp: 55,
+        maxHp: 55,
+        damage: 8,
+        goldReward: 30,
+        expReward: 25
     };
     let logs = [];
     let waitingForAction = true;
 
-    // ---- Вспомогательные функции ----
-    function totalStrength() {
-        let str = game.baseStrength;
-        if (game.weapon) str += game.weapon.bonusStr;
-        if (game.helm && game.helm.bonusStr) str += game.helm.bonusStr;
-        if (game.activeFriend) str += game.activeFriend.strengthBonus;
-        return str;
+    // ---- БОНУСЫ ОТ ИНВЕНТАРЯ + ДРУГА ----
+    function totalStrengthBonus() {
+        let bonus = 0;
+        if (game.weapon) bonus += game.weapon.str;
+        if (game.helm) bonus += game.helm.str;
+        if (game.ring) bonus += game.ring.str;
+        if (game.activeFriend) bonus += game.activeFriend.strength;
+        return bonus;
     }
-    function totalMaxHp() {
-        let hp = game.maxHp;
-        if (game.armor) hp += game.armor.bonusHp;
-        if (game.helm && game.helm.bonusHp) hp += game.helm.bonusHp;
-        if (game.activeFriend) hp += game.activeFriend.hpBonus;
-        return hp;
+    function totalHpBonus() {
+        let bonus = 0;
+        if (game.armor) bonus += game.armor.hp;
+        if (game.helm) bonus += game.helm.hp;
+        if (game.ring) bonus += game.ring.hp;
+        if (game.activeFriend) bonus += game.activeFriend.hp;
+        return bonus;
     }
+    function totalStrength() { return game.baseStrength + totalStrengthBonus(); }
+    function totalMaxHp() { return game.baseHp + totalHpBonus(); }
 
     function refreshUI() {
         document.getElementById('gold').innerText = Math.floor(game.gold);
@@ -317,16 +360,21 @@
         document.getElementById('maxHp').innerText = maxHp;
         document.getElementById('hp').innerText = game.hp;
         document.getElementById('level').innerText = game.level;
+
         if (currentEnemy) {
             let percent = (currentEnemy.hp / currentEnemy.maxHp) * 100;
             document.getElementById('enemyHpFill').style.width = `${Math.max(0, percent)}%`;
             document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.max(0, currentEnemy.hp)} / ${currentEnemy.maxHp}`;
             document.getElementById('enemyName').innerHTML = currentEnemy.name;
-            document.getElementById('enemyEmoji').innerHTML = currentEnemy.emoji;
+            document.getElementById('enemyAvatar').innerHTML = currentEnemy.emoji;
         }
-        document.getElementById('weaponSlot').innerText = game.weapon ? game.weapon.name : "---";
-        document.getElementById('armorSlot').innerText = game.armor ? game.armor.name : "---";
-        document.getElementById('helmSlot').innerText = game.helm ? game.helm.name : "---";
+        // инвентарь
+        document.getElementById('weaponName').innerText = game.weapon ? game.weapon.name : "---";
+        document.getElementById('armorName').innerText = game.armor ? game.armor.name : "---";
+        document.getElementById('helmName').innerText = game.helm ? game.helm.name : "---";
+        document.getElementById('ringName').innerText = game.ring ? game.ring.name : "---";
+        document.getElementById('bonusStr').innerText = totalStrengthBonus();
+        document.getElementById('bonusHp').innerText = totalHpBonus();
     }
 
     function addLog(msg) {
@@ -335,17 +383,18 @@
         document.getElementById('logArea').innerHTML = logs.join('');
     }
 
-    function saveProgress() {
-        let saveData = {
-            gold: game.gold, baseStrength: game.baseStrength, hp: game.hp, maxHp: game.maxHp,
-            level: game.level, exp: game.exp, ap: game.ap, maxAp: game.maxAp,
-            weapon: game.weapon, armor: game.armor, helm: game.helm, activeFriend: game.activeFriend
+    function saveGame() {
+        let save = {
+            gold: game.gold, baseStrength: game.baseStrength, baseHp: game.baseHp,
+            hp: game.hp, level: game.level, exp: game.exp, ap: game.ap, maxAp: game.maxAp,
+            weapon: game.weapon, armor: game.armor, helm: game.helm, ring: game.ring,
+            activeFriend: game.activeFriend
         };
-        localStorage.setItem('pivoSave', JSON.stringify(saveData));
-        updateRatingBoard();
+        localStorage.setItem('pivoSave', JSON.stringify(save));
+        updateRating();
     }
 
-    function loadProgress() {
+    function loadGame() {
         let raw = localStorage.getItem('pivoSave');
         if (raw) {
             try {
@@ -353,19 +402,19 @@
                 for (let k in data) game[k] = data[k];
             } catch(e) {}
         }
-        if (!game.activeFriend && FRIENDS.length) game.activeFriend = FRIENDS[0];
+        if (!game.activeFriend) game.activeFriend = FRIENDS[0];
         game.hp = Math.min(game.hp, totalMaxHp());
         refreshUI();
         startBattle();
     }
 
-    // ---- ВРАГИ И БОЙ ----
+    // ---- БОЙ ----
     function startBattle() {
         let enemies = [
             { name: "Залежавшееся Пиво", emoji: "🍺", hp: 55, maxHp: 55, damage: 8, gold: 30, exp: 25 },
             { name: "Бочка Брожения", emoji: "🛢️", hp: 80, maxHp: 80, damage: 10, gold: 45, exp: 40 },
             { name: "Барный Вышибала", emoji: "💪", hp: 110, maxHp: 110, damage: 13, gold: 65, exp: 60 },
-            { name: "Пивной Маг", emoji: "🧙🍺", hp: 95, maxHp: 95, damage: 12, gold: 70, exp: 70 }
+            { name: "Пивной Маг", emoji: "🧙", hp: 95, maxHp: 95, damage: 12, gold: 70, exp: 70 }
         ];
         let idx = Math.floor(Math.random() * enemies.length);
         let e = enemies[idx];
@@ -375,40 +424,41 @@
         };
         waitingForAction = true;
         refreshUI();
-        addLog(`Новый соперник: ${currentEnemy.name}`);
+        addLog(`Противник: ${currentEnemy.name}`);
     }
 
-    function victoryReward() {
+    function victory() {
         game.gold += currentEnemy.goldReward;
         game.exp += currentEnemy.expReward;
-        addLog(`ПОБЕДА! +${currentEnemy.goldReward} золота, +${currentEnemy.expReward} опыта`);
+        addLog(`ПОБЕДА! +${currentEnemy.goldReward}🍺 +${currentEnemy.expReward} опыта`);
         let needExp = game.level * 100;
-        if (game.exp >= needExp) {
+        while (game.exp >= needExp) {
             game.level++;
             game.exp -= needExp;
             game.baseStrength += 2;
-            game.maxHp += 10;
+            game.baseHp += 10;
             game.maxAp += 5;
             game.ap = game.maxAp;
             game.hp = totalMaxHp();
-            addLog(`🏆 УРОВЕНЬ ${game.level}! +2 силы, +10 HP, +5 AP`);
+            addLog(`🏆 УРОВЕНЬ ${game.level}! Сила +2, здоровье +10, AP +5`);
+            needExp = game.level * 100;
         }
         startBattle();
         refreshUI();
-        saveProgress();
+        saveGame();
     }
 
     function attack() {
         if (!waitingForAction) { addLog(`Подожди ход врага!`); return; }
-        if (game.ap < 15) { addLog(`Не хватает AP (нужно 15)`); return; }
+        if (game.ap < 15) { addLog(`❌ Мало AP (нужно 15)`); return; }
         game.ap -= 15;
         let dmg = totalStrength() + Math.floor(Math.random() * 8);
         currentEnemy.hp -= dmg;
         addLog(`⚡ Удар! ${dmg} урона (AP ${game.ap})`);
-        if (currentEnemy.hp <= 0) { victoryReward(); refreshUI(); return; }
+        if (currentEnemy.hp <= 0) { victory(); refreshUI(); return; }
         waitingForAction = false;
         refreshUI();
-        saveProgress();
+        saveGame();
         setTimeout(enemyTurn, 700);
     }
 
@@ -419,10 +469,10 @@
         let dmg = totalStrength() * 1.8 + Math.floor(Math.random() * 12);
         currentEnemy.hp -= dmg;
         addLog(`🍺✨ ОСОБЫЙ УДАР! ${dmg} урона`);
-        if (currentEnemy.hp <= 0) { victoryReward(); refreshUI(); return; }
+        if (currentEnemy.hp <= 0) { victory(); refreshUI(); return; }
         waitingForAction = false;
         refreshUI();
-        saveProgress();
+        saveGame();
         setTimeout(enemyTurn, 700);
     }
 
@@ -440,44 +490,48 @@
         }
         waitingForAction = true;
         refreshUI();
-        saveProgress();
+        saveGame();
     }
 
     // ---- МАГАЗИН ----
-    function buyItem(itemId) {
-        if (itemId === 'hpPot' && game.gold >= 50) {
-            game.gold -= 50;
-            game.hp = Math.min(totalMaxHp(), game.hp + 25);
-            addLog(`💊 Зелье +25 HP`);
-        }
-        else if (itemId === 'club' && game.gold >= 120) {
-            game.gold -= 120;
-            game.weapon = { name: "Пивная дубина", bonusStr: 3 };
-            addLog(`⚔️ Куплена дубина! +3 силы`);
-        }
-        else if (itemId === 'armor' && game.gold >= 100) {
-            game.gold -= 100;
-            game.armor = { name: "Кожаная броня", bonusHp: 15 };
-            game.hp += 15;
-            addLog(`🛡️ Броня +15 HP`);
-        }
-        else if (itemId === 'helm' && game.gold >= 90) {
-            game.gold -= 90;
-            game.helm = { name: "Шлем пивовара", bonusStr: 1, bonusHp: 5 };
-            game.hp += 5;
-            addLog(`🧢 Шлем +1 сила, +5 HP`);
-        }
+    function buyItem(id) {
+        if (id === 'hpPot' && game.gold >= 40) { game.gold -= 40; game.hp = Math.min(totalMaxHp(), game.hp + 25); addLog(`💊 Зелье +25 HP`); }
+        else if (id === 'club' && game.gold >= 120) { game.gold -= 120; game.weapon = { name: "Пивная дубина", str: 3, hp: 0, lvl: 1 }; addLog(`⚔️ Куплена дубина +3 силы`); }
+        else if (id === 'armor' && game.gold >= 100) { game.gold -= 100; game.armor = { name: "Кожаная броня", str: 0, hp: 15, lvl: 1 }; addLog(`🛡️ Броня +15 HP`); }
+        else if (id === 'helm' && game.gold >= 90) { game.gold -= 90; game.helm = { name: "Шлем пивовара", str: 2, hp: 5, lvl: 1 }; addLog(`🧢 Шлем +2 силы, +5 HP`); }
+        else if (id === 'ring' && game.gold >= 80) { game.gold -= 80; game.ring = { name: "Кольцо хмеля", str: 1, hp: 8, lvl: 1 }; addLog(`💍 Кольцо +1 сила, +8 HP`); }
         else { addLog(`❌ Не хватает золота`); return; }
         refreshUI();
-        saveProgress();
+        saveGame();
+    }
+
+    // ---- УЛУЧШЕНИЕ ПРЕДМЕТОВ ----
+    function upgradeItem(slot) {
+        let item = game[slot];
+        if (!item) { addLog(`Нет предмета в слоте ${slot}`); return; }
+        let cost = 80 + item.lvl * 40;
+        if (game.gold >= cost) {
+            game.gold -= cost;
+            item.lvl++;
+            if (slot === 'weapon') item.str += 2;
+            if (slot === 'armor') item.hp += 12;
+            if (slot === 'helm') { item.str += 1; item.hp += 6; }
+            if (slot === 'ring') { item.str += 1; item.hp += 5; }
+            addLog(`🔨 ${item.name} улучшен до +${item.lvl}!`);
+            refreshUI();
+            saveGame();
+        } else addLog(`❌ Нужно ${cost} золота`);
     }
 
     // ---- СНЯТИЕ ЭКИПИРОВКИ ----
-    document.getElementById('unequipWeapon')?.addEventListener('click', () => { game.weapon = null; refreshUI(); saveProgress(); addLog(`Оружие снято`); });
-    document.getElementById('unequipArmor')?.addEventListener('click', () => { game.armor = null; refreshUI(); saveProgress(); addLog(`Броня снята`); });
-    document.getElementById('unequipHelm')?.addEventListener('click', () => { game.helm = null; refreshUI(); saveProgress(); addLog(`Шлем снят`); });
+    function unequip(slot) {
+        game[slot] = null;
+        refreshUI();
+        saveGame();
+        addLog(`${slot} снят`);
+    }
 
-    // ---- ВЫБОР ДРУГА ----
+    // ---- ВЫБОР ДРУГА С АВАТАРКОЙ ----
     function renderFriends() {
         let container = document.getElementById('friendsGrid');
         if (!container) return;
@@ -485,44 +539,62 @@
         FRIENDS.forEach(f => {
             let div = document.createElement('div');
             div.className = `friend-card ${game.activeFriend?.name === f.name ? 'selected' : ''}`;
-            div.innerHTML = `<span>${f.avatar}</span> <span>${f.name}</span> <span style="font-size:12px;">+${f.strengthBonus}⚔️ +${f.hpBonus}❤️</span>`;
+            div.innerHTML = `
+                <div class="friend-avatar"><img src="${f.avatar}" onerror="this.style.display='none'; this.parentElement.innerText='${f.emoji}'"></div>
+                <div><strong>${f.name}</strong><br>+${f.strength}⚔️ +${f.hp}❤️</div>
+            `;
             div.onclick = () => {
                 game.activeFriend = f;
                 game.hp = Math.min(totalMaxHp(), game.hp);
                 refreshUI();
                 renderFriends();
-                addLog(`🍻 Выбран ${f.name}, теперь сила +${f.strengthBonus}, здоровье +${f.hpBonus}`);
-                saveProgress();
+                addLog(`🍻 Выбран друг: ${f.name}`);
+                saveGame();
             };
             container.appendChild(div);
         });
     }
 
-    // ---- РЕЙТИНГ (локальный, но друзья увидят) ----
-    function updateRatingBoard() {
+    // ---- РЕЙТИНГ ----
+    function updateRating() {
         let ratingDiv = document.getElementById('ratingList');
-        if (!ratingDiv) return;
         let players = JSON.parse(localStorage.getItem('pivoPlayers') || '[]');
-        let selfEntry = { name: game.activeFriend?.name || "Игрок", level: game.level, strength: totalStrength(), gold: game.gold };
-        let exists = players.find(p => p.name === selfEntry.name);
-        if (exists) { exists.level = game.level; exists.strength = totalStrength(); exists.gold = game.gold; }
-        else players.push(selfEntry);
+        let self = { name: game.activeFriend?.name || "Игрок", level: game.level, strength: totalStrength() };
+        let exists = players.find(p => p.name === self.name);
+        if (exists) { exists.level = game.level; exists.strength = totalStrength(); }
+        else players.push(self);
         players.sort((a,b)=> b.level - a.level);
         localStorage.setItem('pivoPlayers', JSON.stringify(players.slice(0,20)));
-        ratingDiv.innerHTML = players.slice(0,8).map(p => `<div>🍻 ${p.name}  lvl ${p.level}  💪${p.strength}</div>`).join('');
+        ratingDiv.innerHTML = players.slice(0,8).map(p => `<div>🍻 ${p.name}  lvl ${p.level}  ⚔️${p.strength}</div>`).join('');
     }
 
-    // --- переключение панелей ---
-    function switchPanel(panelId) {
+    // ---- ПАНЕЛИ ----
+    function switchPanel(panel) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(panelId + 'Panel').classList.add('active');
+        document.getElementById(panel + 'Panel').classList.add('active');
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.tab[data-tab="${panelId}"]`).classList.add('active');
-        if (panelId === 'friends') renderFriends();
-        if (panelId === 'rating') updateRatingBoard();
+        document.querySelector(`.tab[data-tab="${panel}"]`).classList.add('active');
+        if (panel === 'friends') renderFriends();
+        if (panel === 'rating') updateRating();
     }
 
-    // --- обработчики ---
+    document.getElementById('attackBtn').addEventListener('click', attack);
+    document.getElementById('skillBtn').addEventListener('click', skillAttack);
+    document.querySelectorAll('[data-item]').forEach(el => {
+        let btn = el.querySelector('button');
+        let id = el.dataset.item;
+        if (btn) btn.addEventListener('click', () => buyItem(id));
+    });
+    document.getElementById('unequipWeapon').onclick = () => unequip('weapon');
+    document.getElementById('unequipArmor').onclick = () => unequip('armor');
+    document.getElementById('unequipHelm').onclick = () => unequip('helm');
+    document.getElementById('unequipRing').onclick = () => unequip('ring');
+    document.getElementById('upgradeWeapon').onclick = () => upgradeItem('weapon');
+    document.getElementById('upgradeArmor').onclick = () => upgradeItem('armor');
+    document.getElementById('upgradeHelm').onclick = () => upgradeItem('helm');
+    document.getElementById('upgradeRing').onclick = () => upgradeItem('ring');
+    document.getElementById('refreshRating').onclick = updateRating;
+
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
             let target = tab.dataset.tab;
@@ -533,21 +605,12 @@
             } else switchPanel(target);
         });
     });
-    document.getElementById('attackBtn').addEventListener('click', attack);
-    document.getElementById('skillBtn').addEventListener('click', skillAttack);
-    document.querySelectorAll('[data-item]').forEach(el => {
-        let btn = el.querySelector('button');
-        let itemId = el.dataset.item;
-        if (btn) btn.addEventListener('click', () => buyItem(itemId));
-    });
-    document.getElementById('refreshRatingBtn')?.addEventListener('click', updateRatingBoard);
 
-    loadProgress();
+    loadGame();
     renderFriends();
-    if (!game.activeFriend && FRIENDS.length) game.activeFriend = FRIENDS[0];
     refreshUI();
-    updateRatingBoard();
-    addLog(`🍻 Пивная битва началась! Выбери друга и снаряжение`);
+    updateRating();
+    addLog(`🍻 Герой готов! Выбери друга и снаряжение`);
 </script>
 </body>
 </html>
