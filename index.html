@@ -6,45 +6,37 @@
     <title>Писок Данжен</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Пиксельный стиль и шрифты */
         body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Courier New', monospace; image-rendering: pixelated; }
         #game-container { max-width: 500px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
-        
-        .screen { display: none; flex-direction: column; align-items: center; padding: 10px; text-align: center; }
+        .screen { display: none; flex-direction: column; align-items: center; padding: 10px; text-align: center; flex-grow: 1; }
         .active { display: flex; }
 
-        /* Выбор персонажа */
-        .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .avatar-card { border: 2px solid #444; padding: 5px; cursor: pointer; background: #222; }
-        .avatar-card img { width: 60px; height: 60px; display: block; margin-bottom: 5px; }
+        /* Сетка персонажей */
+        .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; max-height: 60vh; overflow-y: auto; padding: 10px; }
+        .avatar-card { border: 2px solid #444; padding: 5px; cursor: pointer; background: #222; border-radius: 8px; }
+        .avatar-card img { width: 70px; height: 70px; object-fit: cover; display: block; border-radius: 4px; margin-bottom: 5px; }
         .avatar-card.selected { border-color: #f1c40f; background: #443300; }
 
-        /* Город (Пиксельная карта) */
-        #city-map { 
-            width: 320px; height: 320px; 
-            background: #2d5a27; /* Зеленый цвет травы */
-            border: 4px solid #5d4037;
-            position: relative;
-            background-image: radial-gradient(#3d7a37 10%, transparent 11%); /* Простая текстура */
-            background-size: 20px 20px;
-        }
-        .building { position: absolute; cursor: pointer; font-size: 40px; transition: transform 0.2s; }
-        .building:hover { transform: scale(1.1); }
+        /* Карта города */
+        #city-map { width: 320px; height: 320px; background: #2d5a27; border: 4px solid #5d4037; position: relative; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .building { position: absolute; cursor: pointer; font-size: 40px; text-align: center; }
         
-        /* Кнопки и бары */
-        button { padding: 10px 20px; background: #5d4037; color: #fff; border: 3px solid #3e2723; cursor: pointer; font-family: inherit; }
-        .hp-bar { width: 200px; height: 20px; background: #333; border: 2px solid #fff; position: relative; }
+        /* Инвентарь */
+        #inventory-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 10px; }
+        .item-slot { width: 50px; height: 50px; background: #333; border: 1px solid #666; font-size: 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+
+        button { padding: 12px 20px; background: #5d4037; color: #fff; border: 3px solid #3e2723; cursor: pointer; font-family: inherit; margin: 5px; border-radius: 5px; }
+        .hp-bar { width: 200px; height: 20px; background: #333; border: 2px solid #fff; position: relative; margin: 10px 0; }
         #hp-fill { background: #e74c3c; height: 100%; width: 100%; transition: 0.3s; }
+        #battle-log { width: 90%; background: rgba(0,0,0,0.8); height: 80px; overflow-y: auto; font-size: 12px; padding: 10px; margin-top: 10px; border: 1px solid #444; }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <!-- 1. ЭКРАН ВЫБОРА ГЕРОЯ (ПОКАЗЫВАЕТСЯ ОДИН РАЗ) -->
+        <!-- ВЫБОР ПЕРСОНАЖА -->
         <div id="screen-setup" class="screen">
-            <h2>КТО ТЫ СЕГОДНЯ?</h2>
-            <div class="avatar-grid" id="friends-list">
-                <!-- Сюда подставятся твои друзья из папки avatars -->
-            </div>
+            <h2>КТО ТЫ ИЗ БАНДЫ?</h2>
+            <div class="avatar-grid" id="friends-list"></div>
             <h3>ВЫБЕРИ КЛАСС</h3>
             <div>
                 <button onclick="selectClass('Воин')">⚔️ Воин</button>
@@ -53,139 +45,139 @@
             </div>
         </div>
 
-        <!-- 2. ЭКРАН ГОРОДА -->
+        <!-- ГОРОД -->
         <div id="screen-city" class="screen">
             <div id="header">
-                <span id="display-name">Герой</span> (<span id="display-class">-</span>)
-                <br>💰 <span id="gold">0</span> | ⭐ LVL: <span id="lvl">1</span>
+                <b id="display-name">?</b> [<span id="display-class">-</span>]<br>
+                💰 <span id="gold">0</span> | ⭐ LVL: <span id="lvl">1</span>
             </div>
             <div id="city-map">
-                <div class="building" style="top: 40px; left: 40px;" onclick="alert('Пиво восстановило HP!')">🍺<br><small style="font-size:10px">Таверна</small></div>
-                <div class="building" style="top: 40px; right: 40px;" onclick="alert('Кузнец занят')">⚒️<br><small style="font-size:10px">Кузнец</small></div>
-                <div class="building" style="top: 200px; left: 130px;" onclick="startDungeon()">🚪<br><small style="font-size:10px">В ДАНЖ</small></div>
+                <div class="building" style="top: 20px; left: 40px;" onclick="rest()">🍺<br><small style="font-size:10px">Таверна</small></div>
+                <div class="building" style="top: 20px; right: 40px;" onclick="alert('Кузница закрыта')">⚒️<br><small style="font-size:10px">Кузница</small></div>
+                <div class="building" style="top: 200px; left: 125px;" onclick="startDungeon()">🚪<br><small style="font-size:10px">В ДАНЖ</small></div>
             </div>
+            <h4>ИНВЕНТАРЬ (Loot)</h4>
+            <div id="inventory-list"></div>
         </div>
 
-        <!-- 3. ЭКРАН БОЯ -->
+        <!-- БОЙ -->
         <div id="screen-battle" class="screen">
             <div id="enemy-area">
                 <div style="font-size: 60px;">👾</div>
                 <div class="hp-bar"><div id="enemy-hp-fill" style="background:#a29bfe; width:100%; height:100%;"></div></div>
             </div>
-            <div id="player-area" style="margin-top:40px;">
+            <div class="player-status">
                 <div class="hp-bar"><div id="hp-fill"></div></div>
-                <p>Твое HP: <span id="hp">100</span></p>
-                <button onclick="attack()">⚔️ АТАКОВАТЬ</button>
+                <p>HP: <span id="hp">100</span></p>
+                <button onclick="attack()">⚔️ УДАР</button>
             </div>
+            <div id="battle-log"></div>
         </div>
     </div>
 
     <script>
-       const tg = window.Telegram.WebApp;
-tg.expand();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-// СЮДА ВПИШИ ИМЕНА СВОИХ ДРУЗЕЙ (названия файлов в папке avatars)
-const friends = ['Dima', 'Sanya', 'Vovan', 'Lexa', 'Misha']; 
+        // Список из твоего скриншота
+        const friends = [
+            'алина', 'бень', 'богдан', 'ваня', 'егор', 'илюха', 
+            'капрал', 'кирилл', 'лера', 'никитос', 'полина', 
+            'рома', 'саша', 'серега', 'таня', 'юра'
+        ];
 
-let gameState = JSON.parse(localStorage.getItem('pisok_rpg_save')) || null;
+        const prefixes = [
+            { n: "Огненный", b: 5, s: "str", e: "🔥" },
+            { n: "Ледяной", b: 3, s: "str", e: "❄️" },
+            { n: "Древний", b: 15, s: "hp", e: "📜" },
+            { n: "Быстрый", b: 2, s: "agi", e: "⚡" }
+        ];
 
-// Префиксы в стиле PoE
-const prefixes = [
-    { name: "Огненный", bonus: 5, stat: "str" },
-    { name: "Ледяной", bonus: 3, stat: "str" },
-    { name: "Древний", bonus: 10, stat: "hp" },
-    { name: "Быстрый", bonus: 2, stat: "agi" }
-];
+        let gameState = JSON.parse(localStorage.getItem('pisok_rpg_save')) || null;
 
-function init() {
-    if (!gameState) {
-        showScreen('screen-setup');
-        const list = document.getElementById('friends-list');
-        friends.forEach(f => {
-            list.innerHTML += `
-                <div class="avatar-card" onclick="selectFriend('${f}')">
-                    <img src="avatars/${f}.png" onerror="this.src='https://via.placeholder.com/60?text=👤'">
-                    <span>${f}</span>
-                </div>
-            `;
-        });
-    } else {
-        showScreen('screen-city');
-        updateUI();
-    }
-}
+        function init() {
+            if (!gameState) {
+                showScreen('screen-setup');
+                const list = document.getElementById('friends-list');
+                friends.forEach(f => {
+                    list.innerHTML += `
+                        <div class="avatar-card" onclick="selectFriend('${f}')">
+                            <img src="avatars/${f}.jpg" onerror="this.src='https://ui-avatars.com/api/?name=${f}'">
+                            <span style="font-size:12px">${f}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                showScreen('screen-city');
+                updateUI();
+            }
+        }
 
-function selectFriend(name) {
-    gameState = { 
-        friend: name, 
-        class: '', 
-        gold: 0, 
-        lvl: 1, 
-        hp: 100, 
-        maxHp: 100, 
-        str: 10,
-        inventory: [] 
-    };
-    document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
-    event.currentTarget.classList.add('selected');
-}
+        function selectFriend(name) {
+            gameState = { friend: name, class: '', gold: 0, lvl: 1, hp: 100, maxHp: 100, str: 10, inv: [] };
+            document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
 
-function selectClass(cl) {
-    if (!gameState || !gameState.friend) return alert('Сначала выбери друга!');
-    gameState.class = cl;
-    saveGame();
-    showScreen('screen-city');
-    updateUI();
-}
+        function selectClass(cl) {
+            if (!gameState || !gameState.friend) return alert('Выбери себя!');
+            gameState.class = cl;
+            saveGame();
+            showScreen('screen-city');
+            updateUI();
+        }
 
-function generateLoot() {
-    const pre = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const item = {
-        name: `${pre.name} Меч`,
-        bonus: pre.bonus,
-        stat: pre.stat
-    };
-    gameState.inventory.push(item);
-    if (pre.stat === 'str') gameState.str += pre.bonus;
-    if (pre.stat === 'hp') gameState.maxHp += pre.bonus;
-    return item.name;
-}
+        function generateLoot() {
+            const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const item = { name: p.n + " Меч", icon: p.e, bonus: p.b, stat: p.s };
+            gameState.inv.push(item);
+            if (p.s === 'str') gameState.str += p.b;
+            if (p.s === 'hp') { gameState.maxHp += p.b; gameState.hp += p.b; }
+            return item;
+        }
 
-function attack() {
-    let dmg = gameState.str + Math.floor(Math.random() * 5);
-    let lootName = generateLoot(); // Генерируем предмет в стиле PoE
-    
-    alert(`Ты нанес ${dmg} урона и победил!\nВыпал предмет: ${lootName}`);
-    
-    gameState.gold += 20;
-    saveGame();
-    showScreen('screen-city');
-    updateUI();
-}
+        function attack() {
+            let dmg = gameState.str + Math.floor(Math.random() * 5);
+            let loot = generateLoot();
+            log(`Ты нанес ${dmg} урона!`);
+            log(`Выпало: ${loot.icon} ${loot.name}`);
+            gameState.gold += 15;
+            saveGame();
+            setTimeout(() => { showScreen('screen-city'); updateUI(); }, 2000);
+        }
 
-// Остальные функции (showScreen, saveGame, updateUI, startDungeon) остаются такими же
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
+        function rest() {
+            gameState.hp = gameState.maxHp;
+            alert("Здоровье восстановлено!");
+            saveGame();
+            updateUI();
+        }
 
-function saveGame() {
-    localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState));
-}
+        function updateUI() {
+            if (!gameState) return;
+            document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
+            document.getElementById('display-class').innerText = gameState.class;
+            document.getElementById('gold').innerText = gameState.gold;
+            document.getElementById('lvl').innerText = gameState.lvl;
+            document.getElementById('hp').innerText = gameState.hp;
+            document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+            
+            const invDiv = document.getElementById('inventory-list');
+            invDiv.innerHTML = "";
+            gameState.inv.slice(-12).forEach(item => {
+                invDiv.innerHTML += `<div class="item-slot" title="${item.name}">${item.icon}</div>`;
+            });
+        }
 
-function updateUI() {
-    if (!gameState) return;
-    document.getElementById('display-name').innerText = gameState.friend;
-    document.getElementById('display-class').innerText = gameState.class;
-    document.getElementById('gold').innerText = gameState.gold;
-    document.getElementById('lvl').innerText = gameState.lvl;
-    document.getElementById('hp').innerText = gameState.hp;
-    document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
-}
+        function log(m) { document.getElementById('battle-log').innerHTML += `> ${m}<br>`; }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        function saveGame() { localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState)); }
+        function startDungeon() { document.getElementById('battle-log').innerHTML = ""; showScreen('screen-battle'); }
 
-function startDungeon() { showScreen('screen-battle'); }
-
-init();
+        init();
     </script>
 </body>
 </html>
