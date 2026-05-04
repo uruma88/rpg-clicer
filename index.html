@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>🍺 Писок Данжен · Пиксельный мир</title>
+    <title>🍺 Писок Данжен · Город на карте</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,7 +12,7 @@
             padding: 0;
         }
         body {
-            background: #0c100a;
+            background: #0f110c;
             font-family: 'Courier New', monospace;
             display: flex;
             justify-content: center;
@@ -23,23 +23,22 @@
         .game {
             max-width: 600px;
             width: 100%;
-            background: #1e2518;
-            border-radius: 36px;
-            padding: 16px;
-            border: 3px solid #b87c3a;
-            box-shadow: 0 8px 20px black;
+            background: #1d261b;
+            border-radius: 48px;
+            padding: 20px 16px;
+            border: 3px solid #e6b45a;
+            box-shadow: 0 10px 25px black;
         }
-        /* Верхняя панель статуса */
         .status-bar {
-            background: #2a2a1c;
+            background: #2f2a1a;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            padding: 8px 12px;
-            border-radius: 40px;
-            margin-bottom: 16px;
+            padding: 10px 16px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            color: #ffde9c;
             font-weight: bold;
-            color: #f7d77b;
             font-size: 12px;
         }
         .status-item {
@@ -47,137 +46,105 @@
             padding: 4px 10px;
             border-radius: 30px;
         }
-        /* Пиксельный город */
-        .pixel-town {
-            background: #3f6032;
-            border-radius: 32px;
-            padding: 16px 12px;
-            margin-bottom: 16px;
-            border: 2px solid #e4b05a;
-            box-shadow: inset 0 0 0 2px #2a3a1e;
+        /* ПИКСЕЛЬНАЯ КАРТА ГОРОДА (сетка 2x2) */
+        .city-map {
+            background: #527a3a;
+            border-radius: 36px;
+            padding: 20px 12px;
+            margin-bottom: 20px;
+            border: 2px solid #f5ce7a;
+            box-shadow: inset 0 0 0 3px #314d20;
         }
-        .houses {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
+        .city-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
         }
-        .house {
-            background: #9c7b48;
-            width: 95px;
+        .building {
+            background: #b48b44;
+            border-radius: 24px;
+            padding: 12px;
             text-align: center;
-            padding: 8px 4px;
-            border-radius: 20px;
             cursor: pointer;
-            border-bottom: 4px solid #5e3e24;
+            border-bottom: 4px solid #684f24;
+            transition: 0.05s linear;
             font-weight: bold;
-            color: #ffefb9;
+            color: #fff0c8;
         }
-        .house:active { transform: translateY(2px); border-bottom-width: 2px; }
-        .house-icon { font-size: 40px; }
-        /* Главный экран с героем */
-        .hero-screen {
-            background: #2a2a1cdd;
+        .building:active {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+        }
+        .building-icon {
+            font-size: 44px;
+        }
+        /* ОБЛАСТЬ КОНТЕНТА (меню здания) */
+        .content-area {
+            background: #1f2b18cc;
+            backdrop-filter: blur(4px);
             border-radius: 32px;
-            padding: 16px;
-            margin-bottom: 16px;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        .hero-pixel {
-            background: #344e2a;
-            border-radius: 28px;
-            width: 100px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 56px;
-            box-shadow: inset 0 0 0 2px #c2a15b;
-            position: relative;
-        }
-        .hero-info {
-            flex: 1;
-        }
-        .hero-name {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffcd94;
-        }
-        .hero-class {
-            background: #00000077;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 60px;
-            font-size: 12px;
-            margin-top: 6px;
-        }
-        .stat-buttons {
-            display: flex;
-            gap: 8px;
+            padding: 18px;
             margin-top: 8px;
         }
         .pixel-btn {
-            background: #ca943a;
-            padding: 8px;
-            border-radius: 40px;
+            background: #daa243;
+            padding: 12px;
+            border-radius: 60px;
             text-align: center;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 3px 0 #754c20;
-            flex: 1;
+            margin: 8px 0;
+            box-shadow: 0 3px 0 #784f1c;
         }
-        .pixel-btn:active { transform: translateY(2px); box-shadow: none; }
-        /* Инвентарь / Снаряжение */
-        .grid-items {
+        .pixel-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+        .friend-grid {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
             max-height: 220px;
             overflow-y: auto;
         }
-        .item-row {
-            background: #8b6946;
-            padding: 10px;
-            border-radius: 36px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .equip-slot {
-            background: #5f4a2e;
-            border-radius: 24px;
-            padding: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .btn-small {
-            background: #f3b33d;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-weight: bold;
+        .friend-card {
+            background: #b68b40;
+            width: 80px;
+            text-align: center;
+            padding: 6px;
+            border-radius: 28px;
             cursor: pointer;
         }
-        .log-area {
-            background: #0f110a;
+        .friend-avatar {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto;
+            background: #4d351b;
+            border-radius: 30px;
+            overflow: hidden;
+        }
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .log {
+            background: #0e0f08;
             border-radius: 28px;
-            padding: 8px;
+            padding: 10px;
             height: 70px;
             overflow-y: auto;
+            margin-top: 16px;
             font-size: 10px;
-            color: #eab96b;
-            margin-top: 12px;
+            color: #eabd72;
         }
         .damage-number {
             position: fixed;
             font-size: 28px;
             font-weight: bold;
-            color: #ffc857;
-            text-shadow: 0 0 3px black;
+            color: #ffc107;
+            text-shadow: 0 0 2px black;
             pointer-events: none;
             animation: floatUp 0.4s forwards;
             z-index: 1000;
@@ -186,13 +153,22 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-50px); }
         }
+        .shake {
+            animation: shakeAnim 0.2s ease 2;
+        }
+        @keyframes shakeAnim {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+            100% { transform: translateX(0); }
+        }
         .flash-red {
-            animation: redFlash 0.12s linear 2;
+            animation: redFlash 0.15s linear 2;
         }
         @keyframes redFlash {
-            0% { background: #2a2a1cdd; }
-            50% { background: #b44a4aee; }
-            100% { background: #2a2a1cdd; }
+            0% { background: #1f2b18cc; }
+            50% { background: #c95757cc; }
+            100% { background: #1f2b18cc; }
         }
     </style>
 </head>
@@ -204,26 +180,27 @@
         <div class="status-item">❤️ <span id="hp">0</span>/<span id="maxHp">0</span></div>
         <div class="status-item">💙 <span id="ap">100</span>/<span id="maxAp">100</span></div>
         <div class="status-item">🌟 lvl <span id="level">1</span></div>
-        <div class="status-item">🏔️ этаж <span id="floor">1</span></div>
+        <div class="status-item">🏔️ <span id="floor">1</span></div>
     </div>
 
-    <!-- ПИКСЕЛЬНЫЙ ГОРОД (домики) -->
-    <div class="pixel-town">
-        <div class="houses">
-            <div class="house" data-loc="tavern">🍺<div>ТАВЕРНА</div></div>
-            <div class="house" data-loc="smith">⚒️<div>КУЗНЕЦ</div></div>
-            <div class="house" data-loc="gate">🚪<div>ВОРОТА</div></div>
+    <!-- КАРТА ГОРОДА (4 здания) -->
+    <div class="city-map" id="cityMap">
+        <div class="city-grid">
+            <div class="building" data-bld="tavern">🍺<div>ТАВЕРНА</div></div>
+            <div class="building" data-bld="smith">⚒️<div>КУЗНЕЦ</div></div>
+            <div class="building" data-bld="guild">👥<div>ГИЛЬДИЯ</div></div>
+            <div class="building" data-bld="gate">🚪<div>ВОРОТА</div></div>
         </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН (герой + информация) -->
-    <div id="mainPanel"></div>
+    <!-- СЮДА БУДЕТ ПОДГРУЖАТЬСЯ МЕНЮ ЗДАНИЯ ИЛИ БОЙ -->
+    <div id="mainArea"></div>
 
-    <div class="log-area" id="logArea"></div>
+    <div class="log" id="logArea"></div>
 </div>
 
 <script>
-    // ---------- ДРУЗЬЯ (с аватарками) ----------
+    // ---------- ДРУЗЬЯ ----------
     const FRIENDS = [
         { name: "Алина", avatar: "avatars/алина.jpg", emoji: "👩", str: 1, int: 3, agi: 2, vit: 2 },
         { name: "Бень", avatar: "avatars/бень.jpg", emoji: "🐻", str: 4, int: 1, agi: 1, vit: 4 },
@@ -243,6 +220,7 @@
         { name: "Юра", avatar: "avatars/юра.jpg", emoji: "🌪️", str: 3, int: 2, agi: 3, vit: 2 }
     ];
 
+    // ------------------- ИГРОК -------------------
     let game = {
         gold: 350, level: 1, exp: 0, xpNext: 100, skillPoints: 0,
         strength: 10, intelligence: 10, agility: 10, vitality: 10,
@@ -257,9 +235,8 @@
     let waitingAction = true;
     let logs = [];
     let inDungeon = false;
-    let currentMenu = "hero";
 
-    function addLog(m) { logs.unshift(`🍺 ${m}`); if(logs.length>6) logs.pop(); document.getElementById('logArea').innerHTML = logs.join('<br>'); }
+    function addLog(msg) { logs.unshift(`🍺 ${msg}`); if(logs.length>6) logs.pop(); document.getElementById('logArea').innerHTML = logs.join('<br>'); }
     function totalAtk() { let w = game.weapon?.atk || 0; return game.strength + w + (game.className==='warrior'? Math.floor(game.strength*0.2):0); }
     function totalMaxHp() { return 80 + game.vitality*5 + (game.armor?.hp||0) + (game.helmet?.hp||0); }
     function calcDamage() { return Math.floor(totalAtk() + Math.random()*8); }
@@ -278,117 +255,9 @@
             document.getElementById('enemyFill').style.width = `${Math.max(0,per)}%`;
             document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.floor(currentEnemy.hp)}/${currentEnemy.maxHp}`;
         }
-        if(!inDungeon) drawHeroScreen();
     }
-    function saveGame() { localStorage.setItem('pisokFinalSave', JSON.stringify(game)); }
-    function loadGame() { let s = localStorage.getItem('pisokFinalSave'); if(s) { let d=JSON.parse(s); for(let k in d) game[k]=d[k]; } game.hp = Math.min(game.hp, totalMaxHp()); }
-
-    // ---------- ГЛАВНЫЙ ЭКРАН С ГЕРОЕМ ----------
-    function drawHeroScreen() {
-        let friend = game.friend || { name: "Игрок", avatar: "", emoji: "🍺" };
-        let avatarHtml = friend.avatar ? `<img src="${friend.avatar}" style="width:100%; height:100%; object-fit:cover;">` : friend.emoji;
-        let classStr = game.className ? game.className.toUpperCase() : "НЕТ";
-        document.getElementById('mainPanel').innerHTML = `
-            <div class="hero-screen">
-                <div class="hero-pixel">${avatarHtml}</div>
-                <div class="hero-info">
-                    <div class="hero-name">${friend.name}</div>
-                    <div class="hero-class">${classStr}</div>
-                    <div class="stat-buttons">
-                        <div class="pixel-btn" id="toInvBtn">🎒 ИНВЕНТАРЬ</div>
-                        <div class="pixel-btn" id="toEquipBtn">⚔️ СНАРЯЖЕНИЕ</div>
-                    </div>
-                </div>
-            </div>
-            <div class="stat-buttons" style="margin-top:6px;">
-                <div class="pixel-btn" id="upgradeBtn">📈 ПРОКАЧКА</div>
-                <div class="pixel-btn" id="townBtn">🏠 В ГОРОД</div>
-            </div>
-        `;
-        document.getElementById('toInvBtn').onclick = () => showInventory();
-        document.getElementById('toEquipBtn').onclick = () => showEquipment();
-        document.getElementById('upgradeBtn').onclick = () => showUpgrade();
-        document.getElementById('townBtn').onclick = () => { if(!inDungeon) showTown("tavern"); else addLog(`Сначала закончи бой!`); };
-    }
-
-    function showInventory() {
-        let items = [];
-        if(game.weapon) items.push(`🗡️ ${game.weapon.name} (+${game.weapon.atk}⚔️)`);
-        if(game.armor) items.push(`🛡️ ${game.armor.name} (+${game.armor.hp}❤️)`);
-        if(game.helmet) items.push(`🧢 ${game.helmet.name} (+${game.helmet.hp}❤️)`);
-        let html = `<div class="grid-items">`;
-        if(items.length===0) html += `<div class="item-row">🎒 Пусто</div>`;
-        else items.forEach(it=>{ html += `<div class="item-row">${it}</div>`; });
-        html += `<div class="pixel-btn" id="backHeroBtn">🔙 НАЗАД</div></div>`;
-        document.getElementById('mainPanel').innerHTML = html;
-        document.getElementById('backHeroBtn').onclick = drawHeroScreen;
-    }
-
-    function showEquipment() {
-        let weaponEquip = game.weapon ? game.weapon.name : "---";
-        let armorEquip = game.armor ? game.armor.name : "---";
-        let helmetEquip = game.helmet ? game.helmet.name : "---";
-        document.getElementById('mainPanel').innerHTML = `
-            <div class="equip-slot">🗡️ ОРУЖИЕ: ${weaponEquip} <button class="btn-small" id="uneqW">Снять</button></div>
-            <div class="equip-slot">🛡️ БРОНЯ: ${armorEquip} <button class="btn-small" id="uneqA">Снять</button></div>
-            <div class="equip-slot">🧢 ШЛЕМ: ${helmetEquip} <button class="btn-small" id="uneqH">Снять</button></div>
-            <div class="pixel-btn" id="backEquipBtn">🔙 НАЗАД</div>
-        `;
-        document.getElementById('uneqW')?.addEventListener('click',()=>{ game.weapon=null; saveGame(); showEquipment(); updateUI(); });
-        document.getElementById('uneqA')?.addEventListener('click',()=>{ game.armor=null; saveGame(); showEquipment(); updateUI(); });
-        document.getElementById('uneqH')?.addEventListener('click',()=>{ game.helmet=null; saveGame(); showEquipment(); updateUI(); });
-        document.getElementById('backEquipBtn').onclick = drawHeroScreen;
-    }
-
-    function showUpgrade() {
-        let sp = game.skillPoints;
-        document.getElementById('mainPanel').innerHTML = `
-            <div class="grid-items">
-                <div class="item-row">✨ ОЧКИ НАВЫКОВ: ${sp}</div>
-                <div class="item-row">💪 СИЛА (урон) <button class="btn-small" id="upStr">+1</button></div>
-                <div class="item-row">🧠 ИНТЕЛЛЕКТ <button class="btn-small" id="upInt">+1</button></div>
-                <div class="item-row">🏃‍♂️ ЛОВКОСТЬ <button class="btn-small" id="upAgi">+1</button></div>
-                <div class="item-row">❤️ ЗДОРОВЬЕ <button class="btn-small" id="upVit">+1</button></div>
-                <div class="pixel-btn" id="backUpBtn">🔙 НАЗАД</div>
-            </div>
-        `;
-        document.getElementById('upStr')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.strength++; addLog(`💪 Сила +1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
-        document.getElementById('upInt')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.intelligence++; addLog(`🧠 Интеллект +1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
-        document.getElementById('upAgi')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.agility++; addLog(`🏃 Ловкость +1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
-        document.getElementById('upVit')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.vitality++; addLog(`❤️ Здоровье +1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
-        document.getElementById('backUpBtn').onclick = drawHeroScreen;
-    }
-
-    // ---------- ГОРОД (домики) ----------
-    function showTown(loc) {
-        inDungeon = false;
-        if(loc === 'tavern') {
-            document.getElementById('mainPanel').innerHTML = `
-                <div class="pixel-btn" id="healBtn">💚 ЛЕЧЕНИЕ (30🍺)</div>
-                <div class="pixel-btn" id="backTownBtn">🏠 К ГЕРОЮ</div>
-            `;
-            document.getElementById('healBtn')?.addEventListener('click',()=>{ if(game.gold>=30){ game.gold-=30; game.hp=totalMaxHp(); game.ap=game.maxAp; addLog(`💚 Вылечен!`); saveGame(); updateUI(); } else addLog(`❌ Мало золота`); });
-            document.getElementById('backTownBtn').onclick = drawHeroScreen;
-        }
-        else if(loc === 'smith') {
-            document.getElementById('mainPanel').innerHTML = `
-                <div class="item-row">🗡️ ДУБИНА (+5 силы) 150🍺 <button class="btn-small" id="buyClub">Купить</button></div>
-                <div class="item-row">🛡️ КОЖАНАЯ БРОНЯ (+15 HP) 120🍺 <button class="btn-small" id="buyArmor">Купить</button></div>
-                <div class="item-row">🧢 ШЛЕМ ПИВОВАРА (+10 HP) 100🍺 <button class="btn-small" id="buyHelm">Купить</button></div>
-                <div class="pixel-btn" id="backTownBtn2">🔙 НАЗАД</div>
-            `;
-            document.getElementById('buyClub')?.addEventListener('click',()=>{ if(game.gold>=150 && !game.weapon){ game.gold-=150; game.weapon={name:"Дубина", atk:5}; addLog(`🗡️ Куплена дубина!`); saveGame(); showTown('smith'); updateUI(); } else addLog(`❌ Не хватает или уже есть`); });
-            document.getElementById('buyArmor')?.addEventListener('click',()=>{ if(game.gold>=120 && !game.armor){ game.gold-=120; game.armor={name:"Кожанка", hp:15}; game.hp+=15; addLog(`🛡️ Куплена броня!`); saveGame(); showTown('smith'); updateUI(); } else addLog(`❌ Ошибка`); });
-            document.getElementById('buyHelm')?.addEventListener('click',()=>{ if(game.gold>=100 && !game.helmet){ game.gold-=100; game.helmet={name:"Шлем", hp:10}; game.hp+=10; addLog(`🧢 Куплен шлем!`); saveGame(); showTown('smith'); updateUI(); } else addLog(`❌ Не хватает`); });
-            document.getElementById('backTownBtn2').onclick = drawHeroScreen;
-        }
-        else if(loc === 'gate') {
-            document.getElementById('mainPanel').innerHTML = `<div class="pixel-btn" id="startDungeonBtn">🍺 НАЧАТЬ ЗАБЕГ</div><div class="pixel-btn" id="backGateBtn">🔙 НАЗАД</div>`;
-            document.getElementById('startDungeonBtn').onclick = startBattle;
-            document.getElementById('backGateBtn').onclick = drawHeroScreen;
-        }
-        updateUI();
-    }
+    function saveGame() { localStorage.setItem('pisokFinalCity', JSON.stringify(game)); }
+    function loadGame() { let s = localStorage.getItem('pisokFinalCity'); if(s) { let d=JSON.parse(s); for(let k in d) game[k]=d[k]; } game.hp = Math.min(game.hp, totalMaxHp()); updateUI(); }
 
     // ---------- БОЙ ----------
     function startBattle() {
@@ -406,33 +275,34 @@
         renderBattle();
     }
     function renderBattle() {
-        document.getElementById('mainPanel').innerHTML = `
-            <div class="hero-screen" style="flex-direction:column;" id="battleCard">
-                <div style="font-size:60px;">${currentEnemy.emoji}</div>
-                <div class="hero-name">${currentEnemy.name}</div>
-                <div class="hp-bar" style="background:#5a3e24; border-radius:20px; height:10px; width:100%;"><div id="enemyFill" style="height:100%; width:100%; background:#d44c2f; border-radius:20px;"></div></div>
-                <div id="enemyHpText">❤️ ${currentEnemy.hp}/${currentEnemy.maxHp}</div>
+        document.getElementById('mainArea').innerHTML = `
+            <div class="content-area" id="battleCard">
+                <div style="font-size:60px; text-align:center;">${currentEnemy.emoji}</div>
+                <div style="text-align:center; font-weight:bold;">${currentEnemy.name}</div>
+                <div style="background:#5a3e24; border-radius:20px; height:10px; margin:10px 0;"><div id="enemyFill" style="height:100%; width:100%; background:#d44c2f; border-radius:20px;"></div></div>
+                <div id="enemyHpText" style="text-align:center;">❤️ ${currentEnemy.hp}/${currentEnemy.maxHp}</div>
             </div>
-            <div class="stat-buttons" style="margin-top:8px;">
-                <div class="pixel-btn" id="atkBtn">⚔️ АТАКА</div>
-                <div class="pixel-btn" id="skillBtn">✨ УМЕНИЕ</div>
-                <div class="pixel-btn" id="restBtn">😴 ОТДЫХ</div>
-                <div class="pixel-btn" id="runBattleBtn">🏃‍♂️ СДАЧА</div>
+            <div class="content-area" style="margin-top:8px;">
+                <div class="pixel-btn" id="atkBtn">⚔️ АТАКА (15 AP)</div>
+                <div class="pixel-btn" id="skillBtn">✨ УМЕНИЕ (30 AP)</div>
+                <div class="pixel-btn" id="restBtn">😴 ОТДЫХ (+20 AP)</div>
+                <div class="pixel-btn" id="runBtn">🏃‍♂️ В ГОРОД</div>
             </div>
         `;
         document.getElementById('atkBtn').onclick = attack;
         document.getElementById('skillBtn').onclick = useSkill;
         document.getElementById('restBtn').onclick = () => { if(waitingAction){ game.ap=Math.min(game.maxAp,game.ap+20); addLog(`😴 +20 AP`); waitingAction=false; updateUI(); setTimeout(enemyTurn,600); } };
-        document.getElementById('runBattleBtn').onclick = () => { inDungeon=false; drawHeroScreen(); addLog(`Вы сбежали в город`); };
+        document.getElementById('runBtn').onclick = () => { inDungeon=false; showBuildingMenu('tavern'); addLog(`Вы вернулись в город`); };
         updateUI();
     }
     function damageAnim(isPlayer) {
         let card = document.getElementById('battleCard');
-        if(card) card.style.animation = 'none'; card.offsetHeight; card.style.animation = 'shakeAnim 0.2s ease 2';
-        if(isPlayer) document.getElementById('mainPanel').classList.add('flash-red');
-        setTimeout(()=>document.getElementById('mainPanel')?.classList.remove('flash-red'),300);
+        if(card) card.classList.add('shake');
+        if(isPlayer) document.getElementById('mainArea').classList.add('flash-red');
+        setTimeout(()=>document.getElementById('mainArea')?.classList.remove('flash-red'),250);
         let d = document.createElement('div'); d.className = 'damage-number'; d.innerText = '-УДАР!';
-        d.style.left = '45%'; d.style.top = '30%'; document.body.appendChild(d); setTimeout(()=>d.remove(),400);
+        d.style.left = '45%'; d.style.top = '35%'; document.body.appendChild(d); setTimeout(()=>d.remove(),400);
+        setTimeout(()=>{ if(card) card.classList.remove('shake'); },300);
     }
     function victory() {
         game.gold += currentEnemy.gold;
@@ -482,47 +352,170 @@
             addLog(`💀 ПОРАЖЕНИЕ! -30 золота`);
             game.gold = Math.max(0, game.gold-30);
             game.hp = totalMaxHp(); game.ap = game.maxAp;
-            inDungeon=false; drawHeroScreen();
+            inDungeon=false; showBuildingMenu('tavern');
             return;
         }
         waitingAction = true; updateUI(); saveGame();
     }
 
-    // ---------- ВЫБОР СТАРТОВОГО ПЕРСОНАЖА И КЛАССА ----------
-    function startSelection() {
-        document.getElementById('mainPanel').innerHTML = `<div class="hero-name" style="text-align:center;">ВЫБЕРИ ДРУГА</div><div id="friendStartGrid" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px;"></div><div id="classStartArea"></div>`;
-        let grid = document.getElementById('friendStartGrid');
-        FRIENDS.forEach(f=>{
-            let card = document.createElement('div'); card.className = 'friend-card'; card.style.background='#8b6946'; card.style.padding='6px'; card.style.borderRadius='24px'; card.style.width='75px'; card.style.textAlign='center'; card.style.cursor='pointer';
-            card.innerHTML = `<div style="width:50px; height:50px; margin:0 auto; background:#5e3e1e; border-radius:50%; overflow:hidden;"><img src="${f.avatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${f.emoji}'" style="width:100%; height:100%; object-fit:cover;"></div><div>${f.name}</div>`;
-            card.onclick = () => {
-                game.friend = f;
-                game.strength = f.str; game.intelligence = f.int; game.agility = f.agi; game.vitality = f.vit;
-                game.hp = totalMaxHp();
-                document.getElementById('classStartArea').innerHTML = `<div style="display:flex; gap:8px; margin-top:16px; justify-content:center;"><div class="pixel-btn" data-class="warrior">⚔️ ВОИН</div><div class="pixel-btn" data-class="mage">🧙 МАГ</div><div class="pixel-btn" data-class="rogue">🗡️ ВОР</div></div>`;
-                document.querySelectorAll('[data-class]').forEach(btn=>{
-                    btn.onclick = () => {
-                        game.className = btn.dataset.class; game.classLocked = true;
-                        saveGame();
-                        drawHeroScreen();
+    // ---------- МЕНЮ ЗДАНИЙ ----------
+    function showBuildingMenu(bld) {
+        if(inDungeon) { addLog(`Сначала закончи бой!`); return; }
+        if(bld === 'tavern') {
+            document.getElementById('mainArea').innerHTML = `
+                <div class="content-area">
+                    <div class="pixel-btn" id="healBtn">💚 ЛЕЧЕНИЕ (30🍺)</div>
+                    <div class="pixel-btn" id="statsBtn">📊 МОИ СТАТЫ</div>
+                    <div class="pixel-btn" id="backCityBtn">🏠 К КАРТЕ</div>
+                </div>
+            `;
+            document.getElementById('healBtn')?.addEventListener('click',()=>{ if(game.gold>=30){ game.gold-=30; game.hp=totalMaxHp(); game.ap=game.maxAp; addLog(`💚 Вылечен!`); saveGame(); updateUI(); } else addLog(`❌ Нужно 30🍺`); });
+            document.getElementById('statsBtn')?.addEventListener('click',()=>{ addLog(`💪Сила:${totalAtk()} 🧠Инт:${game.intelligence} 🏃Ловк:${game.agility} ❤️Здор:${totalMaxHp()}`); });
+            document.getElementById('backCityBtn').onclick = () => showCityMap();
+        } 
+        else if(bld === 'smith') {
+            document.getElementById('mainArea').innerHTML = `
+                <div class="content-area">
+                    <div class="pixel-btn" id="buyClub">🗡️ ДУБИНА (+5 силы) 150🍺</div>
+                    <div class="pixel-btn" id="buyArmor">🛡️ КОЖАНАЯ БРОНЯ (+15 HP) 120🍺</div>
+                    <div class="pixel-btn" id="buyHelm">🧢 ШЛЕМ (+10 HP) 100🍺</div>
+                    <div class="pixel-btn" id="backSmithBtn">🏠 К КАРТЕ</div>
+                </div>
+            `;
+            document.getElementById('buyClub')?.addEventListener('click',()=>{ if(game.gold>=150 && !game.weapon){ game.gold-=150; game.weapon={name:"Дубина", atk:5}; addLog(`🗡️ Куплена дубина!`); saveGame(); updateUI(); showBuildingMenu('smith'); } else addLog(`❌ Ошибка`); });
+            document.getElementById('buyArmor')?.addEventListener('click',()=>{ if(game.gold>=120 && !game.armor){ game.gold-=120; game.armor={name:"Кожанка", hp:15}; game.hp+=15; addLog(`🛡️ Куплена броня!`); saveGame(); updateUI(); showBuildingMenu('smith'); } else addLog(`❌ Ошибка`); });
+            document.getElementById('buyHelm')?.addEventListener('click',()=>{ if(game.gold>=100 && !game.helmet){ game.gold-=100; game.helmet={name:"Шлем", hp:10}; game.hp+=10; addLog(`🧢 Куплен шлем!`); saveGame(); updateUI(); showBuildingMenu('smith'); } else addLog(`❌ Не хватает`); });
+            document.getElementById('backSmithBtn').onclick = () => showCityMap();
+        }
+        else if(bld === 'guild') {
+            if(!game.friend || !game.className) {
+                document.getElementById('mainArea').innerHTML = `<div class="content-area" id="guildSelect"></div>`;
+                let grid = document.getElementById('guildSelect');
+                grid.innerHTML = `<div style="text-align:center;">ВЫБЕРИ ДРУГА</div><div id="friendGridGuild" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:12px 0;"></div><div id="classPick"></div>`;
+                let friendContainer = document.getElementById('friendGridGuild');
+                FRIENDS.forEach(f=>{
+                    let card = document.createElement('div'); card.className = 'friend-card';
+                    card.innerHTML = `<div class="friend-avatar"><img src="${f.avatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${f.emoji}'"></div><div>${f.name}</div>`;
+                    card.onclick = () => {
+                        game.friend = f;
+                        game.strength = f.str; game.intelligence = f.int; game.agility = f.agi; game.vitality = f.vit;
+                        game.hp = totalMaxHp();
+                        document.getElementById('classPick').innerHTML = `<div class="pixel-btn" data-class="warrior">⚔️ ВОИН</div><div class="pixel-btn" data-class="mage">🧙 МАГ</div><div class="pixel-btn" data-class="rogue">🗡️ ВОР</div>`;
+                        document.querySelectorAll('[data-class]').forEach(btn=>{
+                            btn.onclick = () => { game.className = btn.dataset.class; game.classLocked = true; saveGame(); showCityMap(); };
+                        });
                     };
+                    friendContainer.appendChild(card);
                 });
-            };
-            grid.appendChild(card);
-        });
+            } else {
+                document.getElementById('mainArea').innerHTML = `
+                    <div class="content-area">
+                        <div class="pixel-btn" id="showHeroBtn">👤 МОЙ ГЕРОЙ</div>
+                        <div class="pixel-btn" id="inventoryBtn">🎒 ИНВЕНТАРЬ</div>
+                        <div class="pixel-btn" id="equipBtn">⚔️ СНАРЯЖЕНИЕ</div>
+                        <div class="pixel-btn" id="upgradeStatsBtn">📈 ПРОКАЧКА</div>
+                        <div class="pixel-btn" id="backGuildBtn">🏠 К КАРТЕ</div>
+                    </div>
+                `;
+                document.getElementById('showHeroBtn')?.addEventListener('click', showHeroProfile);
+                document.getElementById('inventoryBtn')?.addEventListener('click', showInventory);
+                document.getElementById('equipBtn')?.addEventListener('click', showEquipment);
+                document.getElementById('upgradeStatsBtn')?.addEventListener('click', showUpgrade);
+                document.getElementById('backGuildBtn').onclick = () => showCityMap();
+            }
+        }
+        else if(bld === 'gate') {
+            document.getElementById('mainArea').innerHTML = `
+                <div class="content-area">
+                    <div class="pixel-btn" id="startDungeonBtn">🍺 НАЧАТЬ ЗАБЕГ</div>
+                    <div class="pixel-btn" id="backGateBtn">🏠 К КАРТЕ</div>
+                </div>
+            `;
+            document.getElementById('startDungeonBtn').onclick = startBattle;
+            document.getElementById('backGateBtn').onclick = () => showCityMap();
+        }
     }
 
-    // ---------- ПЕРЕКЛЮЧЕНИЕ ДОМИКОВ ----------
-    document.querySelectorAll('.house').forEach(h=>{
-        h.addEventListener('click',()=>{
-            if(inDungeon) { addLog(`Сначала закончи бой!`); return; }
-            showTown(h.dataset.loc);
+    function showCityMap() {
+        document.getElementById('mainArea').innerHTML = '';
+        updateUI();
+    }
+
+    function showHeroProfile() {
+        let f = game.friend || { name: "Герой", emoji: "🍺", avatar: "" };
+        let avatarHtml = f.avatar ? `<img src="${f.avatar}" style="width:100%; height:100%; object-fit:cover;">` : f.emoji;
+        document.getElementById('mainArea').innerHTML = `
+            <div class="content-area">
+                <div style="display:flex; gap:16px; align-items:center;">
+                    <div style="width:70px; height:70px; background:#4d351b; border-radius:40px; overflow:hidden;">${avatarHtml}</div>
+                    <div><div style="font-weight:bold;">${f.name}</div><div>${game.className?.toUpperCase() || "НЕТ"}</div></div>
+                </div>
+                <div class="pixel-btn" id="backHeroBtn">🔙 НАЗАД</div>
+            </div>
+        `;
+        document.getElementById('backHeroBtn').onclick = () => showBuildingMenu('guild');
+    }
+
+    function showInventory() {
+        let items = [];
+        if(game.weapon) items.push(`🗡️ ${game.weapon.name} (+${game.weapon.atk}⚔️)`);
+        if(game.armor) items.push(`🛡️ ${game.armor.name} (+${game.armor.hp}❤️)`);
+        if(game.helmet) items.push(`🧢 ${game.helmet.name} (+${game.helmet.hp}❤️)`);
+        let html = `<div class="content-area">`;
+        if(items.length===0) html += `<div class="pixel-btn">🎒 ПУСТО</div>`;
+        else items.forEach(it=>{ html += `<div class="pixel-btn">${it}</div>`; });
+        html += `<div class="pixel-btn" id="backInvBtn">🔙 НАЗАД</div></div>`;
+        document.getElementById('mainArea').innerHTML = html;
+        document.getElementById('backInvBtn').onclick = () => showBuildingMenu('guild');
+    }
+
+    function showEquipment() {
+        let weap = game.weapon ? game.weapon.name : "---";
+        let arm = game.armor ? game.armor.name : "---";
+        let helm = game.helmet ? game.helmet.name : "---";
+        document.getElementById('mainArea').innerHTML = `
+            <div class="content-area">
+                <div class="pixel-btn">🗡️ ОРУЖИЕ: ${weap} <button id="uneqW" style="margin-left:8px;">Снять</button></div>
+                <div class="pixel-btn">🛡️ БРОНЯ: ${arm} <button id="uneqA" style="margin-left:8px;">Снять</button></div>
+                <div class="pixel-btn">🧢 ШЛЕМ: ${helm} <button id="uneqH" style="margin-left:8px;">Снять</button></div>
+                <div class="pixel-btn" id="backEquipBtn">🔙 НАЗАД</div>
+            </div>
+        `;
+        document.getElementById('uneqW')?.addEventListener('click',()=>{ game.weapon=null; saveGame(); showEquipment(); updateUI(); });
+        document.getElementById('uneqA')?.addEventListener('click',()=>{ game.armor=null; saveGame(); showEquipment(); updateUI(); });
+        document.getElementById('uneqH')?.addEventListener('click',()=>{ game.helmet=null; saveGame(); showEquipment(); updateUI(); });
+        document.getElementById('backEquipBtn').onclick = () => showBuildingMenu('guild');
+    }
+
+    function showUpgrade() {
+        let sp = game.skillPoints;
+        document.getElementById('mainArea').innerHTML = `
+            <div class="content-area">
+                <div class="pixel-btn">✨ ОЧКИ НАВЫКОВ: ${sp}</div>
+                <div class="pixel-btn" id="upStr">💪 СИЛА (+1)</div>
+                <div class="pixel-btn" id="upInt">🧠 ИНТЕЛЛЕКТ (+1)</div>
+                <div class="pixel-btn" id="upAgi">🏃‍♂️ ЛОВКОСТЬ (+1)</div>
+                <div class="pixel-btn" id="upVit">❤️ ЗДОРОВЬЕ (+1)</div>
+                <div class="pixel-btn" id="backUpBtn">🔙 НАЗАД</div>
+            </div>
+        `;
+        document.getElementById('upStr')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.strength++; addLog(`💪 Сила+1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
+        document.getElementById('upInt')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.intelligence++; addLog(`🧠 Инт+1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
+        document.getElementById('upAgi')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.agility++; addLog(`🏃 Ловк+1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
+        document.getElementById('upVit')?.addEventListener('click',()=>{ if(sp>0){ game.skillPoints--; game.vitality++; addLog(`❤️ Здоровье+1`); saveGame(); showUpgrade(); updateUI(); } else addLog(`❌ Нет очков`); });
+        document.getElementById('backUpBtn').onclick = () => showBuildingMenu('guild');
+    }
+
+    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+    document.querySelectorAll('.building').forEach(b=>{
+        b.addEventListener('click',()=>{
+            if(inDungeon) { addLog(`Сначала вернись из подземелья!`); return; }
+            showBuildingMenu(b.dataset.bld);
         });
     });
-
     loadGame();
-    if(!game.classLocked || !game.friend) startSelection();
-    else drawHeroScreen();
+    if(!game.classLocked || !game.friend) showBuildingMenu('guild');
+    else showCityMap();
     updateUI();
 </script>
 </body>
