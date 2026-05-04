@@ -5,7 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Писок Данжен</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Вставляем стили прямо сюда, чтобы не создавать лишних файлов */
+        body { margin: 0; padding: 0; background: #1a1a1a; color: white; font-family: 'Courier New', monospace; user-select: none; }
+        #game-container { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; height: 100vh; }
+        #header { background: #333; padding: 10px; border-bottom: 3px solid #555; text-align: center; }
+        .stats-row { display: flex; justify-content: space-around; margin-top: 5px; }
+        .screen { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .city-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+        button { padding: 15px; background: #444; border: 3px solid #666; color: white; font-size: 16px; cursor: pointer; border-radius: 8px; }
+        .btn-primary { background: #d35400; border-color: #e67e22; grid-column: span 2; }
+        .hp-bar, .ap-bar { width: 200px; height: 15px; background: #555; border: 2px solid #000; margin: 5px 0; position: relative; }
+        #hp-fill { background: #c0392b; width: 100%; height: 100%; transition: 0.3s; }
+        #enemy-hp-fill { background: #8e44ad; width: 100%; height: 100%; }
+        #ap-fill { background: #2980b9; width: 100%; height: 100%; }
+        #battle-log { background: #000; width: 90%; height: 80px; margin-top: 20px; padding: 10px; font-size: 12px; overflow-y: auto; border: 1px solid #444; color: #0f0; }
+    </style>
 </head>
 <body>
     <div id="game-container">
@@ -20,36 +35,113 @@
         <div id="screen-city" class="screen">
             <h2>🏘️ Город (Хаб)</h2>
             <div class="city-grid">
-                <button onclick="changeScreen('tavern')">🍺 Таверна</button>
-                <button onclick="changeScreen('blacksmith')">⚒️ Кузнец</button>
-                <button onclick="changeScreen('guild')">👥 Гильдия</button>
+                <button onclick="alert('Пиво восстановило силы!')">🍺 Таверна</button>
+                <button onclick="alert('Кузнец ушел на обед')">⚒️ Кузнец</button>
+                <button onclick="alert('В гильдии пока пусто')">👥 Гильдия</button>
                 <button onclick="startDungeon()" class="btn-primary">🚪 В Данж</button>
             </div>
         </div>
 
         <div id="screen-battle" class="screen" style="display: none;">
             <div class="battle-arena">
-                <div id="enemy-sprite">👾</div>
+                <div style="font-size: 50px;">👾</div>
                 <div class="hp-bar"><div id="enemy-hp-fill"></div></div>
-                <p id="enemy-name">Слизень</p>
+                <p id="enemy-name">Дикий Слизень</p>
             </div>
             
             <div class="player-status">
                 <p>Ваше HP: <span id="hp">100</span>/<span id="max-hp">100</span></p>
-                <div class="hp-bar player"><div id="hp-fill"></div></div>
+                <div class="hp-bar"><div id="hp-fill"></div></div>
                 <p>Энергия (AP): <span id="ap">50</span></p>
                 <div class="ap-bar"><div id="ap-fill"></div></div>
             </div>
 
             <div class="battle-actions">
-                <button onclick="playerAction('attack')">⚔️ Атака (15 AP)</button>
-                <button onclick="playerAction('skill')">🔥 Скилл (30 AP)</button>
-                <button onclick="playerAction('rest')">💤 Отдых (+20 AP)</button>
+                <button onclick="playerAction('attack')">⚔️ Атака</button>
+                <button onclick="playerAction('rest')">💤 Отдых</button>
             </div>
-            <div id="battle-log">Вы вошли в данж...</div>
+            <div id="battle-log">Вы вошли в темный данж...</div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ВСЯ ЛОГИКА ТУТ
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let player = {
+            name: tg.initDataUnsafe?.user?.first_name || "Герой",
+            gold: 0, lvl: 1, hp: 100, maxHp: 100, ap: 50, maxAp: 50, str: 10
+        };
+
+        let enemy = { name: "Слизень", hp: 50, maxHp: 50, str: 5 };
+
+        function updateUI() {
+            document.getElementById('player-name').innerText = player.name;
+            document.getElementById('gold').innerText = player.gold;
+            document.getElementById('lvl').innerText = player.lvl;
+            document.getElementById('hp').innerText = player.hp;
+            document.getElementById('ap').innerText = player.ap;
+            document.getElementById('hp-fill').style.width = (player.hp / player.maxHp * 100) + "%";
+            document.getElementById('ap-fill').style.width = (player.ap / player.maxAp * 100) + "%";
+            document.getElementById('enemy-hp-fill').style.width = (enemy.hp / enemy.maxHp * 100) + "%";
+        }
+
+        function changeScreen(screen) {
+            document.getElementById('screen-city').style.display = screen === 'city' ? 'flex' : 'none';
+            document.getElementById('screen-battle').style.display = screen === 'battle' ? 'flex' : 'none';
+        }
+
+        function startDungeon() {
+            enemy.hp = enemy.maxHp;
+            log("Вы встретили монстра!");
+            changeScreen('battle');
+            updateUI();
+        }
+
+        function log(msg) {
+            const l = document.getElementById('battle-log');
+            l.innerHTML += `<br>> ${msg}`;
+            l.scrollTop = l.scrollHeight;
+        }
+
+        function playerAction(type) {
+            if (type === 'attack') {
+                if (player.ap >= 15) {
+                    player.ap -= 15;
+                    let dmg = player.str + Math.floor(Math.random() * 5);
+                    enemy.hp -= dmg;
+                    log(`Вы ударили на ${dmg}!`);
+                    if (enemy.hp <= 0) {
+                        log("Победа! +20 золота");
+                        player.gold += 20;
+                        setTimeout(() => { changeScreen('city'); log("Вы вернулись в город."); }, 1500);
+                    } else { enemyTurn(); }
+                } else { log("Мало энергии (нужно 15 AP)!"); }
+            }
+            if (type === 'rest') {
+                player.ap = Math.min(player.maxAp, player.ap + 25);
+                log("Вы перевели дух (+25 AP)");
+                enemyTurn();
+            }
+            updateUI();
+        }
+
+        function enemyTurn() {
+            setTimeout(() => {
+                let dmg = enemy.str;
+                player.hp -= dmg;
+                log(`${enemy.name} атакует на ${dmg}`);
+                if (player.hp <= 0) {
+                    alert("Вы проиграли! Отдых в таверне...");
+                    player.hp = player.maxHp;
+                    changeScreen('city');
+                }
+                updateUI();
+            }, 600);
+        }
+
+        updateUI();
+    </script>
 </body>
 </html>
