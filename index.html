@@ -81,77 +81,111 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+       const tg = window.Telegram.WebApp;
+tg.expand();
 
-        // Список твоих друзей (имена файлов в папке avatars)
-        const friends = ['алина', 'бень', 'богдан', 'ваня', 'егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня','юра' ]; 
-        let gameState = JSON.parse(localStorage.getItem('pisok_rpg_save')) || null;
+// СЮДА ВПИШИ ИМЕНА СВОИХ ДРУЗЕЙ (названия файлов в папке avatars)
+const friends = ['Dima', 'Sanya', 'Vovan', 'Lexa', 'Misha']; 
 
-        function init() {
-            if (!gameState) {
-                showScreen('screen-setup');
-                const list = document.getElementById('friends-list');
-                friends.forEach(f => {
-                    list.innerHTML += `
-                        <div class="avatar-card" onclick="selectFriend('${f}')">
-                            <img src="avatars/${f}.png" onerror="this.src='https://via.placeholder.com/60?text=👤'">
-                            <span>${f}</span>
-                        </div>
-                    `;
-                });
-            } else {
-                showScreen('screen-city');
-                updateUI();
-            }
-        }
+let gameState = JSON.parse(localStorage.getItem('pisok_rpg_save')) || null;
 
-        function selectFriend(name) {
-            gameState = { friend: name, class: '', gold: 0, lvl: 1, hp: 100, maxHp: 100 };
-            document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-        }
+// Префиксы в стиле PoE
+const prefixes = [
+    { name: "Огненный", bonus: 5, stat: "str" },
+    { name: "Ледяной", bonus: 3, stat: "str" },
+    { name: "Древний", bonus: 10, stat: "hp" },
+    { name: "Быстрый", bonus: 2, stat: "agi" }
+];
 
-        function selectClass(cl) {
-            if (!gameState || !gameState.friend) return alert('Сначала выбери друга!');
-            gameState.class = cl;
-            saveGame();
-            showScreen('screen-city');
-            updateUI();
-        }
+function init() {
+    if (!gameState) {
+        showScreen('screen-setup');
+        const list = document.getElementById('friends-list');
+        friends.forEach(f => {
+            list.innerHTML += `
+                <div class="avatar-card" onclick="selectFriend('${f}')">
+                    <img src="avatars/${f}.png" onerror="this.src='https://via.placeholder.com/60?text=👤'">
+                    <span>${f}</span>
+                </div>
+            `;
+        });
+    } else {
+        showScreen('screen-city');
+        updateUI();
+    }
+}
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
+function selectFriend(name) {
+    gameState = { 
+        friend: name, 
+        class: '', 
+        gold: 0, 
+        lvl: 1, 
+        hp: 100, 
+        maxHp: 100, 
+        str: 10,
+        inventory: [] 
+    };
+    document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+}
 
-        function saveGame() {
-            localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState));
-        }
+function selectClass(cl) {
+    if (!gameState || !gameState.friend) return alert('Сначала выбери друга!');
+    gameState.class = cl;
+    saveGame();
+    showScreen('screen-city');
+    updateUI();
+}
 
-        function updateUI() {
-            if (!gameState) return;
-            document.getElementById('display-name').innerText = gameState.friend;
-            document.getElementById('display-class').innerText = gameState.class;
-            document.getElementById('gold').innerText = gameState.gold;
-            document.getElementById('lvl').innerText = gameState.lvl;
-            document.getElementById('hp').innerText = gameState.hp;
-            document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
-        }
+function generateLoot() {
+    const pre = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const item = {
+        name: `${pre.name} Меч`,
+        bonus: pre.bonus,
+        stat: pre.stat
+    };
+    gameState.inventory.push(item);
+    if (pre.stat === 'str') gameState.str += pre.bonus;
+    if (pre.stat === 'hp') gameState.maxHp += pre.bonus;
+    return item.name;
+}
 
-        function startDungeon() { showScreen('screen-battle'); }
+function attack() {
+    let dmg = gameState.str + Math.floor(Math.random() * 5);
+    let lootName = generateLoot(); // Генерируем предмет в стиле PoE
+    
+    alert(`Ты нанес ${dmg} урона и победил!\nВыпал предмет: ${lootName}`);
+    
+    gameState.gold += 20;
+    saveGame();
+    showScreen('screen-city');
+    updateUI();
+}
 
-        function attack() {
-            // Упрощенная логика боя для теста
-            let dmg = 20;
-            alert('Ты ударил на ' + dmg);
-            gameState.gold += 5;
-            saveGame();
-            showScreen('screen-city');
-            updateUI();
-        }
+// Остальные функции (showScreen, saveGame, updateUI, startDungeon) остаются такими же
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
 
-        init();
+function saveGame() {
+    localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState));
+}
+
+function updateUI() {
+    if (!gameState) return;
+    document.getElementById('display-name').innerText = gameState.friend;
+    document.getElementById('display-class').innerText = gameState.class;
+    document.getElementById('gold').innerText = gameState.gold;
+    document.getElementById('lvl').innerText = gameState.lvl;
+    document.getElementById('hp').innerText = gameState.hp;
+    document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+}
+
+function startDungeon() { showScreen('screen-battle'); }
+
+init();
     </script>
 </body>
 </html>
