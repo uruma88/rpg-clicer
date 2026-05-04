@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>🍺 Писок Данжен · Полноценная RPG</title>
+    <title>🍺 Писок Данжен · Город + PvP</title>
     <style>
         * {
             box-sizing: border-box;
@@ -38,6 +38,7 @@
             justify-content: space-between;
             gap: 6px;
             margin-bottom: 16px;
+            cursor: pointer;
         }
         .stat {
             background: #00000077;
@@ -48,14 +49,40 @@
             font-size: 11px;
             display: flex;
             gap: 5px;
-            cursor: pointer;
         }
+        .city-map {
+            background: #2a4b2f;
+            border-radius: 48px;
+            padding: 16px 8px;
+            background-image: radial-gradient(circle at 20% 40%, #3c6e3a, #1d381b);
+            margin-bottom: 16px;
+        }
+        .map-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .map-location {
+            background: #4c351be0;
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 10px;
+            text-align: center;
+            width: 100px;
+            cursor: pointer;
+            border: 1px solid #ffda99;
+        }
+        .map-location:active { transform: scale(0.96); background: #f3b33d; color: black; }
+        .map-emoji { font-size: 36px; }
         .battle-card {
             background: #2a2113dd;
             border-radius: 40px;
             padding: 16px;
             margin-bottom: 16px;
             text-align: center;
+            transition: 0.08s linear;
         }
         .enemy-avatar { font-size: 70px; }
         .enemy-name {
@@ -82,7 +109,7 @@
         }
         .action-buttons {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin: 16px 0;
         }
@@ -108,49 +135,6 @@
             font-size: 11px;
             color: #ffdd99;
             margin-top: 12px;
-        }
-        .tab-bar {
-            display: flex;
-            gap: 8px;
-            margin: 12px 0;
-        }
-        .tab {
-            flex: 1;
-            background: #4c351b;
-            text-align: center;
-            padding: 8px;
-            border-radius: 60px;
-            color: #ffdd99;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .tab.active {
-            background: #f3b33d;
-            color: #2d1d07;
-        }
-        .panel {
-            display: none;
-            background: #2a2113dd;
-            border-radius: 36px;
-            padding: 16px;
-            margin-top: 10px;
-        }
-        .panel.active { display: block; }
-        .upgrade-item {
-            background: #c7a86b;
-            border-radius: 40px;
-            padding: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .shop-item {
-            background: #c7a86b;
-            border-radius: 40px;
-            padding: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
         }
         .damage-number {
             position: fixed;
@@ -195,46 +179,61 @@
             z-index: 1000;
             pointer-events: none;
         }
+        .upgrade-item, .shop-item {
+            background: #c7a86b;
+            border-radius: 40px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .friends-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .friend-card {
+            background: #c7a86b;
+            border-radius: 40px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            width: 80px;
+        }
+        .friend-card.selected { background: #f3b33d; }
+        .friend-avatar {
+            width: 50px; height: 50px; margin: 0 auto; background: #5e3e1e;
+            border-radius: 50%; overflow: hidden;
+        }
+        .friend-avatar img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 <div class="game-container">
     <div class="stats-panel" id="statsPanel">
-        <div class="stat" data-tip="🍺 Золото">🍺 <span id="gold">200</span></div>
-        <div class="stat" data-tip="⚔️ Общий урон">⚔️ <span id="totalDamage">0</span></div>
-        <div class="stat" data-tip="❤️ Здоровье">❤️ <span id="hp">90</span>/<span id="maxHp">90</span></div>
-        <div class="stat" data-tip="💙 Очки действий">💙 <span id="ap">100</span>/<span id="maxAp">100</span></div>
-        <div class="stat" data-tip="🌟 Уровень">🌟 <span id="level">1</span></div>
-        <div class="stat" data-tip="🏔️ Этаж подземелья">🏔️ <span id="floor">1</span></div>
+        <div class="stat">🍺 <span id="gold">200</span></div>
+        <div class="stat">⚔️ <span id="totalDamage">0</span></div>
+        <div class="stat">❤️ <span id="hp">90</span>/<span id="maxHp">90</span></div>
+        <div class="stat">💙 <span id="ap">100</span>/<span id="maxAp">100</span></div>
+        <div class="stat">🌟 <span id="level">1</span></div>
+        <div class="stat">🏔️ <span id="floor">1</span></div>
     </div>
 
-    <!-- БОЕВАЯ ОБЛАСТЬ (меняется динамически) -->
-    <div id="battleArea"></div>
-
-    <div class="tab-bar">
-        <div class="tab" data-tab="stats">📊 СТАТЫ</div>
-        <div class="tab" data-tab="shop">🛒 МАГАЗИН</div>
-        <div class="tab" data-tab="rating">🏆 РЕЙТИНГ</div>
+    <!-- КАРТА ГОРОДА -->
+    <div class="city-map" id="cityMap">
+        <div class="map-grid">
+            <div class="map-location" data-loc="tavern">🍺<div>ТАВЕРНА</div></div>
+            <div class="map-location" data-loc="smith">⚒️<div>КУЗНЕЦ</div></div>
+            <div class="map-location" data-loc="guild">👥<div>ГИЛЬДИЯ</div></div>
+            <div class="map-location" data-loc="gate">🚪<div>ВОРОТА</div></div>
+        </div>
     </div>
 
-    <div id="statsPanelTab" class="panel">
-        <div class="upgrade-item"><span>💪 СИЛА (урон / воин)</span><button id="upgradeStr">+ (1 очко)</button></div>
-        <div class="upgrade-item"><span>🧠 ИНТЕЛЛЕКТ (магия / маг)</span><button id="upgradeInt">+ (1 очко)</button></div>
-        <div class="upgrade-item"><span>🏃‍♂️ ЛОВКОСТЬ (крит / вор)</span><button id="upgradeAgi">+ (1 очко)</button></div>
-        <div class="upgrade-item"><span>❤️ ЗДОРОВЬЕ</span><button id="upgradeVit">+ (1 очко)</button></div>
-        <div class="upgrade-item"><span>✨ ОЧКИ НАВЫКОВ: <span id="skillPoints">0</span></span></div>
-    </div>
-
-    <div id="shopPanel" class="panel">
-        <div class="shop-item" data-item="club">🗡️ ДУБИНА (треб: сила 12) +5⚔️ <button>150🍺</button></div>
-        <div class="shop-item" data-item="staff">🔮 ПОСОХ (треб: интеллект 12) +8 урона магией <button>160🍺</button></div>
-        <div class="shop-item" data-item="dagger">🗡️ КИНЖАЛ (треб: ловкость 12) +6⚔️ +шанс крита <button>140🍺</button></div>
-        <div class="shop-item" data-item="armor">🛡️ КОЖАНАЯ БРОНЯ (треб: сила 10) +15❤️ <button>120🍺</button></div>
-    </div>
-
-    <div id="ratingPanel" class="panel">
-        <div id="ratingList">🏆 ТОП ИГРОКОВ ПО СИЛЕ 🏆</div>
-    </div>
+    <!-- КОНТЕНТ ЛОКАЦИИ (меняется) -->
+    <div id="locationContent"></div>
 
     <div class="log-area" id="logArea"></div>
 </div>
@@ -260,35 +259,30 @@
         { name: "Юра", avatar: "avatars/юра.jpg", emoji: "🌪️", baseStr: 3, baseInt: 2, baseAgi: 3, baseVit: 2 }
     ];
 
-    // ---------- СОСТОЯНИЕ ИГРОКА ----------
+    // ---------- ИГРОК ----------
     let game = {
-        gold: 250,
-        level: 1,
-        exp: 0,
-        xpToNext: 100,
-        skillPoints: 0,
-        strength: 10,   // урон, воин
-        intelligence: 10, // магия
-        agility: 10,     // крит, вор
-        vitality: 10,    // здоровье
+        gold: 300,
+        level: 1, exp: 0, xpToNext: 100, skillPoints: 0,
+        strength: 10, intelligence: 10, agility: 10, vitality: 10,
         ap: 100, maxAp: 100,
         floor: 1,
-        className: null,
-        classLocked: false,
+        className: null, classLocked: false,
         friend: null,
-        items: { weapon: null, armor: null }
+        weapon: null, armor: null
     };
-
     let currentEnemy = null;
     let waitingForAction = true;
     let logs = [];
+    let inDungeon = false;
+    let currentLocation = "tavern";
 
     function addLog(msg) { logs.unshift(`🍺 ${msg}`); if(logs.length>6) logs.pop(); document.getElementById('logArea').innerHTML = logs.join('<br>'); }
-    function totalStrength() { let w = game.items.weapon?.bonusStr || 0; return game.strength + w + (game.className==='warrior'? Math.floor(game.strength*0.2):0); }
-    function totalIntelligence() { let w = game.items.weapon?.bonusInt || 0; return game.intelligence + w + (game.className==='mage'? Math.floor(game.intelligence*0.2):0); }
+    function totalStrength() { let w = game.weapon?.bonusStr || 0; return game.strength + w + (game.className==='warrior'? Math.floor(game.strength*0.2):0); }
+    function totalIntelligence() { let w = game.weapon?.bonusInt || 0; return game.intelligence + w + (game.className==='mage'? Math.floor(game.intelligence*0.2):0); }
     function totalAgility() { return game.agility + (game.className==='rogue'? Math.floor(game.agility*0.15):0); }
-    function totalMaxHp() { return 80 + game.vitality*5 + (game.items.armor?.bonusHp||0); }
+    function totalMaxHp() { return 80 + game.vitality*5 + (game.armor?.bonusHp||0); }
     function calcDamage() { return Math.floor(totalStrength() + Math.random()*8) + (game.className==='mage'? Math.floor(totalIntelligence()*0.3):0); }
+    function powerScore() { return Math.floor(game.level*10 + totalStrength()*2 + totalIntelligence()*2 + totalAgility()*2 + game.vitality*3); }
 
     function updateUI() {
         document.getElementById('gold').innerText = Math.floor(game.gold);
@@ -300,66 +294,18 @@
         document.getElementById('maxAp').innerText = game.maxAp;
         document.getElementById('level').innerText = game.level;
         document.getElementById('floor').innerText = game.floor;
-        document.getElementById('skillPoints').innerText = game.skillPoints;
-        if(currentEnemy) {
+        if(currentEnemy && document.getElementById('enemyHpFill')) {
             let percent = (currentEnemy.hp/currentEnemy.maxHp)*100;
-            let fill = document.getElementById('enemyHpFill');
-            if(fill) fill.style.width = `${Math.max(0,percent)}%`;
-            let txt = document.getElementById('enemyHpText');
-            if(txt) txt.innerHTML = `❤️ ${Math.floor(currentEnemy.hp)}/${currentEnemy.maxHp}`;
-        }
-        updateLeaderboard();
-    }
-
-    function saveGame() { localStorage.setItem('pisokFullSave', JSON.stringify(game)); }
-    function loadGame() { let s = localStorage.getItem('pisokFullSave'); if(s) { try { let d = JSON.parse(s); for(let k in d) game[k] = d[k]; } catch(e){} } game.hp = Math.min(game.hp, totalMaxHp()); }
-
-    // ---------- ВЫБОР ПЕРСОНАЖА И КЛАССА (ПЕРВЫЙ ЭКРАН) ----------
-    function showCharacterAndClassSelection() {
-        let container = document.getElementById('battleArea');
-        container.innerHTML = `<div style="text-align:center; margin-bottom:12px;">🍺 ВЫБЕРИ СЕБЯ (друга)</div>
-            <div id="friendSelect" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-height:200px; overflow-y:auto;"></div>
-            <div id="classSelectArea" style="margin-top:16px;"></div>`;
-        let friendDiv = document.getElementById('friendSelect');
-        FRIENDS.forEach(f => {
-            let btn = document.createElement('div'); btn.className = 'btn'; btn.style.padding='6px'; btn.innerText = `${f.emoji} ${f.name}`;
-            btn.onclick = () => {
-                game.friend = f;
-                game.strength = f.baseStr;
-                game.intelligence = f.baseInt;
-                game.agility = f.baseAgi;
-                game.vitality = f.baseVit;
-                game.hp = totalMaxHp();
-                renderClassButtons();
-                addLog(`🎭 Выбран персонаж: ${f.name}`);
-                updateUI();
-            };
-            friendDiv.appendChild(btn);
-        });
-        function renderClassButtons() {
-            let classDiv = document.getElementById('classSelectArea');
-            classDiv.innerHTML = `<div style="display:flex; gap:12px; justify-content:center;"><div class="btn" data-class="warrior">⚔️ ВОИН</div><div class="btn" data-class="mage">🧙 МАГ</div><div class="btn" data-class="rogue">🗡️ ВОР</div></div><div style="text-align:center; margin-top:8px;">Выбери класс навсегда</div>`;
-            document.querySelectorAll('[data-class]').forEach(btn => {
-                btn.onclick = () => {
-                    if(game.classLocked) return;
-                    game.className = btn.dataset.class;
-                    game.classLocked = true;
-                    addLog(`🎭 Класс выбран: ${game.className.toUpperCase()}`);
-                    saveGame();
-                    startGameLoop();
-                };
-            });
+            document.getElementById('enemyHpFill').style.width = `${Math.max(0,percent)}%`;
+            document.getElementById('enemyHpText').innerHTML = `❤️ ${Math.floor(currentEnemy.hp)}/${currentEnemy.maxHp}`;
         }
     }
-
-    function startGameLoop() {
-        startBattle();
-        renderBattleUI();
-        updateUI();
-    }
+    function saveGame() { localStorage.setItem('pisokFull', JSON.stringify(game)); }
+    function loadGame() { let s = localStorage.getItem('pisokFull'); if(s) { try { let d = JSON.parse(s); for(let k in d) game[k]=d[k]; } catch(e){} } game.hp = Math.min(game.hp, totalMaxHp()); }
 
     // ---------- БОЙ ----------
     function startBattle() {
+        inDungeon = true;
         let enemies = [
             { name: "🍺 Пиво", emoji: "🍺", hp: 55, maxHp:55, damage: 8, gold:30, exp:35 },
             { name: "🛢️ Бочка", emoji: "🛢️", hp: 80, maxHp:80, damage: 10, gold:45, exp:45 },
@@ -370,11 +316,12 @@
         else { let idx = Math.floor(Math.random()*enemies.length); currentEnemy = { ...enemies[idx], hp: enemies[idx].hp, maxHp: enemies[idx].hp }; }
         waitingForAction = true;
         addLog(`⚔️ Бой! ${currentEnemy.name}`);
+        renderBattleUI();
         updateUI();
     }
 
     function renderBattleUI() {
-        let container = document.getElementById('battleArea');
+        let container = document.getElementById('locationContent');
         container.innerHTML = `
             <div class="battle-card" id="battleCard">
                 <div class="enemy-avatar">${currentEnemy.emoji}</div>
@@ -386,24 +333,26 @@
                 <div class="btn" id="attackBtn">⚔️ АТАКА</div>
                 <div class="btn" id="skillBtn">✨ СПОСОБНОСТЬ</div>
                 <div class="btn" id="restBtn">😴 ОТДЫХ</div>
+                <div class="btn" id="runBtn">🏃‍♂️ СДАЧА</div>
             </div>
         `;
         document.getElementById('attackBtn').onclick = attack;
         document.getElementById('skillBtn').onclick = skill;
-        document.getElementById('restBtn').onclick = rest;
+        document.getElementById('restBtn').onclick = () => { if(waitingForAction){ game.ap=Math.min(game.maxAp,game.ap+20); addLog(`😴 +20 AP`); waitingForAction=false; updateUI(); setTimeout(enemyTurn,600); } };
+        document.getElementById('runBtn').onclick = () => { inDungeon=false; showCity(); addLog(`Вы вернулись в город`); };
     }
 
-    function animateDamage(target, isPlayer = false) {
+    function animateDamage(isPlayer) {
         let card = document.getElementById('battleCard');
         if(card) card.classList.add('shake');
         if(isPlayer) {
-            let area = document.getElementById('battleArea');
+            let area = document.getElementById('locationContent');
             if(area) area.classList.add('flash-red');
             setTimeout(()=>{ if(area) area.classList.remove('flash-red'); }, 300);
         }
         setTimeout(()=>{ if(card) card.classList.remove('shake'); }, 300);
-        let dmgDiv = document.createElement('div'); dmgDiv.className = 'damage-number';
-        dmgDiv.innerText = '-УДАР!'; dmgDiv.style.left = '45%'; dmgDiv.style.top = '30%';
+        let dmgDiv = document.createElement('div'); dmgDiv.className = 'damage-number'; dmgDiv.innerText = '-УДАР!';
+        dmgDiv.style.left = '45%'; dmgDiv.style.top = '30%';
         document.body.appendChild(dmgDiv); setTimeout(()=>dmgDiv.remove(), 500);
     }
 
@@ -412,16 +361,12 @@
         game.exp += currentEnemy.exp;
         addLog(`🏆 ПОБЕДА! +${currentEnemy.gold}🍺 +${currentEnemy.exp} XP`);
         if(game.exp >= game.xpToNext) {
-            game.level++;
-            game.exp -= game.xpToNext;
-            game.xpToNext = Math.floor(game.xpToNext * 1.2);
-            game.skillPoints += 3;
+            game.level++; game.exp -= game.xpToNext; game.xpToNext = Math.floor(game.xpToNext * 1.2); game.skillPoints += 3;
             addLog(`🎉 УРОВЕНЬ ${game.level}! +3 очка навыков! 🎉`);
         }
         game.floor++;
         saveGame();
         startBattle();
-        renderBattleUI();
         updateUI();
     }
 
@@ -435,9 +380,7 @@
         addLog(`⚔️ Удар! ${dmg} урона`);
         animateDamage(false);
         if(currentEnemy.hp <= 0) { victory(); updateUI(); return; }
-        waitingForAction = false;
-        updateUI();
-        setTimeout(enemyTurn, 700);
+        waitingForAction = false; updateUI(); setTimeout(enemyTurn, 700);
     }
 
     function skill() {
@@ -451,9 +394,7 @@
         currentEnemy.hp -= dmg;
         animateDamage(false);
         if(currentEnemy.hp <= 0) { victory(); updateUI(); return; }
-        waitingForAction = false;
-        updateUI();
-        setTimeout(enemyTurn, 600);
+        waitingForAction = false; updateUI(); setTimeout(enemyTurn, 600);
     }
 
     function enemyTurn() {
@@ -461,103 +402,174 @@
         let dmg = currentEnemy.damage;
         game.hp -= dmg;
         addLog(`😖 ${currentEnemy.name} атакует! -${dmg} HP`);
-        animateDamage(true, true);
+        animateDamage(true);
         if(game.hp <= 0) {
             addLog(`💀 ПОРАЖЕНИЕ! -30 золота`);
             game.gold = Math.max(0, game.gold-30);
-            game.hp = totalMaxHp();
-            game.ap = game.maxAp;
-            startBattle();
-            renderBattleUI();
+            game.hp = totalMaxHp(); game.ap = game.maxAp;
+            inDungeon=false; showCity(); return;
         }
-        waitingForAction = true;
-        updateUI();
-        saveGame();
+        waitingForAction = true; updateUI(); saveGame();
     }
 
-    function rest() {
-        if(!waitingForAction) return;
-        game.ap = Math.min(game.maxAp, game.ap+20);
-        addLog(`😴 Отдых! +20 AP`);
-        waitingForAction = false;
-        updateUI();
-        setTimeout(enemyTurn, 600);
+    // ---------- ЛОКАЦИИ ----------
+    function showCity() {
+        inDungeon = false;
+        currentLocation = "tavern";
+        renderCityContent();
+        document.querySelectorAll('.map-location').forEach(el => {
+            el.classList.remove('current-location');
+            if(el.dataset.loc === currentLocation) el.classList.add('current-location');
+        });
     }
 
-    // ---------- ПРОКАЧКА СТАТОВ ----------
-    function upgradeStat(stat) {
-        if(game.skillPoints <= 0) { addLog(`❌ Нет очков навыков`); return; }
-        game.skillPoints--;
-        if(stat === 'str') game.strength++;
-        else if(stat === 'int') game.intelligence++;
-        else if(stat === 'agi') game.agility++;
-        else if(stat === 'vit') game.vitality++;
-        game.hp = totalMaxHp();
-        addLog(`➕ ${stat.toUpperCase()} +1`);
+    function renderCityContent() {
+        let container = document.getElementById('locationContent');
+        if(currentLocation === 'tavern') {
+            container.innerHTML = `<div class="upgrade-item">💰 Золото: ${Math.floor(game.gold)}</div>
+                <div class="btn" id="healBtn">💚 ЛЕЧЕНИЕ (30🍺)</div>
+                <div class="btn" id="statsShowBtn">📊 МОИ СТАТЫ</div>`;
+            document.getElementById('healBtn')?.addEventListener('click', ()=>{
+                if(game.gold>=30){ game.gold-=30; game.hp=totalMaxHp(); game.ap=game.maxAp; addLog(`💚 Полное лечение!`); saveGame(); renderCityContent(); updateUI(); }
+                else addLog(`❌ Нужно 30 золота`);
+            });
+            document.getElementById('statsShowBtn')?.addEventListener('click', ()=>{
+                addLog(`💪Сила:${totalStrength()} 🧠Инт:${totalIntelligence()} 🏃Ловк:${totalAgility()} ❤️Здор:${totalMaxHp()}`);
+            });
+        }
+        else if(currentLocation === 'smith') {
+            container.innerHTML = `<div class="shop-item" data-item="club">🗡️ ДУБИНА (треб: сила 12) +5⚔️ <button>150🍺</button></div>
+                <div class="shop-item" data-item="staff">🔮 ПОСОХ (треб: интел 12) +8 маг <button>160🍺</button></div>
+                <div class="shop-item" data-item="armor">🛡️ БРОНЯ (треб: сила 10) +15❤️ <button>120🍺</button></div>`;
+            document.querySelectorAll('[data-item]').forEach(el => {
+                let btn = el.querySelector('button');
+                let id = el.dataset.item;
+                btn.onclick = () => buyItem(id);
+            });
+        }
+        else if(currentLocation === 'guild') {
+            container.innerHTML = `<div class="friends-grid" id="friendsGrid"></div><div id="classSelectArea"></div><div id="pvpArea"><div class="btn" id="pvpBtn">⚔️ ВЫЗВАТЬ НА PVP ⚔️</div></div>`;
+            renderFriendsGrid();
+            renderClassButtons();
+            document.getElementById('pvpBtn')?.addEventListener('click', pvpBattle);
+        }
+        else if(currentLocation === 'gate') {
+            container.innerHTML = `<div class="btn" id="startRunBtn">🍺 НАЧАТЬ ЗАБЕГ</div>`;
+            document.getElementById('startRunBtn')?.addEventListener('click', startBattle);
+        }
         updateUI();
-        saveGame();
     }
 
-    // ---------- МАГАЗИН С ТРЕБОВАНИЯМИ СТАТОВ ----------
-    function buyItem(itemId) {
-        if(itemId === 'club' && game.strength>=12 && game.gold>=150) { game.gold-=150; game.items.weapon = { name:"Дубина", bonusStr:5, bonusInt:0 }; addLog(`🗡️ Куплена дубина! +5 силы`); }
-        else if(itemId === 'staff' && game.intelligence>=12 && game.gold>=160) { game.gold-=160; game.items.weapon = { name:"Посох", bonusStr:0, bonusInt:8 }; addLog(`🔮 Куплен посох! +8 интеллекта`); }
-        else if(itemId === 'dagger' && game.agility>=12 && game.gold>=140) { game.gold-=140; game.items.weapon = { name:"Кинжал", bonusStr:6, bonusInt:0 }; addLog(`🗡️ Куплен кинжал! +6 силы, шанс крита`); }
-        else if(itemId === 'armor' && game.strength>=10 && game.gold>=120) { game.gold-=120; game.items.armor = { name:"Кожаная броня", bonusHp:15 }; addLog(`🛡️ Куплена броня! +15 HP`); }
-        else { addLog(`❌ Не хватает золота или не выполнены требования статов`); return; }
-        updateUI();
-        saveGame();
+    function renderFriendsGrid() {
+        let grid = document.getElementById('friendsGrid');
+        if(!grid) return;
+        grid.innerHTML = '';
+        FRIENDS.forEach(f=>{
+            let div = document.createElement('div'); div.className = `friend-card ${game.friend?.name===f.name?'selected':''}`;
+            div.innerHTML = `<div class="friend-avatar"><img src="${f.avatar}" onerror="this.style.display='none'; this.parentElement.innerHTML='${f.emoji}'"></div><div>${f.name}</div>`;
+            div.onclick = () => {
+                if(game.friend?.name===f.name) return;
+                game.friend = f;
+                game.strength = f.baseStr; game.intelligence = f.baseInt; game.agility = f.baseAgi; game.vitality = f.baseVit;
+                game.hp = totalMaxHp();
+                addLog(`🍻 Выбран друг: ${f.name}`);
+                saveGame(); renderFriendsGrid(); updateUI();
+            };
+            grid.appendChild(div);
+        });
     }
 
-    // ---------- РЕЙТИНГ (Power Score) ----------
-    function calcPowerScore() { return Math.floor(game.level*10 + game.strength*2 + game.intelligence*2 + game.agility*2 + game.vitality*3 + (game.items.weapon?.bonusStr||0)*2); }
-    function updateLeaderboard() {
-        let power = calcPowerScore();
+    function renderClassButtons() {
+        let div = document.getElementById('classSelectArea');
+        if(!div) return;
+        if(game.classLocked) { div.innerHTML = `<div style="text-align:center;">🎭 КЛАСС ВЫБРАН: ${game.className?.toUpperCase()}</div>`; return; }
+        div.innerHTML = `<div style="display:flex; gap:12px; justify-content:center; margin-top:12px;"><div class="btn" data-class="warrior">⚔️ ВОИН</div><div class="btn" data-class="mage">🧙 МАГ</div><div class="btn" data-class="rogue">🗡️ ВОР</div></div>`;
+        document.querySelectorAll('[data-class]').forEach(btn => {
+            btn.onclick = () => {
+                if(game.classLocked) return;
+                game.className = btn.dataset.class; game.classLocked = true;
+                addLog(`🎭 Класс выбран: ${game.className.toUpperCase()}`);
+                saveGame(); renderClassButtons();
+            };
+        });
+    }
+
+    function buyItem(id) {
+        if(id==='club' && game.strength>=12 && game.gold>=150) { game.gold-=150; game.weapon={name:"Дубина", bonusStr:5}; addLog(`🗡️ Куплена дубина! +5 силы`); saveGame(); renderCityContent(); updateUI(); }
+        else if(id==='staff' && game.intelligence>=12 && game.gold>=160) { game.gold-=160; game.weapon={name:"Посох", bonusInt:8}; addLog(`🔮 Куплен посох! +8 интеллекта`); saveGame(); renderCityContent(); updateUI(); }
+        else if(id==='armor' && game.strength>=10 && game.gold>=120) { game.gold-=120; game.armor={name:"Броня", bonusHp:15}; addLog(`🛡️ Куплена броня! +15 HP`); saveGame(); renderCityContent(); updateUI(); }
+        else addLog(`❌ Не хватает золота или требований`);
+    }
+
+    // ---------- PVP ----------
+    function pvpBattle() {
         let leaderboard = JSON.parse(localStorage.getItem('pisokLeaderboard') || '[]');
-        let existing = leaderboard.find(p => p.id === (window.userId || 1));
-        if(!existing) leaderboard.push({ id: window.userId || 1, name: game.friend?.name || "Игрок", power: power, level: game.level });
-        else { existing.power = power; existing.level = game.level; }
-        leaderboard.sort((a,b)=> b.power - a.power);
-        localStorage.setItem('pisokLeaderboard', JSON.stringify(leaderboard.slice(0,10)));
-        let container = document.getElementById('ratingList');
-        if(container) {
-            container.innerHTML = '🏆 ТОП ПО СИЛЕ 🏆<br>' + leaderboard.slice(0,5).map((p,i)=> `${i+1}. ${p.name} — ⚡${p.power} (lvl${p.level})`).join('<br>');
-        }
+        let opponents = leaderboard.filter(p => p.id !== (window.userId || 1));
+        if(opponents.length===0) { addLog(`❌ Нет соперников`); return; }
+        let opp = opponents[Math.floor(Math.random()*opponents.length)];
+        let myPower = powerScore();
+        if(myPower > opp.power) {
+            game.gold += 50;
+            addLog(`🏆 PVP ПОБЕДА над ${opp.name}! +50🍺`);
+        } else addLog(`💀 ПВП ПОРАЖЕНИЕ от ${opp.name}`);
+        saveGame(); updateUI();
     }
 
-    // ---------- ТУЛТИПЫ ----------
-    document.querySelectorAll('.stat').forEach(el => {
-        el.addEventListener('mouseenter', (e) => {
-            let tip = document.createElement('div'); tip.className = 'tooltip'; tip.innerText = el.dataset.tip || '';
-            document.body.appendChild(tip);
-            tip.style.left = e.pageX + 'px'; tip.style.top = (e.pageY-30) + 'px';
-            el.addEventListener('mouseleave', ()=> tip.remove(), {once:true});
-        });
-    });
+    function updateLeaderboard() {
+        let leaderboard = JSON.parse(localStorage.getItem('pisokLeaderboard') || '[]');
+        let self = leaderboard.find(p => p.id === (window.userId || 1));
+        if(!self) leaderboard.push({ id: window.userId || 1, name: game.friend?.name || "Игрок", power: powerScore(), level: game.level });
+        else { self.power = powerScore(); self.level = game.level; }
+        leaderboard.sort((a,b)=>b.power - a.power);
+        localStorage.setItem('pisokLeaderboard', JSON.stringify(leaderboard.slice(0,10)));
+    }
 
-    // ---------- ПАНЕЛИ ----------
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(tab.dataset.tab + 'Panel').classList.add('active');
+    // ---------- ПЕРЕКЛЮЧЕНИЕ ЛОКАЦИЙ ----------
+    function switchLocation(loc) {
+        if(inDungeon) { addLog(`Сначала закончи бой!`); return; }
+        currentLocation = loc;
+        document.querySelectorAll('.map-location').forEach(el=>{
+            el.classList.remove('current-location');
+            if(el.dataset.loc === loc) el.classList.add('current-location');
         });
-    });
+        renderCityContent();
+    }
 
-    document.getElementById('upgradeStr')?.addEventListener('click',()=>upgradeStat('str'));
-    document.getElementById('upgradeInt')?.addEventListener('click',()=>upgradeStat('int'));
-    document.getElementById('upgradeAgi')?.addEventListener('click',()=>upgradeStat('agi'));
-    document.getElementById('upgradeVit')?.addEventListener('click',()=>upgradeStat('vit'));
-    document.querySelectorAll('[data-item]').forEach(el => {
-        let btn = el.querySelector('button');
-        let id = el.dataset.item;
-        if(btn) btn.addEventListener('click', ()=>buyItem(id));
+    document.querySelectorAll('.map-location').forEach(el=>{
+        el.addEventListener('click',()=>switchLocation(el.dataset.loc));
     });
 
     // ---------- СТАРТ ----------
     loadGame();
-    if(!game.classLocked || !game.friend) showCharacterAndClassSelection();
-    else { startGameLoop(); }
+    if(!game.classLocked || !game.friend) {
+        document.getElementById('cityMap').style.display = 'none';
+        document.getElementById('locationContent').innerHTML = `<div id="friendSelect" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div><div id="classSelectFirst"></div>`;
+        let friendDiv = document.getElementById('friendSelect');
+        FRIENDS.forEach(f => {
+            let btn = document.createElement('div'); btn.className = 'btn'; btn.innerText = `${f.emoji} ${f.name}`;
+            btn.onclick = () => {
+                game.friend = f;
+                game.strength = f.baseStr; game.intelligence = f.baseInt; game.agility = f.baseAgi; game.vitality = f.baseVit;
+                game.hp = totalMaxHp();
+                document.getElementById('classSelectFirst').innerHTML = `<div style="display:flex; gap:10px; margin-top:12px;"><div class="btn" data-class="warrior">⚔️ ВОИН</div><div class="btn" data-class="mage">🧙 МАГ</div><div class="btn" data-class="rogue">🗡️ ВОР</div></div>`;
+                document.querySelectorAll('[data-class]').forEach(cb=>{
+                    cb.onclick = () => {
+                        game.className = cb.dataset.class; game.classLocked = true;
+                        document.getElementById('cityMap').style.display = 'block';
+                        showCity();
+                        saveGame();
+                    };
+                });
+            };
+            friendDiv.appendChild(btn);
+        });
+    } else {
+        document.getElementById('cityMap').style.display = 'block';
+        showCity();
+    }
+    updateLeaderboard();
     updateUI();
+    addLog(`🍺 Добро пожаловать в Писок Данжен!`);
 </script>
 </body>
 </html>
