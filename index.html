@@ -7,33 +7,37 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Courier New', monospace; image-rendering: pixelated; }
-        #game-container { max-width: 500px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
-        .screen { display: none; flex-direction: column; align-items: center; padding: 10px; text-align: center; flex-grow: 1; }
+        #game-container { max-width: 500px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .screen { display: none; flex-direction: column; align-items: center; padding: 10px; text-align: center; width: 100%; }
         .active { display: flex; }
 
         /* Сетка персонажей */
-        .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; max-height: 60vh; overflow-y: auto; padding: 10px; }
-        .avatar-card { border: 2px solid #444; padding: 5px; cursor: pointer; background: #222; border-radius: 8px; }
-        .avatar-card img { width: 70px; height: 70px; object-fit: cover; display: block; border-radius: 4px; margin-bottom: 5px; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; max-height: 50vh; overflow-y: auto; padding: 10px; }
+        .avatar-card { border: 2px solid #444; padding: 5px; cursor: pointer; background: #222; border-radius: 8px; width: 80px; }
+        .avatar-card img { width: 100%; height: 70px; object-fit: cover; display: block; border-radius: 4px; }
         .avatar-card.selected { border-color: #f1c40f; background: #443300; }
 
         /* Карта города */
-        #city-map { width: 320px; height: 320px; background: #2d5a27; border: 4px solid #5d4037; position: relative; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .building { position: absolute; cursor: pointer; font-size: 40px; text-align: center; }
+        #city-map { width: 320px; height: 320px; background: #2d5a27; border: 4px solid #5d4037; position: relative; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        .building { position: absolute; cursor: pointer; font-size: 40px; text-align: center; z-index: 2; }
         
         /* Инвентарь */
-        #inventory-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 10px; }
-        .item-slot { width: 50px; height: 50px; background: #333; border: 1px solid #666; font-size: 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+        #inventory-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 10px; min-height: 60px; background: #111; border-radius: 10px; padding: 10px; width: 90%; border: 1px solid #333; }
+        .item-slot { width: 45px; height: 45px; background: #333; border: 1px solid #666; font-size: 24px; display: flex; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; }
 
-        button { padding: 12px 20px; background: #5d4037; color: #fff; border: 3px solid #3e2723; cursor: pointer; font-family: inherit; margin: 5px; border-radius: 5px; }
-        .hp-bar { width: 200px; height: 20px; background: #333; border: 2px solid #fff; position: relative; margin: 10px 0; }
+        button { padding: 12px 20px; background: #5d4037; color: #fff; border: 3px solid #3e2723; cursor: pointer; font-family: inherit; margin: 5px; border-radius: 8px; font-weight: bold; }
+        .hp-bar { width: 220px; height: 25px; background: #333; border: 2px solid #fff; position: relative; margin: 5px 0; overflow: hidden; border-radius: 5px; }
         #hp-fill { background: #e74c3c; height: 100%; width: 100%; transition: 0.3s; }
-        #battle-log { width: 90%; background: rgba(0,0,0,0.8); height: 80px; overflow-y: auto; font-size: 12px; padding: 10px; margin-top: 10px; border: 1px solid #444; }
+        #enemy-hp-fill { background: #a29bfe; height: 100%; width: 100%; transition: 0.3s; }
+        .hp-text { position: absolute; width: 100%; top: 50%; left: 0; transform: translateY(-50%); color: #fff; font-size: 12px; text-shadow: 1px 1px 2px #000; z-index: 3; font-weight: bold; }
+        
+        #battle-log { width: 90%; background: rgba(0,0,0,0.8); height: 100px; overflow-y: auto; font-size: 12px; padding: 10px; margin-top: 15px; border: 1px solid #444; text-align: left; }
+        #battle-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #f1c40f; object-fit: cover; margin-bottom: 5px; }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <!-- ВЫБОР ПЕРСОНАЖА -->
+        <!-- ЭКРАН 1: ВЫБОР -->
         <div id="screen-setup" class="screen">
             <h2>КТО ТЫ ИЗ БАНДЫ?</h2>
             <div class="avatar-grid" id="friends-list"></div>
@@ -45,61 +49,56 @@
             </div>
         </div>
 
-        <!-- ГОРОД -->
+        <!-- ЭКРАН 2: ГОРОД -->
         <div id="screen-city" class="screen">
-            <div id="header">
-                <b id="display-name">?</b> [<span id="display-class">-</span>]<br>
+            <div id="header" style="margin-bottom: 10px;">
+                <b id="display-name" style="font-size: 20px; color: #f1c40f;">?</b> [<span id="display-class">-</span>]<br>
                 💰 <span id="gold">0</span> | ⭐ LVL: <span id="lvl">1</span>
             </div>
+            
             <div id="city-map">
-                <button onclick="sellAllLoot()" style="background: #27ae60; border-color: #2ecc71;">💰 Продать весь лут</button>
                 <div class="building" style="top: 20px; left: 40px;" onclick="rest()">🍺<br><small style="font-size:10px">Таверна</small></div>
                 <div class="building" style="top: 20px; right: 40px;" onclick="alert('Кузница закрыта')">⚒️<br><small style="font-size:10px">Кузница</small></div>
                 <div class="building" style="top: 200px; left: 125px;" onclick="startDungeon()">🚪<br><small style="font-size:10px">В ДАНЖ</small></div>
             </div>
-            <h4>ИНВЕНТАРЬ (Loot)</h4>
+
+            <button onclick="sellAllLoot()" style="background: #27ae60; border-color: #1e8449;">💰 ПРОДАТЬ ЛУТ</button>
+
+            <h4 style="margin: 10px 0 5px 0;">ИНВЕНТАРЬ (Loot)</h4>
             <div id="inventory-list"></div>
         </div>
 
-        <!-- БОЙ -->
+        <!-- ЭКРАН 3: БОЙ -->
         <div id="screen-battle" class="screen">
-            <h2 style="color: #a29bfe;">БИТВА С МОНСТРОМ</h2>
+            <h2 style="color: #a29bfe;">БИТВА</h2>
             
-            <!-- ВРАГ -->
-            <div id="enemy-area" style="margin-bottom: 30px;">
+            <div id="enemy-area" style="margin-bottom: 20px;">
                 <div style="font-size: 50px;">👾</div>
-                <div style="font-size: 14px; margin-bottom: 5px;">ДИКИЙ СЛИЗЕНЬ</div>
+                <div style="font-size: 14px;">ДИКИЙ СЛИЗЕНЬ</div>
                 <div class="hp-bar">
-                    <div id="enemy-hp-fill" style="background:#a29bfe; width:100%; height:100%;"></div>
-                    <small style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#fff; text-shadow: 1px 1px 2px #000;">100 / 100</small>
+                    <div id="enemy-hp-fill"></div>
+                    <div class="hp-text" id="enemy-hp-text">100 / 100</div>
                 </div>
             </div>
 
-            <hr style="width: 80%; border: 1px solid #333;">
-
-            <!-- ИГРОК -->
-            <div id="player-area" style="margin-top: 20px;">
-                <div id="battle-avatar-container">
-                    <img id="battle-img" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #f1c40f; object-fit: cover;">
-                </div>
-                <div style="font-size: 16px; margin: 5px 0; color: #f1c40f;" id="battle-player-name">ГЕРОЙ</div>
-                
+            <div id="player-area">
+                <img id="battle-img" src="">
+                <div id="battle-player-name" style="color: #f1c40f; margin-bottom: 5px;">ГЕРОЙ</div>
                 <div class="hp-bar">
                     <div id="hp-fill"></div>
-                    <small id="hp-text" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#fff; text-shadow: 1px 1px 2px #000;">100 / 100</small>
+                    <div class="hp-text" id="hp-text">100 / 100</div>
                 </div>
-                
-                <button onclick="attack()" style="font-size: 20px; width: 200px; margin-top: 15px;">⚔️ УДАР!</button>
+                <button onclick="attack()" style="font-size: 20px; width: 220px; margin-top: 15px;">⚔️ УДАР!</button>
             </div>
 
             <div id="battle-log"></div>
         </div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Список из твоего скриншота
         const friends = [
             'алина', 'бень', 'богдан', 'ваня', 'егор', 'илюха', 
             'капрал', 'кирилл', 'лера', 'никитос', 'полина', 
@@ -110,7 +109,7 @@
             { n: "Огненный", b: 5, s: "str", e: "🔥" },
             { n: "Ледяной", b: 3, s: "str", e: "❄️" },
             { n: "Древний", b: 15, s: "hp", e: "📜" },
-            { n: "Быстрый", b: 2, s: "agi", e: "⚡" }
+            { n: "Быстрый", b: 2, s: "str", e: "⚡" }
         ];
 
         let gameState = JSON.parse(localStorage.getItem('pisok_rpg_save')) || null;
@@ -119,11 +118,12 @@
             if (!gameState) {
                 showScreen('screen-setup');
                 const list = document.getElementById('friends-list');
+                list.innerHTML = "";
                 friends.forEach(f => {
                     list.innerHTML += `
                         <div class="avatar-card" onclick="selectFriend('${f}')">
                             <img src="avatars/${f}.jpg" onerror="this.src='https://ui-avatars.com/api/?name=${f}'">
-                            <span style="font-size:12px">${f}</span>
+                            <div style="font-size:10px; margin-top:5px;">${f}</div>
                         </div>
                     `;
                 });
@@ -140,11 +140,72 @@
         }
 
         function selectClass(cl) {
-            if (!gameState || !gameState.friend) return alert('Выбери себя!');
+            if (!gameState || !gameState.friend) return alert('Выбери персонажа!');
             gameState.class = cl;
             saveGame();
             showScreen('screen-city');
             updateUI();
+        }
+
+        function updateUI() {
+            if (!gameState) return;
+            document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
+            document.getElementById('display-class').innerText = gameState.class;
+            document.getElementById('gold').innerText = gameState.gold;
+            document.getElementById('lvl').innerText = gameState.lvl;
+            
+            // HP в городе
+            const hpTextCity = document.getElementById('hp'); 
+            if(hpTextCity) hpTextCity.innerText = gameState.hp;
+
+            // HP и Полоски (в бою и городе)
+            const hpFill = document.getElementById('hp-fill');
+            const hpText = document.getElementById('hp-text');
+            if(hpFill) hpFill.style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+            if(hpText) hpText.innerText = `${gameState.hp} / ${gameState.maxHp}`;
+            
+            // Инвентарь
+            const invDiv = document.getElementById('inventory-list');
+            if (invDiv) {
+                invDiv.innerHTML = "";
+                gameState.inv.slice(-12).forEach((item) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'item-slot';
+                    slot.innerHTML = item.icon;
+                    slot.onclick = () => alert(`${item.name}\nБонус: +${item.bonus} к ${item.stat}`);
+                    invDiv.appendChild(slot);
+                });
+            }
+        }
+
+        function startDungeon() {
+            document.getElementById('battle-log').innerHTML = "Здесь будет история боя...<br>";
+            document.getElementById('battle-img').src = `avatars/${gameState.friend}.jpg`;
+            document.getElementById('battle-player-name').innerText = gameState.friend.toUpperCase();
+            
+            // Сброс здоровья врага
+            document.getElementById('enemy-hp-fill').style.width = '100%';
+            document.getElementById('enemy-hp-text').innerText = '100 / 100';
+            
+            showScreen('screen-battle');
+            updateUI();
+        }
+
+        function attack() {
+            // Твой удар
+            let dmg = gameState.str + Math.floor(Math.random() * 5);
+            let loot = generateLoot();
+            log(`Ты нанес ${dmg} урона!`);
+            log(`Нашел: ${loot.icon} ${loot.name}`);
+            
+            gameState.gold += 15;
+            saveGame();
+            
+            // Выход из боя через 2 сек
+            setTimeout(() => {
+                showScreen('screen-city');
+                updateUI();
+            }, 2000);
         }
 
         function generateLoot() {
@@ -156,83 +217,35 @@
             return item;
         }
 
-        function attack() {
-            let dmg = gameState.str + Math.floor(Math.random() * 5);
-            let loot = generateLoot();
-            log(`Ты нанес ${dmg} урона!`);
-            log(`Выпало: ${loot.icon} ${loot.name}`);
-            gameState.gold += 15;
-            saveGame();
-            setTimeout(() => { showScreen('screen-city'); updateUI(); }, 2000);
-        }
-
-        function rest() {
-            gameState.hp = gameState.maxHp;
-            alert("Здоровье восстановлено!");
-            saveGame();
-            updateUI();
-        }
-
-        // ОБНОВЛЕННАЯ ФУНКЦИЯ ИНТЕРФЕЙСА
-        function updateUI() {
-            if (!gameState) return;
-            
-            // Обновляем текст и полоски
-            document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
-            document.getElementById('display-class').innerText = gameState.class;
-            document.getElementById('gold').innerText = gameState.gold;
-            document.getElementById('lvl').innerText = gameState.lvl;
-            document.getElementById('hp').innerText = gameState.hp;
-            
-            // Проверка на существование элементов перед обновлением
-            const hpFill = document.getElementById('hp-fill');
-            const hpText = document.getElementById('hp-text');
-            if (hpFill) hpFill.style.width = (gameState.hp / gameState.maxHp * 100) + '%';
-            if (hpText) hpText.innerText = `${gameState.hp} / ${gameState.maxHp}`;
-            
-            // РИСУЕМ ИНВЕНТАРЬ (исправлено)
-            const invDiv = document.getElementById('inventory-list');
-            if (invDiv) {
-                invDiv.innerHTML = "";
-                // Берем последние 12 шмоток
-                gameState.inv.slice(-12).forEach((item) => {
-                    const slot = document.createElement('div');
-                    slot.className = 'item-slot';
-                    slot.style.display = "inline-flex"; // Чтобы они шли в ряд
-                    slot.style.margin = "2px";
-                    slot.innerHTML = item.icon;
-                    slot.onclick = () => alert(`${item.name}\nБонус: +${item.bonus} к ${item.stat}`);
-                    invDiv.appendChild(slot);
-                });
-            }
-        }
-
-        // КНОПКА ПРОДАЖИ (можно вызвать из консоли или добавить кнопку в HTML)
         function sellAllLoot() {
             if (gameState.inv.length === 0) return alert("Сумка пуста!");
             let profit = gameState.inv.length * 10;
             gameState.gold += profit;
-            gameState.inv = []; // Очищаем инвентарь
+            gameState.inv = [];
             saveGame();
             updateUI();
-            alert(`Весь хлам продан за ${profit} золота!`);
+            alert(`Продано на ${profit} золота!`);
         }
 
-        function log(m) { document.getElementById('battle-log').innerHTML += `> ${m}<br>`; }
+        function rest() {
+            gameState.hp = gameState.maxHp;
+            saveGame();
+            updateUI();
+            alert("Здоровье восстановлено!");
+        }
+
+        function log(m) { 
+            const logDiv = document.getElementById('battle-log');
+            logDiv.innerHTML += `> ${m}<br>`; 
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
+
         function saveGame() { localStorage.setItem('pisok_rpg_save', JSON.stringify(gameState)); }
-        function startDungeon() { 
-            document.getElementById('battle-log').innerHTML = ""; 
-            // Это подставит твою аватарку из папки avatars в экран боя
-            document.getElementById('battle-img').src = `avatars/${gameState.friend}.jpg`;
-            document.getElementById('battle-player-name').innerText = gameState.friend.toUpperCase();
-            
-            showScreen('screen-battle'); 
-            updateUI(); 
-        }
 
         init();
     </script>
