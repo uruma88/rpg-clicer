@@ -153,6 +153,7 @@
             updateUI();
         }
 
+        // ОБНОВЛЕННАЯ ФУНКЦИЯ ИНТЕРФЕЙСА
         function updateUI() {
             if (!gameState) return;
             document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
@@ -162,11 +163,30 @@
             document.getElementById('hp').innerText = gameState.hp;
             document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
             
+            // Рисуем инвентарь (находим его на странице)
             const invDiv = document.getElementById('inventory-list');
             invDiv.innerHTML = "";
-            gameState.inv.slice(-12).forEach(item => {
-                invDiv.innerHTML += `<div class="item-slot" title="${item.name}">${item.icon}</div>`;
+            
+            // Показываем предметы (теперь на них можно нажимать)
+            gameState.inv.slice(-12).forEach((item) => {
+                const slot = document.createElement('div');
+                slot.className = 'item-slot';
+                slot.innerHTML = item.icon;
+                // При клике на предмет показываем инфо
+                slot.onclick = () => alert(`${item.name}\nБонус: +${item.bonus} к ${item.stat}`);
+                invDiv.appendChild(slot);
             });
+        }
+
+        // КНОПКА ПРОДАЖИ (можно вызвать из консоли или добавить кнопку в HTML)
+        function sellAllLoot() {
+            if (gameState.inv.length === 0) return alert("Сумка пуста!");
+            let profit = gameState.inv.length * 10;
+            gameState.gold += profit;
+            gameState.inv = []; // Очищаем инвентарь
+            saveGame();
+            updateUI();
+            alert(`Весь хлам продан за ${profit} золота!`);
         }
 
         function log(m) { document.getElementById('battle-log').innerHTML += `> ${m}<br>`; }
