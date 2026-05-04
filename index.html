@@ -63,18 +63,37 @@
 
         <!-- БОЙ -->
         <div id="screen-battle" class="screen">
-            <div id="enemy-area">
-                <div style="font-size: 60px;">👾</div>
-                <div class="hp-bar"><div id="enemy-hp-fill" style="background:#a29bfe; width:100%; height:100%;"></div></div>
+            <h2 style="color: #a29bfe;">БИТВА С МОНСТРОМ</h2>
+            
+            <!-- ВРАГ -->
+            <div id="enemy-area" style="margin-bottom: 30px;">
+                <div style="font-size: 50px;">👾</div>
+                <div style="font-size: 14px; margin-bottom: 5px;">ДИКИЙ СЛИЗЕНЬ</div>
+                <div class="hp-bar">
+                    <div id="enemy-hp-fill" style="background:#a29bfe; width:100%; height:100%;"></div>
+                    <small style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#fff; text-shadow: 1px 1px 2px #000;">100 / 100</small>
+                </div>
             </div>
-            <div class="player-status">
-                <div class="hp-bar"><div id="hp-fill"></div></div>
-                <p>HP: <span id="hp">100</span></p>
-                <button onclick="attack()">⚔️ УДАР</button>
+
+            <hr style="width: 80%; border: 1px solid #333;">
+
+            <!-- ИГРОК -->
+            <div id="player-area" style="margin-top: 20px;">
+                <div id="battle-avatar-container">
+                    <img id="battle-img" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #f1c40f; object-fit: cover;">
+                </div>
+                <div style="font-size: 16px; margin: 5px 0; color: #f1c40f;" id="battle-player-name">ГЕРОЙ</div>
+                
+                <div class="hp-bar">
+                    <div id="hp-fill"></div>
+                    <small id="hp-text" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#fff; text-shadow: 1px 1px 2px #000;">100 / 100</small>
+                </div>
+                
+                <button onclick="attack()" style="font-size: 20px; width: 200px; margin-top: 15px;">⚔️ УДАР!</button>
             </div>
+
             <div id="battle-log"></div>
         </div>
-    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
