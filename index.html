@@ -3,132 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PISOK RPG: FINAL HTML EDITION</title>
+    <title>PISOK MULTIPLAYER FINAL</title>
     <style>
-        :root { --bg: #0d0d12; --card: #16161e; --accent: #f1c40f; --common: #95a5a6; --rare: #3498db; --epic: #9b59b6; --leg: #e67e22; }
+        :root { --bg: #0d0d12; --card: #16161e; --accent: #f1c40f; --rare: #3498db; --leg: #e67e22; }
         body { background: var(--bg); color: #eee; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; }
         .game { width: 100%; max-width: 450px; }
         .card { background: var(--card); border-radius: 12px; padding: 15px; border: 1px solid #2a2a3a; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        /* Сетка выбора персонажа */
+        /* Выбор персонажа */
         .char-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 15px; }
-        .char-item { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
-        .char-item.selected { border-color: var(--accent); }
+        .char-item { width: 100%; aspect-ratio: 1; border-radius: 8px; border: 2px solid transparent; cursor: pointer; object-fit: cover; filter: grayscale(0.5); }
+        .char-item.selected { border-color: var(--accent); filter: grayscale(0); transform: scale(1.05); }
 
-        /* Полоски и статы */
         .bar { height: 16px; background: #222; border-radius: 8px; overflow: hidden; position: relative; margin: 5px 0; border: 1px solid #000; }
         .fill { height: 100%; transition: 0.4s; background: #e74c3c; }
         .bar-txt { position: absolute; width: 100%; text-align: center; font-size: 10px; line-height: 16px; font-weight: bold; text-shadow: 1px 1px #000; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
-
-        /* Инвентарь */
-        .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-        .slot { aspect-ratio: 1; background: #1a1a20; border: 2px solid #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
-        .rare-1 { border-color: var(--rare); box-shadow: 0 0 5px var(--rare); }
-        .rare-2 { border-color: var(--epic); box-shadow: 0 0 8px var(--epic); }
-        .rare-3 { border-color: var(--leg); box-shadow: 0 0 12px var(--leg); }
-
-        /* Чат */
-        #chat-box { height: 120px; overflow-y: auto; background: #000; padding: 10px; font-size: 12px; border-radius: 8px; border: 1px solid #222; margin-top: 10px; }
-        .msg { margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px; }
-
+        
         .btn { border: none; border-radius: 10px; padding: 12px; color: #fff; font-weight: bold; width: 100%; cursor: pointer; text-transform: uppercase; margin-top: 5px; transition: 0.2s; }
         .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .btn-tab { background: #222; flex: 1; font-size: 11px; color: #888; }
+        .btn-tab { background: #222; flex: 1; font-size: 10px; color: #888; }
         .btn-tab.active { background: #333; color: var(--accent); border-bottom: 2px solid var(--accent); }
 
         .screen { display: none; } .active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        #chat-box { height: 100px; overflow-y: auto; background: #000; padding: 10px; font-size: 12px; border-radius: 8px; border: 1px solid #222; margin-top: 10px; }
+        table { width: 100%; font-size: 13px; margin-top: 10px; border-collapse: collapse; }
+        td { padding: 8px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
 <div class="game">
     <!-- ЭКРАН СОЗДАНИЯ -->
-    <div id="scr-setup" class="screen active">
+    <div id="scr-setup" class="screen">
         <div class="card" style="text-align:center">
             <h2 style="color:var(--accent)">ВЫБЕРИ ГЕРОЯ</h2>
             <div style="display:flex; gap:10px">
-                <button class="btn btn-red" id="b-war" onclick="setCls('Воин')">ВОИН (+ХП)</button>
-                <button class="btn btn-blue" id="b-mag" onclick="setCls('Маг')">МАГ (+УРОН)</button>
+                <button class="btn btn-red" id="b-war" onclick="setCls('Воин')">ВОИН</button>
+                <button class="btn btn-blue" id="b-mag" onclick="setCls('МАГ')">МАГ</button>
             </div>
             <div class="char-grid" id="setup-chars"></div>
-            <button class="btn btn-red" style="margin-top:20px; padding:15px" onclick="startGame()">НАЧАТЬ ПРИКЛЮЧЕНИЕ</button>
+            <button class="btn btn-red" style="margin-top:20px; padding:15px" onclick="startGame()">ВОЙТИ В ИГРУ</button>
         </div>
     </div>
 
     <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="scr-main" class="screen">
         <div class="card">
-            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px">
-                <img id="p-img" style="width:80px; height:80px; border-radius:12px; border:2px solid var(--accent); object-fit:cover">
+            <div style="display:flex; gap:10px; align-items:center">
+                <img id="p-img" style="width:60px; height:60px; border-radius:10px; border:2px solid var(--accent); object-fit:cover">
                 <div style="flex:1">
                     <div style="display:flex; justify-content:space-between">
-                        <b id="p-name">ИМЯ</b> <span id="p-class" style="color:var(--accent); font-size:12px">КЛАСС</span>
+                        <b id="p-name">ИГРОК</b>
+                        <span style="color:var(--accent)">🏆 <span id="p-rank">1000</span> RP</span>
                     </div>
                     <div class="bar"><div id="hp-f" class="fill"></div><div id="hp-t" class="bar-txt"></div></div>
-                    <div style="font-size:12px; margin-top:5px">LVL: <span id="p-lvl">1</span> | Золото: <span id="p-gold">0</span></div>
                 </div>
             </div>
-            <div class="stats">
-                <div>Сила: <span id="st-str" class="val">0</span></div>
-                <div>Защита: <span id="st-def" class="val">0</span></div>
-                <div style="grid-column: span 2">МОЩЬ: <span id="st-pow" class="val" style="font-size:16px">0</span></div>
-            </div>
         </div>
 
-        <div style="display:flex; gap:5px; margin-bottom:10px">
-            <button class="btn btn-tab active" onclick="tab('battle')">⚔️ БОЙ</button>
-            <button class="btn btn-tab" onclick="tab('inv')">🎒 ВЕЩИ</button>
-            <button class="btn btn-tab" onclick="tab('chat')">💬 ЧАТ</button>
-            <button class="btn btn-tab" onclick="tab('forge')">🔥 КУЗНЯ</button>
+        <div style="display:flex; gap:4px; margin-bottom:10px">
+            <button class="btn btn-tab active" onclick="tab('pve')">🏰 ЭТАЖИ</button>
+            <button class="btn btn-tab" onclick="tab('pvp')">⚔️ АРЕНА</button>
+            <button class="btn btn-tab" onclick="tab('top')">🏆 ТОП</button>
         </div>
 
-        <!-- ВКЛАДКИ -->
-        <div id="sub-battle" class="sub active">
+        <!-- PvE -->
+        <div id="sub-pve" class="sub-scr active">
             <div class="card" style="text-align:center">
-                <h4 id="e-name">ВРАГ</h4>
+                <h4 id="e-name">МОНСТР</h4>
                 <div class="bar"><div id="e-hp-f" class="fill" style="background:#9b59b6"></div><div id="e-hp-t" class="bar-txt"></div></div>
-                <div style="font-size:12px; margin-bottom:10px">Этаж: <b id="p-floor">1</b></div>
-                <button id="atk-btn" class="btn btn-red" onclick="attack()">УДАРИТЬ</button>
-                <div id="log"></div>
+                <p style="font-size:12px">Этаж: <b id="p-floor">1</b> | Сила: <b id="p-pow">0</b></p>
+                <button class="btn btn-red" onclick="fight('pve')">АТАКОВАТЬ</button>
             </div>
         </div>
 
-        <div id="sub-inv" class="sub" style="display:none">
-            <div class="card">
-                <h4>ИНВЕНТАРЬ</h4>
-                <div class="inv-grid" id="inv-ui"></div>
-            </div>
-        </div>
-
-        <div id="sub-chat" class="sub" style="display:none">
-            <div class="card">
-                <div id="chat-box"></div>
-                <div style="display:flex; gap:5px; margin-top:5px">
-                    <input id="chat-in" type="text" placeholder="Текст..." style="flex:1; padding:10px; border-radius:8px; border:none; background:#000; color:#fff">
-                    <button class="btn btn-blue" style="width:60px; margin:0" onclick="sendMsg()">></button>
+        <!-- PvP -->
+        <div id="sub-pvp" class="sub-scr" style="display:none">
+            <div class="card" style="text-align:center">
+                <h4 style="color:var(--accent)">ARENA PvP</h4>
+                <div id="pvp-target">Нажми поиск для боя с другом</div>
+                <div id="pvp-ui" style="display:none">
+                    <div class="bar"><div id="v-hp-f" class="fill" style="background:var(--rare)"></div><div id="v-hp-t" class="bar-txt"></div></div>
+                    <button class="btn btn-red" onclick="fight('pvp')">УДАРИТЬ ТЕНЬ</button>
                 </div>
+                <button class="btn btn-blue" id="find-btn" onclick="findShadow()">ИСКАТЬ ПРОТИВНИКА</button>
             </div>
         </div>
 
-        <div id="sub-forge" class="sub" style="display:none">
-            <div class="card" id="forge-ui"></div>
+        <!-- ТОП -->
+        <div id="sub-top" class="sub-scr" style="display:none">
+            <div class="card">
+                <h4>ЛИДЕРЫ ДВИЖУХИ</h4>
+                <table id="top-table"></table>
+            </div>
+        </div>
+        
+        <!-- ЧАТ -->
+        <div class="card">
+            <div id="chat-box"></div>
         </div>
     </div>
 </div>
 
 <script>
 const AVAS = ['юра','алина','бень','богдан','ваня','егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня'];
-let p = JSON.parse(localStorage.getItem('pisok_ultra_v1')) || null;
+const API_URL = "http://n19.bothost.ru:ТВОЙ_ПОРТ"; // <--- ЗАМЕНИ ПОРТ!
+
+let p = JSON.parse(localStorage.getItem('pisok_ultra_v2')) || null;
 let selAva = 'юра';
 let selCls = 'Воин';
+let shadows = [];
 let enemy = null;
-let busy = false;
 
 window.onload = () => {
     if(!p) {
+        document.getElementById('scr-setup').classList.add('active');
         const grid = document.getElementById('setup-chars');
         AVAS.forEach(n => {
             const img = document.createElement('img');
@@ -140,144 +132,104 @@ window.onload = () => {
             };
             grid.appendChild(img);
         });
-        document.querySelectorAll('.char-item')[0].classList.add('selected');
     } else { showMain(); }
 };
 
-function setCls(c) {
-    selCls = c;
-    document.getElementById('b-war').style.opacity = c === 'Воин' ? '1' : '0.5';
-    document.getElementById('b-mag').style.opacity = c === 'Маг' ? '1' : '0.5';
-}
+function setCls(c) { selCls = c; }
 
 function startGame() {
     p = {
-        name: selAva.toUpperCase(), class: selCls, img: `avatars/${selAva}.jpg`,
-        lvl: 1, exp: 0, gold: 100, mats: 0, floor: 1,
-        str: selCls === 'Маг' ? 25 : 15, vit: selCls === 'Воин' ? 200 : 120,
-        hp: selCls === 'Воин' ? 200 : 120,
-        eq: { w: null, a: null }, inv: []
+        name: selAva.toUpperCase(), img: `avatars/${selAva}.jpg`, class: selCls,
+        floor: 1, rank: 1000, str: selCls === 'МАГ'?30:20, vit: selCls === 'Воин'?200:150,
+        hp: selCls === 'Воин'?200:150, gold: 0, eq: {w:null, a:null}
     };
     save(); showMain();
 }
 
-function save() { localStorage.setItem('pisok_ultra_v1', JSON.stringify(p)); updateUI(); }
-
-function updateUI() {
-    const wVal = p.eq.w ? p.eq.w.val : 0;
-    const aVal = p.eq.a ? p.eq.a.val : 0;
-    const maxHP = p.vit + aVal;
-    
-    document.getElementById('p-img').src = p.img;
-    document.getElementById('p-name').innerText = p.name;
-    document.getElementById('p-class').innerText = p.class;
-    document.getElementById('p-lvl').innerText = p.lvl;
-    document.getElementById('p-gold').innerText = p.gold;
-    document.getElementById('st-str').innerText = p.str + wVal;
-    document.getElementById('st-def').innerText = aVal;
-    document.getElementById('p-floor').innerText = p.floor;
-    document.getElementById('st-pow').innerText = (p.str + wVal) * 2 + maxHP;
-    document.getElementById('hp-f').style.width = (p.hp/maxHP*100)+'%';
-    document.getElementById('hp-t').innerText = `${p.hp}/${maxHP}`;
-
-    // Инвентарь
-    const invUI = document.getElementById('inv-ui'); invUI.innerHTML = '';
-    p.inv.forEach((it, i) => {
-        const d = document.createElement('div');
-        d.className = `slot rare-${it.rare}`;
-        d.innerHTML = it.icon;
-        d.onclick = () => {
-            if(p.eq[it.type]) p.inv.push(p.eq[it.type]);
-            p.eq[it.type] = it; p.inv.splice(i, 1); save();
-        };
-        invUI.appendChild(d);
-    });
-
-    // Кузня
-    const fUI = document.getElementById('forge-ui'); fUI.innerHTML = '<h4>КУЗНИЦА</h4>';
-    ['w', 'a'].forEach(s => {
-        if(p.eq[s]) {
-            const it = p.eq[s];
-            const b = document.createElement('button');
-            b.className = 'btn btn-blue';
-            b.innerHTML = `Улучшить ${it.icon} (+${it.val}) за 5🦴`;
-            b.onclick = () => {
-                if(p.mats >= 5) { p.mats -= 5; it.val += 4; save(); }
-                else alert("Мало костей!");
-            };
-            fUI.appendChild(b);
-        }
-    });
+async function sync() {
+    const power = p.str * 2 + p.vit;
+    try {
+        await fetch(`${API_URL}/update_player`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: p.name, pow: power, rank: p.rank, hp: p.vit, str_val: p.str, img: p.img})
+        });
+        const res = await fetch(`${API_URL}/get_shadows`);
+        shadows = await res.json();
+        renderTop();
+    } catch(e) { console.log("Server Offline"); }
 }
 
-function spawn() {
-    const s = Math.pow(1.1, p.floor);
-    enemy = {
-        hp: Math.floor(50 * s), maxHp: Math.floor(50 * s),
-        dmg: Math.floor(5 * s)
-    };
-    document.getElementById('e-hp-f').style.width = '100%';
-    document.getElementById('e-hp-t').innerText = enemy.hp;
+function renderTop() {
+    const sorted = [...shadows].sort((a,b) => b.rank - a.rank);
+    document.getElementById('top-table').innerHTML = sorted.map((s, i) => 
+        `<tr><td>${i+1}. ${s.name}</td><td align="right"><b>${s.rank} RP</b></td></tr>`).join('');
 }
 
-function attack() {
-    if(busy || p.hp <= 0) return;
-    busy = true;
-    const d = p.str + (p.eq.w ? p.eq.w.val : 0);
-    enemy.hp -= d;
-    addLog(`Ты ударил на ${d}`, '#fff');
-    
-    if(enemy.hp <= 0) {
-        addLog("Победа!", "var(--accent)");
-        p.gold += 20; p.floor++;
-        if(Math.random() > 0.5) p.mats++;
-        if(Math.random() > 0.7) drop();
-        save(); spawn(); busy = false; return;
+function fight(mode) {
+    if(!enemy && mode === 'pve') {
+        const s = Math.pow(1.1, p.floor);
+        enemy = { hp: Math.floor(50*s), maxHp: Math.floor(50*s), dmg: Math.floor(5*s) };
     }
     
-    document.getElementById('e-hp-f').style.width = (enemy.hp/enemy.maxHp*100)+'%';
-    document.getElementById('e-hp-t').innerText = enemy.hp;
-    setTimeout(() => {
-        const ed = Math.max(1, enemy.dmg - (p.eq.a ? p.eq.a.val : 0));
-        p.hp -= ed;
-        addLog(`Враг ударил на ${ed}`, '#e74c3c');
-        if(p.hp <= 0) { alert("СМЕРТЬ! Откат на 1 этаж."); p.floor = Math.max(1, p.floor-1); p.hp = p.vit; spawn(); }
-        save(); busy = false;
-    }, 400);
+    // Твой удар
+    enemy.hp -= p.str;
+    if(enemy.hp <= 0) {
+        if(mode === 'pvp') { p.rank += 25; alert("ТЕНЬ ПОВЕРЖЕНА! +25 RP"); tab('pve'); }
+        else { p.floor++; p.gold += 10; }
+        enemy = null; save(); sync(); return;
+    }
+    
+    // Удар врага
+    p.hp -= (mode === 'pvp' ? Math.floor(enemy.str_val*0.8) : enemy.dmg);
+    if(p.hp <= 0) {
+        if(mode === 'pvp') { p.rank = Math.max(0, p.rank-15); alert("ТЕНЬ ОКАЗАЛАСЬ СИЛЬНЕЕ!"); }
+        p.hp = p.vit; p.floor = Math.max(1, p.floor-1); enemy = null;
+    }
+    save(); updateUI(); updateEnemyUI(mode);
 }
 
-function drop() {
-    const r = Math.random();
-    let rare = 0; if(r > 0.95) rare = 3; else if(r > 0.8) rare = 2; else if(r > 0.5) rare = 1;
-    const t = Math.random() > 0.5 ? 'w' : 'a';
-    p.inv.push({ icon: t==='w'?'⚔️':'🛡️', type: t, rare: rare, val: (rare+1)*p.floor*2 });
+function findShadow() {
+    const list = shadows.filter(s => s.name !== p.name);
+    if(list.length === 0) return alert("Друзей пока нет в сети!");
+    enemy = {...list[Math.floor(Math.random()*list.length)], maxHp: 0};
+    enemy.maxHp = enemy.hp;
+    document.getElementById('pvp-target').innerHTML = `Бой против: <b>${enemy.name}</b>`;
+    document.getElementById('pvp-ui').style.display = 'block';
+    updateEnemyUI('pvp');
 }
 
-function addLog(m, c) {
-    const l = document.getElementById('log');
-    l.innerHTML = `<div class="msg" style="color:${c}">${m}</div>` + l.innerHTML;
+function updateUI() {
+    document.getElementById('p-name').innerText = p.name;
+    document.getElementById('p-img').src = p.img;
+    document.getElementById('p-rank').innerText = p.rank;
+    document.getElementById('p-floor').innerText = p.floor;
+    document.getElementById('p-pow').innerText = p.str * 2 + p.vit;
+    document.getElementById('hp-f').style.width = (p.hp/p.vit*100) + '%';
+    document.getElementById('hp-t').innerText = `${p.hp}/${p.vit}`;
 }
 
-function sendMsg() {
-    const i = document.getElementById('chat-in');
-    if(!i.value) return;
-    const b = document.getElementById('chat-box');
-    b.innerHTML += `<div class="msg"><b>${p.name}:</b> ${i.value}</div>`;
-    i.value = ''; b.scrollTop = b.scrollHeight;
+function updateEnemyUI(m) {
+    const pref = m === 'pvp' ? 'v' : 'e';
+    document.getElementById(`${pref}-hp-f`).style.width = (enemy.hp/enemy.maxHp*100) + '%';
+    document.getElementById(`${pref}-hp-t`).innerText = enemy.hp;
+}
+
+function save() { localStorage.setItem('pisok_ultra_v2', JSON.stringify(p)); updateUI(); }
+function showMain() {
+    document.getElementById('scr-setup').classList.remove('active');
+    document.getElementById('scr-main').classList.add('active');
+    updateUI(); sync();
 }
 
 function tab(n) {
-    document.querySelectorAll('.sub').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.sub-scr').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
     document.getElementById('sub-' + n).style.display = 'block';
     event.target.classList.add('active');
 }
 
-function showMain() {
-    document.getElementById('scr-setup').classList.remove('active');
-    document.getElementById('scr-main').classList.add('active');
-    spawn(); updateUI();
-}
+setInterval(sync, 10000); // Синхрон каждые 10 секунд
 </script>
 </body>
 </html>
