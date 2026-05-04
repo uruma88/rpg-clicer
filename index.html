@@ -3,48 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PISOK RPG: REFORGED</title>
+    <title>PISOK RPG: DUNGEON LORDS</title>
     <style>
-        :root { --bg: #0d0d12; --card: #1a1a24; --accent: #f1c40f; --win: #2ecc71; --loss: #e74c3c; }
-        body { margin: 0; background: var(--bg); color: #eee; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --bg: #0a0a0c; --card: #16161e; --accent: #f1c40f; --win: #2ecc71; --loss: #e74c3c; --shop: #9b59b6; }
+        body { margin: 0; background: var(--bg); color: #eee; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         #game-container { max-width: 480px; margin: 0 auto; min-height: 100vh; padding: 15px; box-sizing: border-box; }
         
         .screen { display: none; flex-direction: column; }
         .active { display: flex; }
 
-        /* Профиль */
-        .hero-panel { background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .avatar-area { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; }
-        .p-img { width: 80px; height: 80px; border-radius: 18px; border: 3px solid var(--accent); object-fit: cover; background: #222; }
-        
-        /* Статы */
-        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #222; }
-        .stat-box small { display: block; font-size: 10px; color: #777; text-transform: uppercase; }
-        .stat-box b { color: var(--accent); font-size: 16px; }
+        /* Панель прогресса данжа */
+        .floor-indicator { text-align: center; background: rgba(231, 76, 60, 0.1); border: 1px solid var(--loss); border-radius: 10px; padding: 5px; margin-bottom: 10px; font-weight: bold; color: var(--loss); }
 
-        /* Снаряжение */
-        .eq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .eq-item { background: #222; border: 2px solid #333; border-radius: 15px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; position: relative; }
-        .eq-item.active { border-color: var(--accent); background: #2a2a35; }
-        .plus-tag { position: absolute; top: -5px; right: -5px; background: var(--accent); color: #000; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        /* Карточки */
+        .hero-panel { background: var(--card); border-radius: 20px; padding: 15px; border: 1px solid #333; margin-bottom: 15px; }
+        .avatar-area { display: flex; gap: 15px; align-items: center; }
+        .p-img { width: 65px; height: 65px; border-radius: 15px; border: 2px solid var(--accent); object-fit: cover; }
+        
+        /* Сетка предметов */
+        .eq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .eq-item { background: #222; border: 1px solid #444; border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; }
+        .plus-tag { position: absolute; top: -5px; right: -5px; background: var(--accent); color: #000; font-size: 9px; padding: 2px 5px; border-radius: 8px; font-weight: bold; }
+
+        /* Магазин */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        .shop-item { background: var(--card); border: 1px solid var(--shop); border-radius: 12px; padding: 10px; text-align: center; }
 
         /* Кнопки */
-        .btn { width: 100%; padding: 16px; border-radius: 16px; border: none; font-weight: bold; margin-bottom: 12px; cursor: pointer; transition: 0.2s; color: #fff; font-size: 14px; text-transform: uppercase; }
-        .btn:active { transform: scale(0.97); }
-        .btn-battle { background: linear-gradient(135deg, #e74c3c, #c0392b); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); }
-        .btn-forge { background: linear-gradient(135deg, #f39c12, #d35400); }
-        .btn-inn { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; margin-bottom: 8px; cursor: pointer; color: #fff; text-transform: uppercase; font-size: 13px; }
+        .btn-battle { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-shop { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .btn-inn { background: #27ae60; }
+        .btn-back { background: #555; }
 
-        /* Инвентарь */
-        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 20px; border: 1px solid #222; min-height: 80px; }
-        .inv-slot { aspect-ratio: 1; background: #1c1c24; border-radius: 12px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .hp-bar { width: 100%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; margin: 5px 0; }
+        .hp-fill { height: 100%; transition: 0.3s; }
         
-        /* Бой */
-        .battle-entity { text-align: center; padding: 40px 0; }
-        #enemy-sprite { font-size: 80px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        .hp-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin: 10px 0; }
-        .hp-fill { height: 100%; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .inv-slot { width: 50px; height: 50px; background: #1c1c24; border: 1px solid #333; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -52,193 +47,166 @@
 <div id="game-container">
     <!-- ГОРОД -->
     <div id="screen-city" class="screen active">
+        <div class="floor-indicator">ТЕКУЩИЙ ЭТАЖ: <span id="cur-floor">1</span></div>
+        
         <div class="hero-panel">
             <div class="avatar-area">
-                <img id="p-img" class="p-img" src="" onerror="this.src='https://ui-avatars.com/api/?background=333&color=fff&name=P'">
+                <img id="p-img" class="p-img" src="" onerror="this.src='https://ui-avatars.com/api/?name=Hero'">
                 <div style="flex:1">
-                    <h2 id="p-name" style="margin:0; letter-spacing: 1px;">ЮРА</h2>
-                    <div style="font-size: 11px; color: var(--accent); font-weight: bold; margin-top: 4px;">POWER SCORE: <span id="p-power">0</span></div>
+                    <h3 id="p-name" style="margin:0">ЮРА</h3>
+                    <div style="font-size: 10px; color: var(--accent);">POWER: <span id="p-power">0</span> | HP: <span id="p-hp-num">100/100</span></div>
                     <div class="hp-bar"><div id="hp-fill" class="hp-fill" style="background:var(--loss)"></div></div>
                 </div>
             </div>
 
             <div class="eq-grid">
-                <div class="eq-item" id="eq-weapon" onclick="showForge('weapon')">
-                    <span style="font-size:24px" id="p-wep-icon">👊</span>
-                    <div><small style="display:block; font-size:9px; opacity:0.5">ОРУЖИЕ</small><b id="p-wep-name">Кулаки</b></div>
-                    <div id="p-wep-lvl" class="plus-tag">+0</div>
+                <div class="eq-item" onclick="forge('weapon')">
+                    <span id="p-wep-icon">🗡️</span>
+                    <div style="font-size:11px"><b id="p-wep-lvl">+0</b><br>ATK</div>
                 </div>
-                <div class="eq-item" id="eq-armor" onclick="showForge('armor')">
-                    <span style="font-size:24px" id="p-arm-icon">👕</span>
-                    <div><small style="display:block; font-size:9px; opacity:0.5">БРОНЯ</small><b id="p-arm-name">Тряпки</b></div>
-                    <div id="p-arm-lvl" class="plus-tag">+0</div>
+                <div class="eq-item" onclick="forge('armor')">
+                    <span id="p-arm-icon">🛡️</span>
+                    <div style="font-size:11px"><b id="p-arm-lvl">+0</b><br>DEF</div>
                 </div>
             </div>
 
-            <div class="stats-row">
-                <div class="stat-box"><small>Золото</small><b id="p-gold">0</b></div>
-                <div class="stat-box"><small>Шкуры</small><b id="p-skins">0</b></div>
-                <div class="stat-box"><small>Руда</small><b id="p-ore">0</b></div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; background:rgba(0,0,0,0.4); padding:8px; border-radius:8px;">
+                <span>💰 <span id="p-gold">0</span></span>
+                <span>🐺 <span id="p-skins">0</span></span>
+                <span>⛓️ <span id="p-ore">0</span></span>
             </div>
         </div>
 
-        <div style="margin-top: 20px;">
-            <button class="btn btn-battle" onclick="startBattle()">⚔️ ОТПРАВИТЬСЯ В ДАНЖ</button>
-            <button class="btn btn-inn" onclick="rest()">🍺 ТАВЕРНА (ОТДЫХ)</button>
-        </div>
+        <button class="btn btn-battle" onclick="showScreen('screen-battle'); startBattle()">⚔️ ВОЙТИ В ДАНЖ</button>
+        <button class="btn btn-shop" onclick="showScreen('screen-shop')">🛒 МАГАЗИН</button>
+        <button class="btn btn-inn" onclick="rest()">🍺 ТАВЕРНА (20💰)</button>
+    </div>
 
-        <h4 style="margin: 15px 0 10px 5px; font-size: 12px; color: #777;">ИНВЕНТАРЬ (НАЖМИ, ЧТОБЫ НАДЕТЬ)</h4>
-        <div id="inventory" class="inv-grid"></div>
+    <!-- МАГАЗИН -->
+    <div id="screen-shop" class="screen">
+        <h2 style="color:var(--shop)">ЛАВКА МЕРЛИНА</h2>
+        <div class="shop-grid">
+            <div class="shop-item">
+                <div style="font-size:30px">🧪</div>
+                <div style="font-size:12px; margin:5px 0">Зелье HP</div>
+                <button class="btn btn-shop" style="padding:5px" onclick="buyItem('potion', 50)">50💰</button>
+            </div>
+            <div class="shop-item">
+                <div style="font-size:30px">📦</div>
+                <div style="font-size:12px; margin:5px 0">Случайный Лут</div>
+                <button class="btn btn-shop" style="padding:5px" onclick="buyItem('chest', 150)">150💰</button>
+            </div>
+        </div>
+        <button class="btn btn-back" style="margin-top:20px" onclick="showScreen('screen-city')">НАЗАД В ГОРОД</button>
     </div>
 
     <!-- БОЙ -->
     <div id="screen-battle" class="screen">
-        <div class="battle-entity">
-            <div id="enemy-sprite">👾</div>
-            <h2 id="enemy-name">ОРК</h2>
-            <div class="hp-bar" style="width: 200px; margin: 0 auto;"><div id="e-hp-fill" class="hp-fill" style="background:var(--win)"></div></div>
-            <div id="battle-log" style="font-size: 12px; color: #888; height: 60px; margin-top: 20px; overflow: hidden;"></div>
+        <div style="text-align:center; padding:30px 0;">
+            <div id="e-icon" style="font-size:80px; transition: 0.2s">👹</div>
+            <h2 id="e-name" style="margin:10px 0">МОНСТР</h2>
+            <div class="hp-bar" style="width:200px; margin:0 auto;"><div id="e-hp-fill" class="hp-fill" style="background:var(--win)"></div></div>
+            <div id="battle-log" style="font-size:12px; color:#888; margin-top:15px; height:40px"></div>
         </div>
-        <button class="btn btn-battle" id="atk-btn" onclick="attack()">НАНЕСТИ УДАР</button>
+        <button class="btn btn-battle" id="atk-btn" onclick="attack()">УДАРИТЬ</button>
     </div>
 </div>
 
 <script>
-    let p = JSON.parse(localStorage.getItem('psk_final_v1')) || {
-        name: 'Юра', gold: 100, skins: 0, ore: 0, hp: 100, max: 100, str: 10, def: 5,
-        weapon: { name: 'Меч новичка', icon: '🗡️', stat: 5, lvl: 0, type: 'weapon' },
-        armor: { name: 'Кожанка', icon: '🛡️', stat: 2, lvl: 0, type: 'armor' },
-        inv: []
+    let p = JSON.parse(localStorage.getItem('psk_dungeon_v1')) || {
+        name: 'Юра', gold: 100, skins: 0, ore: 0, hp: 100, max: 100, floor: 1,
+        wepLvl: 0, armLvl: 0, inv: []
     };
 
     let enemy = null;
 
-    function save() { localStorage.setItem('psk_final_v1', JSON.stringify(p)); }
+    function save() { localStorage.setItem('psk_dungeon_v1', JSON.stringify(p)); }
 
     function updateUI() {
-        document.getElementById('p-name').innerText = p.name.toUpperCase();
         document.getElementById('p-img').src = `avatars/${p.name.toLowerCase()}.jpg`;
         document.getElementById('p-gold').innerText = p.gold;
         document.getElementById('p-skins').innerText = p.skins;
         document.getElementById('p-ore').innerText = p.ore;
+        document.getElementById('cur-floor').innerText = p.floor;
+        document.getElementById('p-wep-lvl').innerText = `+${p.wepLvl}`;
+        document.getElementById('p-arm-lvl').innerText = `+${p.armLvl}`;
+        document.getElementById('p-hp-num').innerText = `${Math.floor(p.hp)}/${p.max}`;
         
-        // Отрисовка надетых вещей
-        document.getElementById('p-wep-icon').innerText = p.weapon.icon;
-        document.getElementById('p-wep-name').innerText = p.weapon.name;
-        document.getElementById('p-wep-lvl').innerText = `+${p.weapon.lvl}`;
-        
-        document.getElementById('p-arm-icon').innerText = p.armor.icon;
-        document.getElementById('p-arm-name').innerText = p.armor.name;
-        document.getElementById('p-arm-lvl').innerText = `+${p.armor.lvl}`;
-
-        // Power Score
-        let power = (p.str + p.weapon.stat + p.weapon.lvl * 2) + (p.def + p.armor.stat + p.armor.lvl * 2);
+        let power = 10 + (p.wepLvl * 5) + (p.armLvl * 3) + (p.floor * 2);
         document.getElementById('p-power').innerText = power;
-
         document.getElementById('hp-fill').style.width = (p.hp / p.max * 100) + '%';
-
-        // Инвентарь
-        const inv = document.getElementById('inventory');
-        inv.innerHTML = '';
-        p.inv.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = 'inv-slot';
-            div.innerHTML = item.icon;
-            div.onclick = () => equip(idx);
-            inv.appendChild(div);
-        });
         save();
     }
 
-    // КУЗНЕЦ (Улучшение)
-    function showForge(type) {
-        let item = p[type];
-        let cost = (item.lvl + 1) * 50;
-        let res = (item.lvl + 1) * 2;
-        
-        if (confirm(`Улучшить ${item.name} до +${item.lvl+1}?\nЦена: ${cost} Золота и ${res} Руды`)) {
-            if (p.gold >= cost && p.ore >= res) {
-                p.gold -= cost; p.ore -= res;
-                item.lvl++;
-                alert("Успешно заточено!");
-                updateUI();
-            } else {
-                alert("Не хватает ресурсов!");
-            }
-        }
+    function forge(type) {
+        let lvl = type === 'weapon' ? p.wepLvl : p.armLvl;
+        let cost = (lvl + 1) * 40;
+        if(p.gold >= cost) {
+            p.gold -= cost;
+            if(type === 'weapon') p.wepLvl++; else p.armLvl++;
+            alert("Улучшено!"); updateUI();
+        } else alert("Нужно " + cost + " золота!");
+    }
+
+    function buyItem(type, cost) {
+        if(p.gold >= cost) {
+            p.gold -= cost;
+            if(type === 'potion') { p.hp = p.max; alert("Здоровье восстановлено!"); }
+            if(type === 'chest') { p.wepLvl += 2; alert("В сундуке была заточка! +2 к оружию!"); }
+            updateUI();
+        } else alert("Мало золота!");
     }
 
     function startBattle() {
-        enemy = { name: 'Лесной Тролль', hp: 60, max: 60, str: 8, icon: '👹' };
-        document.getElementById('enemy-name').innerText = enemy.name;
-        document.getElementById('enemy-sprite').innerText = enemy.icon;
-        document.getElementById('battle-log').innerText = "Вы встретили врага!";
-        showScreen('screen-battle');
+        let isBoss = p.floor % 5 === 0;
+        enemy = {
+            name: isBoss ? "БОСС: ПОЖИРАТЕЛЬ" : "Гоблин-разведчик",
+            hp: (20 * p.floor) + (isBoss ? 200 : 0),
+            max: (20 * p.floor) + (isBoss ? 200 : 0),
+            str: 5 + (p.floor * 2),
+            icon: isBoss ? "🐉" : "👺"
+        };
+        document.getElementById('e-icon').innerText = enemy.icon;
+        document.getElementById('e-name').innerText = enemy.name;
+        document.getElementById('battle-log').innerText = isBoss ? "ПРИГОТОВЬСЯ К СМЕРТИ!" : "Враг нападает!";
         updateBattleUI();
     }
 
     function attack() {
-        // Твой урон
-        let pDmg = (p.str + p.weapon.stat + p.weapon.lvl * 3) - Math.floor(Math.random() * 5);
-        enemy.hp -= pDmg;
-        log(`Ты ударил на ${pDmg}!`);
+        let dmg = 10 + (p.wepLvl * 4) + Math.floor(Math.random() * 10);
+        enemy.hp -= dmg;
+        document.getElementById('e-icon').style.transform = "scale(1.2)";
+        setTimeout(() => document.getElementById('e-icon').style.transform = "scale(1)", 100);
 
-        if (enemy.hp <= 0) return win();
+        if(enemy.hp <= 0) return win();
 
-        // Урон врага
-        let eDmg = Math.max(1, enemy.str - (p.def + p.armor.lvl));
+        let eDmg = Math.max(1, enemy.str - (p.armLvl * 3));
         p.hp -= eDmg;
-        log(`${enemy.name} задел тебя на ${eDmg}!`);
+        document.getElementById('battle-log').innerText = `Ты: -${dmg} HP | Враг: -${eDmg} HP`;
 
-        if (p.hp <= 0) {
-            p.hp = 1;
-            alert("Тебя вырубили! Ты потерял немного золота.");
-            p.gold = Math.floor(p.gold * 0.8);
+        if(p.hp <= 0) {
+            p.hp = 1; p.floor = Math.max(1, p.floor - 1);
+            alert("Ты пал... Пришлось отступить на этаж назад.");
             showScreen('screen-city');
         }
-        updateBattleUI();
-        updateUI();
+        updateBattleUI(); updateUI();
     }
 
     function win() {
-        let gold = 30 + Math.floor(Math.random() * 30);
-        let ore = Math.random() > 0.5 ? 1 : 0;
-        let skin = Math.random() > 0.5 ? 1 : 0;
-        
-        p.gold += gold; p.ore += ore; p.skins += skin;
-        alert(`Победа!\nПолучено: ${gold}💰, ${ore}⛓️, ${skin}🐺`);
-        
-        // Шанс найти новую вещь
-        if (Math.random() > 0.8) {
-            p.inv.push({ name: 'Ржавый топор', icon: '🪓', stat: 8, lvl: 0, type: 'weapon' });
-        }
-        
+        let reward = 20 + (p.floor * 10);
+        p.gold += reward;
+        if(p.floor % 5 === 0) { p.ore += 5; alert("БОСС ПОВЕРЖЕН! +5 Руды"); }
+        p.floor++;
+        alert(`Победа! Этаж ${p.floor-1} пройден. Награда: ${reward}💰`);
         showScreen('screen-city');
         updateUI();
     }
 
-    function equip(idx) {
-        let item = p.inv[idx];
-        let old = p[item.type];
-        p[item.type] = item;
-        p.inv[idx] = old;
-        updateUI();
-    }
-
-    function rest() {
-        if (p.gold >= 20) {
-            p.gold -= 20; p.hp = p.max;
-            alert("Ты выспался и полон сил!");
-            updateUI();
-        } else alert("Нет денег на комнату!");
-    }
-
-    function log(m) { document.getElementById('battle-log').prepend(m + " "); }
+    function rest() { if(p.gold >= 20) { p.gold -= 20; p.hp = p.max; updateUI(); } }
     function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function updateBattleUI() { document.getElementById('e-hp-fill').style.width = (enemy.hp/enemy.max*100) + '%'; }
 
     updateUI();
 </script>
-
 </body>
 </html>
