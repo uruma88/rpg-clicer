@@ -3,366 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PISOK RPG: LEGACY</title>
+    <title>PISOK RPG: CLASS & BOSS UPDATE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg: #0d0d12; --card: #16161e; --accent: #f1c40f;
-            --text: #e0e0e0; --blue: #3498db; --red: #e74c3c;
-            --mana: #9b59b6; --green: #27ae60;
+            --text: #e0e0e0; --red: #e74c3c; --blue: #3498db; --green: #2ecc71; --purp: #9b59b6;
         }
         body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 10px; margin: 0; }
-        .game-container { width: 100%; max-width: 480px; }
-        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #2a2a3a; margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .game-container { width: 100%; max-width: 450px; position: relative; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #2a2a3a; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
         
-        /* Статы и бары */
-        .stats-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 10px; margin: 6px 0; border: 1px solid #222; }
-        .stat-up { background: var(--accent); border: none; border-radius: 5px; width: 28px; height: 28px; cursor: pointer; font-weight: bold; color: #000; }
-        
-        .bar { background: #222; height: 16px; border-radius: 8px; overflow: hidden; margin: 5px 0; position: relative; border: 1px solid #000; }
-        .bar-fill { height: 100%; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .hp-fill { background: linear-gradient(90deg, #c0392b, #e74c3c); }
-        .mana-fill { background: linear-gradient(90deg, #8e44ad, #9b59b6); }
-        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 10px; top: 0; line-height: 16px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        /* Характеристики */
+        .stats-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid #333; }
+        .stat-line { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 2px 0; }
+        .val { color: var(--accent); font-weight: bold; }
 
-        /* Кнопки */
-        .btn { padding: 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; text-transform: uppercase; font-size: 13px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:active { transform: scale(0.96); }
-        .btn-atk { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .btn-skl { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .btn-arena { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .btn-chat { background: linear-gradient(135deg, #27ae60, #219150); }
+        /* Персонаж */
+        .char-row { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; }
+        .view-box { width: 90px; height: 90px; background: #000; border: 2px solid var(--accent); border-radius: 12px; overflow: hidden; position: relative; }
+        .layer { position: absolute; width: 100%; height: 100%; object-fit: cover; }
         
         /* Инвентарь */
-        .inventory { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; min-height: 50px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-        .item { background: #1e1e26; border: 2px solid #333; border-radius: 8px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; transition: 0.2s; }
-        .item:hover { border-color: var(--accent); }
-        .rarity-rare { border-color: var(--blue); }
-        .rarity-legend { border-color: var(--accent); box-shadow: 0 0 10px rgba(241, 196, 15, 0.3); }
+        .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; }
+        .item { aspect-ratio: 1; background: #1e1e26; border: 2px solid #333; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; position: relative; }
+        .item.wrong-class { opacity: 0.5; border-color: #500; }
+        .class-tag { position: absolute; bottom: 1px; font-size: 7px; background: rgba(0,0,0,0.7); padding: 1px 3px; border-radius: 3px; }
+
+        /* Бой */
+        .boss-title { color: var(--accent); font-weight: bold; text-shadow: 0 0 10px var(--red); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.6; } }
         
+        .bar { height: 16px; background: #222; border-radius: 8px; overflow: hidden; border: 1px solid #000; position: relative; margin: 5px 0; }
+        .fill { height: 100%; transition: 0.3s; }
+        .hp-fill { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+        .bar-txt { position: absolute; width: 100%; text-align: center; font-size: 10px; line-height: 16px; font-weight: bold; text-shadow: 1px 1px 1px #000; }
+
+        .btn { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; text-transform: uppercase; margin-top: 5px; color: white; }
+        .btn-red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .btn-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+
         .screen { display: none; } .active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .class-desc { font-size: 10px; opacity: 0.8; font-weight: normal; text-transform: none; margin-top: 2px; }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <!-- ЭКРАН СОЗДАНИЯ -->
+    <!-- ВЫБОР КЛАССА -->
     <div id="scr-setup" class="screen active">
-        <div class="card">
-            <h2 style="text-align:center; color:var(--accent)">СОЗДАНИЕ ГЕРОЯ</h2>
-            <div id="hero-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:20px;"></div>
-            
-            <div style="display:grid; gap:10px;">
-                <button class="btn btn-atk" onclick="startRPG('Воин', 200, 15, 60, 'Вихрь стали (Урон x2)')">
-                    <div>⚔️ ВОИН<div class="class-desc">+Бонус к HP и базовая мощь</div></div>
-                </button>
-                <button class="btn btn-skl" onclick="startRPG('Маг', 110, 10, 180, 'Взрыв разума (Урон x3)')">
-                    <div>🔮 МАГ<div class="class-desc">+Огромный запас маны</div></div>
-                </button>
-                <button class="btn btn-chat" onclick="startRPG('Разбойник', 140, 18, 90, 'Удар в спину (Крит x4)')">
-                    <div>🗡️ РАЗБОЙНИК<div class="class-desc">+Высокий базовый урон</div></div>
-                </button>
+        <div class="card" style="text-align:center">
+            <h2>ВЫБЕРИ СВОЙ КЛАСС</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                <button class="btn btn-red" onclick="selCls='Воин'">ВОИН<br><small>Высокий HP</small></button>
+                <button class="btn btn-blue" onclick="selCls='Маг'">МАГ<br><small>Высокий Урон</small></button>
             </div>
+            <div id="hero-list" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;"></div>
+            <button class="btn btn-red" style="margin-top:20px" onclick="startGame()">НАЧАТЬ ИГРУ</button>
         </div>
     </div>
 
     <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="scr-main" class="screen">
         <div class="card">
-            <div style="display:flex; align-items:center; margin-bottom:15px;">
-                <img id="p-img" src="" style="width:70px; height:70px; border-radius:12px; border:2px solid var(--accent); margin-right:15px; object-fit: cover;">
+            <div class="char-row">
+                <div class="view-box">
+                    <img id="l-base" class="layer">
+                    <img id="l-armor" class="layer" style="display:none">
+                    <img id="l-weapon" class="layer" style="display:none">
+                </div>
                 <div style="flex:1">
-                    <div style="display:flex; justify-content:space-between; align-items:center">
-                        <b id="p-name" style="font-size:18px">ЮРА</b>
-                        <small id="p-lvl" style="color:var(--accent)">Lvl 1</small>
+                    <div style="display:flex; justify-content:space-between">
+                        <b id="ui-name">ГЕРОЙ</b>
+                        <span id="ui-class" style="color:var(--accent); font-size:12px">КЛАСС</span>
                     </div>
-                    <div class="bar"><div id="hp-fill" class="bar-fill hp-fill"></div><div id="hp-txt" class="bar-text"></div></div>
-                    <div class="bar"><div id="mp-fill" class="bar-fill mana-fill"></div><div id="mp-txt" class="bar-text"></div></div>
+                    <div class="bar"><div id="hp-f" class="fill hp-fill"></div><div id="hp-t" class="bar-txt"></div></div>
+                    <div style="font-size:12px; margin-top:5px">Этаж: <span id="ui-floor" class="val">1</span> | Золото: <span id="ui-gold" class="val">0</span></div>
                 </div>
             </div>
 
-            <div id="points-notif" style="color:var(--accent); text-align:center; font-size:12px; margin-bottom:8px; display:none; animation: pulse 1s infinite;">✨ Есть свободные очки прокачки!</div>
-            
-            <div class="stats-box">
-                <div class="stats-row"><span>💪 Сила (Урон)</span> <div><span id="s-str">0</span> <button class="stat-up" onclick="upStat('str')">+</button></div></div>
-                <div class="stats-row"><span>❤️ Живучесть (HP)</span> <div><span id="s-vit">10</span> <button class="stat-up" onclick="upStat('vit')">+</button></div></div>
-                <div class="stats-row"><span>🧠 Интеллект (MP)</span> <div><span id="s-int">10</span> <button class="stat-up" onclick="upStat('int')">+</button></div></div>
-            </div>
-            
-            <div style="display:flex; justify-content:space-around; margin-top:15px; padding-top:10px; border-top:1px solid #333;">
-                <div style="text-align:center">💰<br><span id="p-gold">0</span></div>
-                <div style="text-align:center">🏢<br><span id="p-fl">1</span></div>
-                <div style="text-align:center">🏆<br><span id="p-wins">0</span></div>
+            <div class="stats-detail">
+                <div class="stat-line">Сила: <span id="st-str" class="val">0</span></div>
+                <div class="stat-line">Урон оружия: <span id="st-w" class="val">0</span></div>
+                <div class="stat-line">Здоровье: <span id="st-vit" class="val">0</span></div>
+                <div class="stat-line">Защита: <span id="st-def" class="val">0</span></div>
+                <div class="stat-line" style="grid-column: span 2">ИТОГОВАЯ МОЩЬ: <span id="st-power" class="val">0</span></div>
             </div>
         </div>
 
-        <button class="btn btn-atk" style="width:100%; font-size:16px;" onclick="goBattle(false)">⚔️ В БОЙ (ПОДЗЕМЕЛЬЕ)</button>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-            <button class="btn btn-arena" onclick="openScreen('scr-top'); loadTop();">🏆 АРЕНА</button>
-            <button class="btn btn-chat" onclick="openScreen('scr-chat'); loadChat();">💬 ЧАТ</button>
+        <button class="btn btn-red" style="font-size:18px" onclick="startBattle()">⚔️ В БОЙ</button>
+
+        <div class="card" style="margin-top:15px">
+            <div style="font-size:11px; margin-bottom:5px">ИНВЕНТАРЬ (Нажми на вещь):</div>
+            <div class="inv-grid" id="ui-inv"></div>
         </div>
         
-        <div style="margin-top:15px; font-size:12px; color:#888;">ИНВЕНТАРЬ (нажми, чтобы экипировать):</div>
-        <div class="inventory" id="p-inv"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+             <button class="btn" style="background:#333" onclick="unequip('w')">СНЯТЬ ОРУЖИЕ</button>
+             <button class="btn" style="background:#333" onclick="unequip('a')">СНЯТЬ БРОНЮ</button>
+        </div>
     </div>
 
     <!-- ЭКРАН БОЯ -->
     <div id="scr-battle" class="screen">
-        <div class="card" style="text-align:center">
-            <h3 id="en-name">МОНСТР</h3>
-            <div class="bar" style="height:20px"><div id="en-hp" class="bar-fill hp-fill"></div><div id="en-hp-txt" class="bar-text"></div></div>
-            <div id="battle-log" style="font-size:13px; color:var(--accent); margin-top:15px; min-height:50px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">Готов к бою!</div>
-        </div>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button class="btn btn-atk" onclick="turn('atk')">🗡️ УДАР</button>
-            <button class="btn btn-skl" onclick="turn('skl')">✨ НАВЫК</button>
-            <button class="btn btn-chat" id="btn-potion" style="background:#27ae60" onclick="turn('heal')">🧪 ХИЛ (0)</button>
-            <button class="btn" style="background:#444" onclick="openScreen('scr-main')">🏳️ ПОБЕГ</button>
-        </div>
-    </div>
-
-    <!-- ТАБЛИЦА ЛИДЕРОВ -->
-    <div id="scr-top" class="screen">
-        <div class="card">
-            <h3 style="text-align:center">🏆 ЛУЧШИЕ БОЙЦЫ</h3>
-            <div id="top-box" style="max-height:350px; overflow-y:auto;"></div>
-            <button class="btn" style="width:100%; margin-top:15px; background:#444" onclick="openScreen('scr-main')">ВЕРНУТЬСЯ</button>
-        </div>
-    </div>
-
-    <!-- ЧАТ -->
-    <div id="scr-chat" class="screen">
-        <div class="card">
-            <div id="chat-box" style="height:300px; overflow-y:auto; font-size:13px; margin-bottom:10px; padding-right:5px;"></div>
-            <div style="display:flex; gap:8px;">
-                <input id="chat-in" type="text" placeholder="Сообщение..." style="flex:1; padding:12px; border-radius:10px; border:none; background:#222; color:white;">
-                <button class="btn btn-arena" style="width:50px" onclick="sendChat()">></button>
-            </div>
-            <button class="btn" style="width:100%; margin-top:15px; background:#444" onclick="openScreen('scr-main')">НАЗАД</button>
+        <div class="card" style="text-align:center" id="bt-card">
+            <h2 id="bt-en-name">МОНСТР</h2>
+            <div class="bar"><div id="bt-en-hp-f" class="fill hp-fill"></div><div id="bt-en-hp-t" class="bar-txt"></div></div>
+            <div style="margin:15px 0">⚔️</div>
+            <div class="bar"><div id="bt-p-hp-f" class="fill hp-fill"></div><div id="bt-p-hp-t" class="bar-txt"></div></div>
+            <div id="bt-log" style="height:80px; overflow-y:auto; font-size:12px; background:#000; padding:5px; text-align:left; border-radius:5px"></div>
+            <button class="btn btn-red" style="margin-top:10px" onclick="doTurn()">УДАРИТЬ</button>
         </div>
     </div>
 </div>
 
 <script>
-// Настройки
-const SUPABASE_URL = 'https://uvyapclbduzxuyxqnbvz.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_juj8gj9mZGfv_ltA4VH4pg_Vl4uPmy5';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const AVATARS = ['алина','бень','богдан','ваня','егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня','юра'];
-
-let p = JSON.parse(localStorage.getItem('pisok_rpg_v4')) || null;
-let selName = 'юра';
-let enemy = null;
+const AVAS = ['алина','бень','богдан','ваня','егор','илюха','капрал','кирилл','лера','никитос','полина','рома','саша','серега','таня','юра'];
+let p = JSON.parse(localStorage.getItem('pisok_rpg_v8')) || null;
+let selAva = 'юра';
+let selCls = 'Воин';
+let combat = null;
 
 window.onload = () => {
     if(!p) {
-        const hList = document.getElementById('hero-list');
-        AVATARS.forEach(n => {
-            const div = document.createElement('div');
-            div.innerHTML = `<img src="avatars/${n}.jpg" style="width:100%; border-radius:8px; cursor:pointer; border:2px solid transparent;" onclick="selectHero('${n}', this)">`;
-            hList.appendChild(div);
+        const list = document.getElementById('hero-list');
+        AVAS.forEach(n => {
+            const img = document.createElement('img');
+            img.src = `avatars/${n}.jpg`;
+            img.style = "width:100%; border-radius:5px; cursor:pointer; border:2px solid transparent";
+            img.onclick = () => { selAva = n; document.querySelectorAll('#hero-list img').forEach(i=>i.style.borderColor='transparent'); img.style.borderColor='gold'; };
+            list.appendChild(img);
         });
-        openScreen('scr-setup');
-    } else {
-        openScreen('scr-main');
-        updateUI();
-    }
-}
+    } else { showMain(); }
+};
 
-function selectHero(n, el) {
-    document.querySelectorAll('#hero-list img').forEach(img => img.style.borderColor = 'transparent');
-    el.style.borderColor = '#f1c40f';
-    selName = n;
-}
-
-function openScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
-
-function startRPG(cls, hp, str, mp, skill) {
+function startGame() {
     p = {
-        name: selName, img: `avatars/${selName}.jpg`, class: cls,
-        lvl: 1, exp: 0, gold: 0, floor: 1, wins: 0,
-        hp: hp, maxHp: hp, mp: mp, maxMp: mp,
-        stats: { str: str, vit: 10, int: 10 }, points: 5,
-        skillName: skill, potions: 3, vampirism: 0, inv: []
+        name: selAva, class: selCls, img: `avatars/${selAva}.jpg`,
+        floor: 1, gold: 100,
+        stats: { str: (selCls==='Маг'?20:10), vit: (selCls==='Воин'?150:100) },
+        eq: { w: null, a: null },
+        inv: []
     };
-    save(); updateUI(); openScreen('scr-main');
+    save(); showMain();
 }
 
-function save() { localStorage.setItem('pisok_rpg_v4', JSON.stringify(p)); }
-
-function upStat(s) {
-    if(p.points <= 0) return;
-    p.points--;
-    if(s === 'str') p.stats.str += 2;
-    if(s === 'vit') { p.stats.vit += 1; p.maxHp += 20; p.hp = p.maxHp; }
-    if(s === 'int') { p.stats.int += 1; p.maxMp += 15; p.mp = p.maxMp; }
-    save(); updateUI();
+function save() { 
+    localStorage.setItem('pisok_rpg_v8', JSON.stringify(p)); 
+    updateUI();
 }
 
 function updateUI() {
     if(!p) return;
-    document.getElementById('p-img').src = p.img;
-    document.getElementById('p-name').innerText = p.name.toUpperCase();
-    document.getElementById('p-lvl').innerText = `${p.class} | Lvl ${p.lvl}`;
-    document.getElementById('hp-txt').innerText = `${Math.floor(p.hp)} / ${p.maxHp}`;
-    document.getElementById('hp-fill').style.width = (p.hp / p.maxHp * 100) + '%';
-    document.getElementById('mp-txt').innerText = `${p.mp} / ${p.maxMp}`;
-    document.getElementById('mp-fill').style.width = (p.mp / p.maxMp * 100) + '%';
-    
-    document.getElementById('s-str').innerText = p.stats.str;
-    document.getElementById('s-vit').innerText = p.stats.vit;
-    document.getElementById('s-int').innerText = p.stats.int;
-    document.getElementById('p-gold').innerText = p.gold;
-    document.getElementById('p-fl').innerText = p.floor;
-    document.getElementById('p-wins').innerText = p.wins;
-    document.getElementById('btn-potion').innerText = `🧪 ХИЛ (${p.potions})`;
-    document.getElementById('points-notif').style.display = p.points > 0 ? 'block' : 'none';
+    const wBonus = p.eq.w ? p.eq.w.val : 0;
+    const aBonus = p.eq.a ? p.eq.a.val : 0;
 
-    const invDiv = document.getElementById('p-inv');
-    invDiv.innerHTML = '';
-    p.inv.forEach((item, i) => {
-        const div = document.createElement('div');
-        div.className = `item rarity-${item.r}`;
-        div.innerText = item.i;
-        div.onclick = () => useItem(i);
-        invDiv.appendChild(div);
+    document.getElementById('l-base').src = p.img;
+    document.getElementById('ui-name').innerText = p.name.toUpperCase();
+    document.getElementById('ui-class').innerText = p.class;
+    document.getElementById('st-str').innerText = p.stats.str;
+    document.getElementById('st-w').innerText = wBonus;
+    document.getElementById('st-vit').innerText = p.stats.vit + aBonus;
+    document.getElementById('st-def').innerText = aBonus;
+    document.getElementById('st-power').innerText = (p.stats.str + wBonus) + (p.stats.vit + aBonus);
+    document.getElementById('ui-floor').innerText = p.floor;
+    document.getElementById('ui-gold').innerText = p.gold;
+
+    // Слои
+    const lw = document.getElementById('l-weapon');
+    if(p.eq.w) { lw.src = p.eq.w.img; lw.style.display='block'; } else lw.style.display='none';
+    const la = document.getElementById('l-armor');
+    if(p.eq.a) { la.src = p.eq.a.img; la.style.display='block'; } else la.style.display='none';
+
+    document.getElementById('hp-f').style.width = '100%';
+    document.getElementById('hp-t').innerText = (p.stats.vit + aBonus) + " HP";
+
+    // Инвентарь
+    const grid = document.getElementById('ui-inv');
+    grid.innerHTML = '';
+    p.inv.forEach((it, i) => {
+        const d = document.createElement('div');
+        const isWrong = it.reqClass !== p.class;
+        d.className = `item ${isWrong ? 'wrong-class' : ''}`;
+        d.innerHTML = `${it.i} <span class="class-tag">${it.reqClass[0]}</span>`;
+        d.onclick = () => {
+            if(isWrong) return alert("Этот предмет только для класса: " + it.reqClass);
+            if(p.eq[it.type]) p.inv.push(p.eq[it.type]);
+            p.eq[it.type] = it;
+            p.inv.splice(i, 1);
+            save();
+        };
+        grid.appendChild(d);
     });
 }
 
-function goBattle(isPvP, target = null) {
-    enemy = isPvP ? 
-        { n: target.username, hp: 100 + (target.floor * 25), max: 100 + (target.floor * 25), pwr: 10 + (target.floor * 3), pvp: true } :
-        { n: "Страж этажа " + p.floor, hp: 60 + (p.floor * 20), max: 60 + (p.floor * 20), pwr: 6 + (p.floor * 2.5), pvp: false };
-    
-    document.getElementById('battle-log').innerText = "Твой ход!";
-    updateBattleUI();
-    openScreen('scr-battle');
+function unequip(type) {
+    if(!p.eq[type]) return;
+    p.inv.push(p.eq[type]);
+    p.eq[type] = null;
+    save();
 }
 
-function updateBattleUI() {
-    document.getElementById('en-name').innerText = enemy.n;
-    document.getElementById('en-hp').style.width = (enemy.hp / enemy.max * 100) + '%';
-    document.getElementById('en-hp-txt').innerText = `${Math.floor(enemy.hp)} HP`;
-}
-
-function turn(type) {
-    let log = "";
-    let dmg = p.stats.str + (Math.random() * 5);
-
-    if(type === 'atk') {
-        log = `Ты нанес ${Math.floor(dmg)} урона! `;
-    } else if(type === 'skl') {
-        if(p.mp < 30) { alert("Мало маны!"); return; }
-        p.mp -= 30;
-        dmg *= (p.class === 'Маг' ? 3 : 2);
-        log = `Навык ${p.skillName}: ${Math.floor(dmg)} урона! `;
-    } else if(type === 'heal') {
-        if(p.potions <= 0) { alert("Зелья кончились!"); return; }
-        p.potions--;
-        let heal = p.maxHp * 0.5;
-        p.hp = Math.min(p.maxHp, p.hp + heal);
-        log = `Выпито зелье: +${Math.floor(heal)} HP! `;
-        dmg = 0;
-    }
-
-    if(dmg > 0 && p.vampirism > 0) {
-        let vHeal = dmg * (p.vampirism / 100);
-        p.hp = Math.min(p.maxHp, p.hp + vHeal);
-    }
-
-    enemy.hp -= dmg;
-    if(enemy.hp <= 0) return win();
-
-    // Ответ врага
-    let eDmg = enemy.pwr + (Math.random() * 4);
-    p.hp -= eDmg;
-    log += `\nВраг бьет в ответ: -${Math.floor(eDmg)} HP`;
-    
-    document.getElementById('battle-log').innerText = log;
-    if(p.hp <= 0) die();
-    
-    updateBattleUI();
+function showMain() {
+    document.getElementById('scr-setup').classList.remove('active');
+    document.getElementById('scr-main').classList.add('active');
     updateUI();
 }
 
+// ЛОГИКА БОЯ
+function startBattle() {
+    const isBoss = p.floor % 10 === 0;
+    const multi = Math.pow(1.12, p.floor); // Скейлинг 12% за этаж
+    
+    combat = {
+        p_hp: p.stats.vit + (p.eq.a ? p.eq.a.val : 0),
+        p_max: p.stats.vit + (p.eq.a ? p.eq.a.val : 0),
+        p_dmg: p.stats.str + (p.eq.w ? p.eq.w.val : 0),
+        e_hp: Math.floor((50 + p.floor * 15) * multi * (isBoss ? 3 : 1)),
+        e_max: Math.floor((50 + p.floor * 15) * multi * (isBoss ? 3 : 1)),
+        e_dmg: Math.floor((5 + p.floor * 2) * multi * (isBoss ? 1.5 : 1)),
+        isBoss: isBoss
+    };
+
+    document.getElementById('bt-en-name').innerText = isBoss ? "🔥 БОСС ЭТАЖА 🔥" : "МОНСТР";
+    document.getElementById('bt-en-name').className = isBoss ? "boss-title" : "";
+    document.getElementById('bt-log').innerHTML = "Бой начался!";
+    updateBars();
+    document.getElementById('scr-main').classList.remove('active');
+    document.getElementById('scr-battle').classList.add('active');
+}
+
+function updateBars() {
+    document.getElementById('bt-p-hp-f').style.width = (combat.p_hp / combat.p_max * 100) + '%';
+    document.getElementById('bt-p-hp-t').innerText = combat.p_hp + " HP";
+    document.getElementById('bt-en-hp-f').style.width = (combat.e_hp / combat.e_max * 100) + '%';
+    document.getElementById('bt-en-hp-t').innerText = combat.e_hp + " HP";
+}
+
+function doTurn() {
+    // Ты
+    const d = Math.floor(combat.p_dmg * (0.9 + Math.random() * 0.2));
+    combat.e_hp -= d;
+    log(`Ты ударил на ${d}`);
+    
+    if(combat.e_hp <= 0) return win();
+
+    // Враг
+    setTimeout(() => {
+        const ed = Math.floor(combat.e_dmg * (0.9 + Math.random() * 0.2));
+        combat.p_hp -= ed;
+        log(`Враг ударил на ${ed}`, 'red');
+        if(combat.p_hp <= 0) return lose();
+        updateBars();
+    }, 300);
+    updateBars();
+}
+
+function log(t, color) {
+    const b = document.getElementById('bt-log');
+    b.innerHTML += `<div style="color:${color||'#fff'}">${t}</div>`;
+    b.scrollTop = b.scrollHeight;
+}
+
 function win() {
-    alert("ПОБЕДА!");
-    if(enemy.pvp) { p.wins++; p.gold += 50; } 
-    else {
-        p.exp += 50 + (p.floor * 10);
-        p.gold += 15 + p.floor;
-        p.floor++;
-        if(Math.random() > 0.6) p.inv.push({i:'🗡️', s: p.floor, r: Math.random() > 0.8 ? 'legend' : 'rare'});
-        if(p.inv.length > 10) p.inv.shift();
+    alert(combat.isBoss ? "БОСС ПОВЕРЖЕН!" : "Победа!");
+    p.gold += combat.isBoss ? 200 : 30;
+    p.floor++;
+    
+    // Шанс дропа
+    if(combat.isBoss || Math.random() > 0.7) {
+        const classes = ['Воин', 'Маг'];
+        const types = ['w', 'a'];
+        const rCls = classes[Math.floor(Math.random()*2)];
+        const rTyp = types[Math.floor(Math.random()*2)];
+        
+        p.inv.push({
+            n: 'Предмет',
+            i: rTyp === 'w' ? '⚔️' : '🛡️',
+            type: rTyp,
+            reqClass: rCls,
+            val: p.floor * 5 * (combat.isBoss ? 2 : 1),
+            img: rTyp === 'w' ? 'w_item.png' : 'a_item.png'
+        });
+        alert("Выпал предмет для класса: " + rCls);
     }
     
-    if(p.exp >= p.lvl * 120) {
-        p.lvl++; p.exp = 0; p.points += 5; p.potions = 3;
-        alert("НОВЫЙ УРОВЕНЬ: " + p.lvl);
-    }
-    
-    supabaseClient.from('leaderboards').upsert({ username: p.name, floor: p.floor, pvp_wins: p.wins });
-    save(); updateUI(); openScreen('scr-main');
+    end();
 }
 
-function die() {
-    alert("Ты пал в бою... Золото потеряно!");
-    p.hp = p.maxHp; p.gold = 0;
-    save(); updateUI(); openScreen('scr-main');
+function lose() {
+    alert("Смерть...");
+    p.gold = Math.floor(p.gold / 2);
+    end();
 }
 
-function useItem(idx) {
-    let it = p.inv[idx];
-    p.stats.str += it.s;
-    if(it.r === 'legend') p.vampirism += 3;
-    p.inv.splice(idx, 1);
-    alert(`Предмет поглощен! Бонус к силе: +${it.s}`);
-    save(); updateUI();
-}
-
-// Сетевые функции
-async function loadTop() {
-    const topBox = document.getElementById('top-box');
-    topBox.innerHTML = "Загрузка...";
-    try {
-        const { data } = await supabaseClient.from('leaderboards').select('*').order('pvp_wins', { ascending: false }).limit(10);
-        if(!data) throw 'null';
-        topBox.innerHTML = data.map(u => `
-            <div class="stats-row">
-                <span>${u.username} (🏆 ${u.pvp_wins || 0})</span>
-                <button class="stat-up" style="width:70px; font-size:11px" onclick="attackPlayer('${u.username}')">АТАКА</button>
-            </div>
-        `).join('');
-    } catch(e) { topBox.innerHTML = "Ошибка базы. Но ты лучший!"; }
-}
-
-async function attackPlayer(name) {
-    const { data } = await supabaseClient.from('leaderboards').select('*').eq('username', name).single();
-    goBattle(true, data);
-}
-
-async function loadChat() {
-    const { data } = await supabaseClient.from('messages').select('*').order('id', { ascending: false }).limit(20);
-    if(data) {
-        document.getElementById('chat-box').innerHTML = data.reverse().map(m => 
-            `<div style="margin-bottom:5px"><b>${m.username}:</b> ${m.text}</div>`
-        ).join('');
-    }
-}
-
-async function sendChat() {
-    const i = document.getElementById('chat-in');
-    if(!i.value) return;
-    await supabaseClient.from('messages').insert({ username: p.name, text: i.value });
-    i.value = ''; loadChat();
+function end() {
+    save();
+    document.getElementById('scr-battle').classList.remove('active');
+    document.getElementById('scr-main').classList.add('active');
 }
 </script>
 </body>
