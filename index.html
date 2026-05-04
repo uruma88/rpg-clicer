@@ -176,31 +176,35 @@
         // ОБНОВЛЕННАЯ ФУНКЦИЯ ИНТЕРФЕЙСА
         function updateUI() {
             if (!gameState) return;
-            // Эта строка у тебя уже есть (обновляет полоску)
-    document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
-    
-    // ЭТУ СТРОКУ ДОБАВЬ (она напишет цифры 160 / 160 поверх полоски)
-    document.getElementById('hp-text').innerText = `${gameState.hp} / ${gameState.maxHp}`;
+            
+            // Обновляем текст и полоски
             document.getElementById('display-name').innerText = gameState.friend.toUpperCase();
             document.getElementById('display-class').innerText = gameState.class;
             document.getElementById('gold').innerText = gameState.gold;
             document.getElementById('lvl').innerText = gameState.lvl;
             document.getElementById('hp').innerText = gameState.hp;
-            document.getElementById('hp-fill').style.width = (gameState.hp / gameState.maxHp * 100) + '%';
             
-            // Рисуем инвентарь (находим его на странице)
+            // Проверка на существование элементов перед обновлением
+            const hpFill = document.getElementById('hp-fill');
+            const hpText = document.getElementById('hp-text');
+            if (hpFill) hpFill.style.width = (gameState.hp / gameState.maxHp * 100) + '%';
+            if (hpText) hpText.innerText = `${gameState.hp} / ${gameState.maxHp}`;
+            
+            // РИСУЕМ ИНВЕНТАРЬ (исправлено)
             const invDiv = document.getElementById('inventory-list');
-            invDiv.innerHTML = "";
-            
-            // Показываем предметы (теперь на них можно нажимать)
-            gameState.inv.slice(-12).forEach((item) => {
-                const slot = document.createElement('div');
-                slot.className = 'item-slot';
-                slot.innerHTML = item.icon;
-                // При клике на предмет показываем инфо
-                slot.onclick = () => alert(`${item.name}\nБонус: +${item.bonus} к ${item.stat}`);
-                invDiv.appendChild(slot);
-            });
+            if (invDiv) {
+                invDiv.innerHTML = "";
+                // Берем последние 12 шмоток
+                gameState.inv.slice(-12).forEach((item) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'item-slot';
+                    slot.style.display = "inline-flex"; // Чтобы они шли в ряд
+                    slot.style.margin = "2px";
+                    slot.innerHTML = item.icon;
+                    slot.onclick = () => alert(`${item.name}\nБонус: +${item.bonus} к ${item.stat}`);
+                    invDiv.appendChild(slot);
+                });
+            }
         }
 
         // КНОПКА ПРОДАЖИ (можно вызвать из консоли или добавить кнопку в HTML)
