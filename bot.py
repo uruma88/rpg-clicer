@@ -1,89 +1,33 @@
 import os
-import logging
-import asyncio
+import mimetypes
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import uvicorn
-from fastapi import FastAPI, BaseModel
-from pydantic import BaseModel
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, ContextTypes
 
-# --- НАСТРОЙКИ ---
-TOKEN = os.environ.get("BOT_TOKEN")
-# Сюда будут сохраняться игроки (пока бот запущен)
-players_db = {}
+app = FastAPI()
 
-# --- СЕРВЕРНАЯ ЧАСТЬ (FASTAPI) ---
-api = FastAPI()
+# Правильные типы для Godot
+mimetypes.add_type('application/wasm', '.wasm')
+mimetypes.add_type('application/x-pck', '.pck')
 
-class PlayerData(BaseModel):
-    name: str
-    pow: int
-    rank: int
-    hp: int
-    str_val: int
-    img: str
+# Заголовки безопасности (COOP/COEP) - БЕЗ НИХ НОВАЯ ИГРА НЕ ЗАПУСТИТСЯ
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    return response
 
-@api.post("/update_player")
-async def update_player(data: PlayerData):
-    players_db[data.name] = data.dict()
-    return {"status": "ok"}
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
-@api.get("/get_shadows")
-async def get_shadows():
-    return list(players_db.values())
+@app.get("/")
+async def serve_game():
+    return FileResponse(os.path.join(current_dir, "index.html"))
 
-# --- ЛОГИКА ТЕЛЕГРАМ БОТА ---
-logging.basicConfig(level=logging.INFO)
-
-def get_game_keyboard():
-    keyboard = [[
-        InlineKeyboardButton(
-            "🎮 ИГРАТЬ В КЛИКЕР 🎮", 
-            web_app=WebAppInfo(url="https://uruma88.github.io/rpg-clicer/")
-        )
-    ]]
-    return InlineKeyboardMarkup(keyboard)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "👾 Привет! Нажми на кнопку, чтобы открыть игру:",
-        reply_markup=get_game_keyboard()
-    )
-
-async def game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "👇 Нажми на кнопку, чтобы открыть кликер:",
-        reply_markup=get_game_keyboard()
-    )
-
-# --- ЗАПУСК ВСЕГО ВМЕСТЕ ---
-async def run_bot():
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("game", game_command))
-    
-    async with app:
-        await app.initialize()
-        await app.start()
-        print("✅ Бот запущен!")
-        await app.updater.start_polling()
-        # Держим бота запущенным
-        while True:
-            await asyncio.sleep(1)
-
-async def run_api():
-    # Заменяем 8080 на 3000, как просит хостинг
-    config = uvicorn.Config(api, host="0.0.0.0", port=3000, log_level="info")
-    server = uvicorn.Server(config)
-    print("🚀 API Сервер запущен на порту 3000")
-    await server.serve()
-
-async def main():
-    # Запускаем обе задачи параллельно
-    await asyncio.gather(run_api(), run_bot())
+# Раздача .wasm и .pck
+app.mount("/", StaticFiles(directory=current_dir), name="static")
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    # Используем порт 3000, так как логи BotHost показали его
+    uvicorn.run(app, host="0.0.0.0", port=3000)
